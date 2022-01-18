@@ -1,0 +1,3 @@
+mutation addXCartItems($fromCart: String, $toCart: String) {
+  addXCartItems(fromCart: $fromCart, toCart: $toCart)
+}
