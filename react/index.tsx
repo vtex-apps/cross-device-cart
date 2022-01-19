@@ -12,14 +12,11 @@ import MUTATE_CART from './graphql/addXCartItems.gql'
 import ChallengeBlock from './components/ChallengeBlock'
 import { adjustSkuItemForPixelEvent } from './utils'
 
-interface CrossCartProps {
-  challengeType: ChallengeType
-}
-
-interface ExtendedCrossCart extends CrossCartProps {
-  userId: string
-}
-
+/**
+ * To accomplish this we store and read orderform Ids for comparison.
+ * If we find that the user has a different orderform from another session
+ * we challenge them to add their items to the current orderform.
+ */
 // eslint-disable-next-line react/prop-types
 const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
@@ -35,6 +32,17 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   ] = useMutation(MUTATE_CART)
 
   console.log(orderForm.id)
+
+  const handleSaveCurrent = () => {
+    saveXCart({
+      variables: {
+        userId,
+        orderformId: orderForm.id,
+      },
+    })
+
+    crossCartDetected && setChallenge(false)
+  }
 
   useEffect(() => {
     getXCart({
@@ -52,12 +60,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     const XCart = data?.getXCart && data?.getXCart !== ''
 
     if (!XCart) {
-      saveXCart({
-        variables: {
-          userId,
-          orderformId: orderForm.id,
-        },
-      })
+      handleSaveCurrent()
     }
 
     if (XCart && data?.getXCart !== orderForm.id) {
@@ -68,17 +71,6 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading])
-
-  const handleSaveCurrent = () => {
-    saveXCart({
-      variables: {
-        userId,
-        orderformId: orderForm.id,
-      },
-    })
-
-    setChallenge(false)
-  }
 
   const handleMerge = async (showToast: (toast: ToastParam) => void) => {
     const mutationResult = await mergeCart({
@@ -120,9 +112,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }
 
-  if (!crossCartDetected) {
-    return null
-  }
+  if (!crossCartDetected) return null
 
   return (
     <ToastConsumer>
@@ -147,18 +137,21 @@ const SessionWrapper: FC<CrossCartProps> = ({
 
   if (error || loading || !session || orderLoading) return null
 
-  const authorizedSession = session as SessionSuccess
-  const {
-    namespaces: { profile },
-  } = authorizedSession
+  try {
+    const {
+      namespaces: { profile },
+    } = session as SessionSuccess
 
-  const isAuthenticated = profile?.isAuthenticated.value === 'true'
+    const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
-  if (!isAuthenticated) return null
+    if (!isAuthenticated) throw 'User not authenticated'
 
-  const userId = profile?.id.value
+    const userId = profile?.id.value
 
-  return <CrossDeviceCart challengeType={challengeType} userId={userId} />
+    return <CrossDeviceCart challengeType={challengeType} userId={userId} />
+  } catch (err) {
+    return null
+  }
 }
 
 export default SessionWrapper

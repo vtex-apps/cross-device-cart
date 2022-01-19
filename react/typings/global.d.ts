@@ -10,3 +10,11 @@ interface ToastParam {
   duration?: number
   horizontalPosition?: 'left' | 'right'
 }
+
+interface CrossCartProps {
+  challengeType: ChallengeType
+}
+
+interface ExtendedCrossCart extends CrossCartProps {
+  userId: string
+}

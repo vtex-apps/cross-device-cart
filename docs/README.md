@@ -10,9 +10,54 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- DOCS-IGNORE:end -->
 
-The main feature users are looking for is to keep an up-to-date shopping cart through different devices. This single feature is one of the most important experiences of a truly unified commerce.
+The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
 
-To do so in VTEX we created a feature that enables logged in users to retrieve their items at any time.
+To do so in VTEX we created a feature that enables `logged in` users to retrieve their items on any session.
+
+## Configuration
+
+1. Import the app to your theme's dependencies in `manifest.json`, for example:
+
+```json
+  "dependencies": {
+    // ...
+    "vtex.cross-device-cart": "0.x"
+  }
+```
+
+2. Add the `cross-device-cart` block as a children of your store header, for i.e:
+
+```diff
+ "header-layout.desktop": {
+    "children": [
++     "cross-device-cart",
+      "flex-layout.row#1-desktop",
+      "flex-layout.row#2-desktop",
+      "flex-layout.row#3-desktop",
+      "sticky-layout#4-desktop"
+    ]
+  },
+```
+
+3. (Optional) Declare the `cross-device-cart` block, using its props to define the Challenge UI that will be rendered:
+
+```json
+"cross-device-cart": {
+  "props": {
+    "challengeType": "notification"
+  }
+},
+```
+
+### `cross-device-cart` props
+
+| Prop name       | Type     | Description                                                                                                      | Default value |
+| --------------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ------------- |
+| `challengeType` | `string` | How the user challenge will be rendered. Possible values are `actionBar`, `floatingBar`, `notification`, `modal` | `actionBar`   |
+
+## Customization
+
+`No CSS Handles are available yet for the app customization.`
 
 <!-- DOCS-IGNORE:start -->
 
