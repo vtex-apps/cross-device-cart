@@ -1,0 +1,6 @@
+{
+  "store/crossCart.challenge.cta": "Challenge's call to action",
+  "store/crossCart.challenge.text": "Description of service provided",
+  "store/crossCart.toast.success": "Toast message for added items",
+  "store/crossCart.toast.error": "Toast message for error while adding items"
+}

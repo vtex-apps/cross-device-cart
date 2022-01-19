@@ -1,4 +1,4 @@
-type ChallengeType = 'actionBar' | 'notification' | 'floatingBar' | 'modal'
+type ChallengeType = 'actionBar' | 'floatingBar' | 'modal'
 
 interface OrderFormContext {
   orderForm: any

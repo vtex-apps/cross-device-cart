@@ -5,6 +5,7 @@ import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { useMutation, useLazyQuery } from 'react-apollo'
 import { usePixel } from 'vtex.pixel-manager/PixelContext'
 import { ToastConsumer } from 'vtex.styleguide'
+import { useIntl } from 'react-intl'
 
 import GET_ID_BY_USER from './graphql/getXCart.gql'
 import SAVE_ID_BY_USER from './graphql/saveXCart.gql'
@@ -21,6 +22,7 @@ import { adjustSkuItemForPixelEvent } from './utils'
 const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const { push } = usePixel()
+  const intl = useIntl()
   const [crossCartDetected, setChallenge] = useState(false)
 
   const [getXCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
@@ -30,8 +32,6 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     mergeCart,
     { error: mutationError, loading: mutationLoading },
   ] = useMutation(MUTATE_CART)
-
-  console.log(orderForm.id)
 
   const handleSaveCurrent = () => {
     saveXCart({
@@ -55,8 +55,6 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   useEffect(() => {
     if (loading || !data) return
 
-    console.log('%c crossCart ', 'background: #fff; color: #333', data)
-
     const XCart = data?.getXCart && data?.getXCart !== ''
 
     if (!XCart) {
@@ -66,8 +64,6 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     if (XCart && data?.getXCart !== orderForm.id) {
       setChallenge(true)
     }
-
-    // If equals... do we store a reference in session-storage to stop querying?
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, loading])
@@ -81,7 +77,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       console.error(mutationError)
 
       showToast({
-        message: 'An error ocurred while adding your items',
+        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
       })
 
       return
@@ -98,7 +94,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     mutationResult.data && setOrderForm(newOrderForm)
 
     showToast({
-      message: 'Items successfully added to your cart',
+      message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
     })
 
     const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
@@ -109,7 +105,6 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     })
 
     handleSaveCurrent()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }
 
   if (!crossCartDetected) return null

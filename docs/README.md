@@ -44,16 +44,16 @@ To do so in VTEX we created a feature that enables `logged in` users to retrieve
 ```json
 "cross-device-cart": {
   "props": {
-    "challengeType": "notification"
+    "challengeType": "floatingBar"
   }
 },
 ```
 
 ### `cross-device-cart` props
 
-| Prop name       | Type     | Description                                                                                                      | Default value |
-| --------------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ------------- |
-| `challengeType` | `string` | How the user challenge will be rendered. Possible values are `actionBar`, `floatingBar`, `notification`, `modal` | `actionBar`   |
+| Prop name       | Type     | Description                                                                                      | Default value |
+| --------------- | -------- | ------------------------------------------------------------------------------------------------ | ------------- |
+| `challengeType` | `string` | How the user challenge will be rendered. Possible values are `actionBar`, `floatingBar`, `modal` | `actionBar`   |
 
 ## Customization
 

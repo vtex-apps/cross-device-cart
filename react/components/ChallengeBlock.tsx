@@ -1,12 +1,7 @@
 import React, { FC, useState } from 'react'
 import { useDevice } from 'vtex.device-detector'
-import {
-  Button,
-  ButtonWithIcon,
-  IconClose,
-  Alert,
-  Modal,
-} from 'vtex.styleguide'
+import { FormattedMessage } from 'react-intl'
+import { Button, ButtonWithIcon, IconClose, Modal } from 'vtex.styleguide'
 
 const close = <IconClose />
 
@@ -39,8 +34,7 @@ const ChallengeBlock: FC<Props> = ({
         className={`${classes} w-100 bg-base flex items-center justify-center`}
       >
         <span className={`t-small ${device === 'phone' ? 'pb3' : ''}`}>
-          It seems you left some item/s in another device. Do you want to
-          recover them?
+          <FormattedMessage id="store/crossCart.challenge.text" />
         </span>
         <div className="flex">
           <span className="mh4">
@@ -52,7 +46,7 @@ const ChallengeBlock: FC<Props> = ({
               }}
               isLoading={mutationLoading}
             >
-              Do it
+              <FormattedMessage id="store/crossCart.challenge.cta" />
             </Button>
           </span>
           <span>
@@ -68,19 +62,6 @@ const ChallengeBlock: FC<Props> = ({
           </span>
         </div>
       </div>
-    )
-  }
-
-  if (type === 'notification') {
-    return (
-      <Alert
-        type="warning"
-        action={{ label: 'Do it', onClick: () => handleAccept(toastHandler) }}
-        onClose={() => handleDecline()}
-      >
-        It seems you left some item/s in another device. Do you want to recover
-        them?
-      </Alert>
     )
   }
 
@@ -102,15 +83,14 @@ const ChallengeBlock: FC<Props> = ({
               }}
               isLoading={mutationLoading}
             >
-              Do it
+              <FormattedMessage id="store/crossCart.challenge.cta" />
             </Button>
           </div>
         }
       >
         <div className="dark-gray pv7">
           <span>
-            It seems you left some item/s in another device. Do you want to
-            recover them?
+            <FormattedMessage id="store/crossCart.challenge.text" />
           </span>
         </div>
       </Modal>
