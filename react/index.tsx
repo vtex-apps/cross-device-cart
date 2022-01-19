@@ -2,41 +2,31 @@
 import React, { FC, useEffect, useState } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
-/* import type { OrderForm as OrderFormType } from 'vtex.checkout-graphql' */
 import { useMutation, useLazyQuery } from 'react-apollo'
+import { usePixel } from 'vtex.pixel-manager/PixelContext'
+import { ToastConsumer } from 'vtex.styleguide'
 
 import GET_ID_BY_USER from './graphql/getXCart.gql'
 import SAVE_ID_BY_USER from './graphql/saveXCart.gql'
 import MUTATE_CART from './graphql/addXCartItems.gql'
-import DebugBlock from './components/debug/DebugBlock'
 import ChallengeBlock from './components/ChallengeBlock'
+import { adjustSkuItemForPixelEvent } from './utils'
 
-interface Props {
+interface CrossCartProps {
   challengeType: ChallengeType
-  debug: boolean
 }
 
-interface OrderFormContext {
-  loading: boolean
-  orderForm: any
-  setOrderForm: (orderForm: any) => void
+interface ExtendedCrossCart extends CrossCartProps {
+  userId: string
 }
 
-const CrossDeviceCart: FC<Props> = ({
-  debug = true,
-  challengeType = 'actionBar',
-}) => {
-  const { loading: sessionLoading, session } = useRenderSession()
-  const {
-    loading: orderLoading,
-    orderForm,
-    setOrderForm,
-  } = useOrderForm() as OrderFormContext
-
-  const [loggedIn, setLogStatus] = useState(false)
+// eslint-disable-next-line react/prop-types
+const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
+  const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
+  const { push } = usePixel()
   const [crossCartDetected, setChallenge] = useState(false)
 
-  const [getCrossCart, { data: crossCart }] = useLazyQuery(GET_ID_BY_USER)
+  const [getXCart, { data }] = useLazyQuery(GET_ID_BY_USER)
   const [saveXCart] = useMutation(SAVE_ID_BY_USER)
 
   const [
@@ -44,34 +34,22 @@ const CrossDeviceCart: FC<Props> = ({
     { error: mutationError, loading: mutationLoading },
   ] = useMutation(MUTATE_CART)
 
-  useEffect(() => {
-    if (session && !sessionLoading) {
-      setLogStatus(
-        (session as SessionSuccess).namespaces?.profile?.isAuthenticated
-          .value === 'true'
-      )
-    }
-  }, [session, sessionLoading])
+  console.log(orderForm.id)
 
   useEffect(() => {
-    if (loggedIn) {
-      getCrossCart({
-        variables: {
-          userId: (session as SessionSuccess)?.namespaces?.profile?.id.value,
-        },
-      })
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loggedIn])
+    getXCart({
+      variables: {
+        userId,
+      },
+    })
+  }, [getXCart, userId])
 
   useEffect(() => {
-    console.log('%c crossCart ', 'background: #fff; color: #333', crossCart)
-    console.log('%c orderForm ', 'background: #fff; color: #333', orderForm)
+    console.log('%c crossCart ', 'background: #fff; color: #333', data)
 
-    const XorderformId = crossCart?.getXCart
-    const userId = (session as SessionSuccess)?.namespaces?.profile?.id.value
+    const XorderformId = data?.getXCart && data?.getXCart !== ''
 
-    if (!XorderformId && userId) {
+    if (!XorderformId) {
       saveXCart({
         variables: {
           userId,
@@ -87,45 +65,12 @@ const CrossDeviceCart: FC<Props> = ({
     // If equals... do we store a reference in session-storage to stop querying?
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [crossCart])
+  }, [data])
 
-  const handleAccept = async () => {
-    // Mutate cart
-    console.log('ACCEPTED')
-
-    const mutationResult = await mergeCart({
-      variables: { fromCart: crossCart?.getXCart, toCart: orderForm.id },
-    })
-
-    if (mutationError) {
-      console.error(mutationError)
-
-      /* toast? */
-      return
-    }
-
-    if (mutationResult.data) {
-      /* toast? */
-      console.log(
-        '%c mutationResult.data ',
-        'background: red; color: white',
-        mutationResult.data
-      )
-    }
-
-    // Update OrderForm from the context
-    mutationResult.data && setOrderForm(mutationResult.data.addXCartItems)
-
-    // Send event to pixel-manager
-    /* const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
-    push({
-      event: 'addToCart',
-      items: pixelEventItems,
-    }) */
-
+  const handleSaveCurrent = () => {
     saveXCart({
       variables: {
-        userId: (session as SessionSuccess)?.namespaces?.profile?.id.value,
+        userId,
         orderForm: orderForm.id,
       },
     })
@@ -133,47 +78,85 @@ const CrossDeviceCart: FC<Props> = ({
     setChallenge(false)
   }
 
-  const handleDecline = () => {
-    // Mutate VBASE, delete old record and add new one
-    console.log('DECLINED')
+  const handleMerge = async (showToast: (toast: ToastParam) => void) => {
+    const mutationResult = await mergeCart({
+      variables: { fromCart: data?.getXCart, toCart: orderForm.id },
+    })
+
+    if (mutationError) {
+      console.error(mutationError)
+
+      showToast({
+        message: 'An error ocurred while adding your items',
+      })
+
+      return
+    }
+
+    let newOrderForm
+    let skuItems
+
+    if (mutationResult.data) {
+      newOrderForm = mutationResult.data.addXCartItems
+      skuItems = newOrderForm.items
+    }
+
+    mutationResult.data && setOrderForm(newOrderForm)
+
+    showToast({
+      message: 'Items successfully added to your cart',
+    })
+
+    const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
+
+    push({
+      event: 'addToCart',
+      items: pixelEventItems,
+    })
+
+    handleSaveCurrent()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }
 
-  console.log(session)
-
-  if (sessionLoading || orderLoading) {
+  if (!crossCartDetected) {
     return null
   }
 
   return (
-    <>
-      {crossCartDetected && (
+    <ToastConsumer>
+      {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
         <ChallengeBlock
           type={challengeType}
-          handleAccept={handleAccept}
-          handleDecline={handleDecline}
+          handleAccept={handleMerge}
+          handleDecline={handleSaveCurrent}
           mutationLoading={mutationLoading}
+          toastHandler={showToast}
         />
       )}
-      {debug && (
-        <DebugBlock>
-          <span>XCART DEBUG</span>
-          <span>
-            <b>User id</b>:{' '}
-            {(session as SessionSuccess)?.namespaces?.profile?.id.value}
-          </span>
-          <span>
-            <b>Authenticated</b>: {String(loggedIn)}
-          </span>
-          <span>
-            <b>X Cart id</b>: {String(crossCart?.getXCart)}
-          </span>
-          <span>
-            <b>Current id</b>: {orderForm.id}
-          </span>
-        </DebugBlock>
-      )}
-    </>
+    </ToastConsumer>
   )
 }
 
-export default CrossDeviceCart
+const SessionWrapper: FC<CrossCartProps> = ({
+  challengeType = 'actionBar',
+}) => {
+  const { loading, session, error } = useRenderSession()
+  const { loading: orderLoading } = useOrderForm()
+
+  if (error || loading || !session || orderLoading) return null
+
+  const authorizedSession = session as SessionSuccess
+  const {
+    namespaces: { profile },
+  } = authorizedSession
+
+  const isAuthenticated = profile?.isAuthenticated.value === 'true'
+
+  if (!isAuthenticated) return null
+
+  const userId = profile?.id.value
+
+  return <CrossDeviceCart challengeType={challengeType} userId={userId} />
+}
+
+export default SessionWrapper

@@ -12,9 +12,10 @@ const close = <IconClose />
 
 interface Props {
   type: ChallengeType
-  handleAccept: () => void
+  handleAccept: (showToast: (toast: ToastParam) => void) => Promise<void>
   handleDecline: () => void
   mutationLoading: boolean
+  toastHandler: (toast: ToastParam) => void
 }
 
 const ChallengeBlock: FC<Props> = ({
@@ -22,6 +23,7 @@ const ChallengeBlock: FC<Props> = ({
   handleAccept,
   handleDecline,
   mutationLoading,
+  toastHandler,
 }) => {
   const { device } = useDevice()
   const [opened, handleModal] = useState(true)
@@ -47,7 +49,7 @@ const ChallengeBlock: FC<Props> = ({
               size="small"
               variation="secondary"
               onClick={() => {
-                handleAccept()
+                handleAccept(toastHandler)
               }}
               isLoading={mutationLoading}
             >
@@ -74,7 +76,7 @@ const ChallengeBlock: FC<Props> = ({
     return (
       <Alert
         type="warning"
-        action={{ label: 'Do it', onClick: () => handleAccept() }}
+        action={{ label: 'Do it', onClick: () => handleAccept(toastHandler) }}
         onClose={() => handleDecline()}
       >
         It seems you left some item/s in another device. Do you want to recover
@@ -103,7 +105,7 @@ const ChallengeBlock: FC<Props> = ({
                 size="small"
                 variation="secondary"
                 onClick={() => {
-                  handleAccept()
+                  handleAccept(toastHandler)
                 }}
                 isLoading={mutationLoading}
               >

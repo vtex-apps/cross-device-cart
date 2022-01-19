@@ -6038,14 +6038,6 @@ verror@1.10.0:
   version "0.64.3"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.64.3/public/@types/vtex.checkout-graphql#1c01e3d68b4ee2458aa02bb91875a266d1687117"
 
-"vtex.checkout-resources@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-resources@0.47.0/public/@types/vtex.checkout-resources":
-  version "0.47.0"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-resources@0.47.0/public/@types/vtex.checkout-resources#8a20a179c882a2dcea62cb65750404448fc6ea30"
-
-"vtex.cross-device-cart@https://sanz--vtexspain.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@0.0.0+build1642434260/public/@types/vtex.cross-device-cart":
-  version "0.0.0"
-  resolved "https://sanz--vtexspain.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@0.0.0+build1642434260/public/@types/vtex.cross-device-cart#b7edc77971b48a6dc5f97d652c1c133b44c7df8c"
-
 "vtex.css-handles@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles":
   version "0.4.4"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles#8c45c6decf9acd2b944e07261686decff93d6422"
@@ -6058,6 +6050,10 @@ verror@1.10.0:
   version "0.11.1"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.order-manager@0.11.1/public/@types/vtex.order-manager#cc658148c5e054900c0d692a26d1ac7c872d9262"
 
+"vtex.pixel-manager@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.8.0/public/@types/vtex.pixel-manager":
+  version "1.8.0"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.8.0/public/@types/vtex.pixel-manager#3ccfcb1927614984a5f7a3e5650c8c8d2bd3c0f4"
+
 "vtex.render-runtime@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@7.45.0/public/@types/vtex.render-runtime":
   version "7.45.0"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@7.45.0/public/@types/vtex.render-runtime#d9c9c4bbe8efe698a6b6566cc22e9dd7687a2442"
@@ -6065,10 +6061,6 @@ verror@1.10.0:
 "vtex.session-client@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.session-client@1.0.2/public/@types/vtex.session-client":
   version "1.0.2"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.session-client@1.0.2/public/@types/vtex.session-client#239ac9935a59699e62e1509f844de81544ed0877"
-
-"vtex.store@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.store@2.121.1/public/@types/vtex.store":
-  version "2.121.1"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.store@2.121.1/public/@types/vtex.store#1401d6ee5e16ff8b52227213f05331bba94a5639"
 
 "vtex.styleguide@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.145.2/public/@types/vtex.styleguide":
   version "9.145.2"
