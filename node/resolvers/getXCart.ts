@@ -6,15 +6,12 @@ export const getXCart = async (
   let orderformId
 
   try {
-    // eslint-disable-next-line no-console
-    console.log('-----------------NODE DEBUG-----------------------')
-
     orderformId = await ctx.clients.vbase.getJSON<{
       orderformId: string | null
     }>('vtex.cross-device-cart', userId, true)
 
     // eslint-disable-next-line no-console
-    console.log(orderformId)
+    console.log('--------GETTING DEBUG------------', orderformId)
 
     return orderformId
   } catch (err) {

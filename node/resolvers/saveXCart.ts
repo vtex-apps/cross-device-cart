@@ -5,7 +5,7 @@ export const saveXCart = async (
 ) => {
   try {
     // eslint-disable-next-line no-console
-    console.log('-----------------NODE DEBUG-----------------------')
+    console.log(userId, orderformId)
 
     const __ = await ctx.clients.vbase.saveJSON(
       'vtex.cross-device-cart',
@@ -14,7 +14,7 @@ export const saveXCart = async (
     )
 
     // eslint-disable-next-line no-console
-    console.log(__)
+    console.log('----------SAVING DEBUG-----------', __)
 
     return 'success'
   } catch (err) {

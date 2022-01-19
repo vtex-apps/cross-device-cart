@@ -26,7 +26,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { push } = usePixel()
   const [crossCartDetected, setChallenge] = useState(false)
 
-  const [getXCart, { data }] = useLazyQuery(GET_ID_BY_USER)
+  const [getXCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
   const [saveXCart] = useMutation(SAVE_ID_BY_USER)
 
   const [
@@ -45,33 +45,35 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   }, [getXCart, userId])
 
   useEffect(() => {
+    if (loading || !data) return
+
     console.log('%c crossCart ', 'background: #fff; color: #333', data)
 
-    const XorderformId = data?.getXCart && data?.getXCart !== ''
+    const XCart = data?.getXCart && data?.getXCart !== ''
 
-    if (!XorderformId) {
+    if (!XCart) {
       saveXCart({
         variables: {
           userId,
-          orderForm: orderForm.id,
+          orderformId: orderForm.id,
         },
       })
     }
 
-    if (XorderformId && XorderformId !== orderForm.id) {
+    if (XCart && data?.getXCart !== orderForm.id) {
       setChallenge(true)
     }
 
     // If equals... do we store a reference in session-storage to stop querying?
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data])
+  }, [data, loading])
 
   const handleSaveCurrent = () => {
     saveXCart({
       variables: {
         userId,
-        orderForm: orderForm.id,
+        orderformId: orderForm.id,
       },
     })
 
