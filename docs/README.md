@@ -57,7 +57,10 @@ To do so in VTEX we created a feature that enables `logged in` users to retrieve
 
 ## Customization
 
-`No CSS Handles are available yet for the app customization.`
+| CSS Handles     |
+| --------------- |
+| `actionBar`     |
+| `challengeText` |
 
 <!-- DOCS-IGNORE:start -->
 

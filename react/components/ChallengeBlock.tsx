@@ -1,7 +1,10 @@
-import React, { FC, useState } from 'react'
+import React, { FC } from 'react'
 import { useDevice } from 'vtex.device-detector'
 import { FormattedMessage } from 'react-intl'
 import { Button, ButtonWithIcon, IconClose, Modal } from 'vtex.styleguide'
+import { useCssHandles } from 'vtex.css-handles'
+
+const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 
 const close = <IconClose />
 
@@ -21,7 +24,7 @@ const ChallengeBlock: FC<Props> = ({
   toastHandler,
 }) => {
   const { device } = useDevice()
-  const [opened, handleModal] = useState(true)
+  const handles = useCssHandles(CSS_HANDLES)
 
   if (type === 'actionBar' || type === 'floatingBar') {
     const classes =
@@ -31,9 +34,13 @@ const ChallengeBlock: FC<Props> = ({
 
     return (
       <div
-        className={`${classes} w-100 bg-base flex items-center justify-center`}
+        className={`${classes} w-100 bg-base flex items-center justify-center ${handles.actionBar}`}
       >
-        <span className={`t-small ${device === 'phone' ? 'pb3' : ''}`}>
+        <span
+          className={`${handles.challengeText} t-small ${
+            device === 'phone' ? 'pb3' : ''
+          }`}
+        >
           <FormattedMessage id="store/crossCart.challenge.text" />
         </span>
         <div className="flex">
@@ -69,9 +76,9 @@ const ChallengeBlock: FC<Props> = ({
     return (
       <Modal
         centered
-        isOpen={opened}
+        isOpen
         onClose={() => {
-          handleModal(false)
+          handleDecline()
         }}
         bottomBar={
           <div className="nowrap">
@@ -89,7 +96,7 @@ const ChallengeBlock: FC<Props> = ({
         }
       >
         <div className="dark-gray pv7">
-          <span>
+          <span className={`${handles.challengeText}`}>
             <FormattedMessage id="store/crossCart.challenge.text" />
           </span>
         </div>

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { FC, useEffect, useState } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
@@ -83,13 +82,12 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       return
     }
 
-    let newOrderForm
-    let skuItems
-
-    if (mutationResult.data) {
-      newOrderForm = mutationResult.data.addXCartItems
-      skuItems = newOrderForm.items
+    if (!mutationResult.data) {
+      return
     }
+
+    const newOrderForm = mutationResult.data.addXCartItems
+    const skuItems = newOrderForm.items
 
     mutationResult.data && setOrderForm(newOrderForm)
 
