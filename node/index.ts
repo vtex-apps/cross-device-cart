@@ -5,18 +5,32 @@ import {
   ParamsContext,
   ServiceContext,
   RecorderState,
+  EventContext,
 } from '@vtex/api'
 
 import { Clients } from './clients'
+import { eventsErrorHandler, updateXCartReference } from './events'
 import { queries, mutations } from './resolvers'
 
 const TIMEOUT_MS = 800
 
 const memoryCache = new LRUCache<string, any>({ max: 5000 })
-metrics.trackCache('status', memoryCache)
+
+metrics.trackCache('xcart', memoryCache)
 
 declare global {
   type Context = ServiceContext<Clients>
+
+  interface StatusChangeContext extends EventContext<Clients> {
+    body: {
+      domain: string
+      orderId: string
+      currentState: string
+      lastState: string
+      currentChangeDate: string
+      lastChangeDate: string
+    }
+  }
 }
 
 const clients: ClientsConfig<Clients> = {
@@ -37,6 +51,9 @@ const clients: ClientsConfig<Clients> = {
 
 export default new Service<Clients, RecorderState, ParamsContext>({
   clients,
+  events: {
+    updateOnCreatedOrder: [eventsErrorHandler, updateXCartReference],
+  },
   graphql: {
     resolvers: {
       Query: {
