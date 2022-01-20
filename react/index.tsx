@@ -27,6 +27,8 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const [getXCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
   const [saveXCart] = useMutation(SAVE_ID_BY_USER)
 
+  const currentItemsQty = orderForm.items.length
+
   const [
     mergeCart,
     { error: mutationError, loading: mutationLoading },
@@ -56,7 +58,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
 
     const XCart = data?.getXCart && data?.getXCart !== ''
 
-    if (!XCart) {
+    if (!XCart && currentItemsQty) {
       handleSaveCurrent()
     }
 
@@ -65,15 +67,15 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading])
+  }, [data, loading, currentItemsQty])
 
   const handleMerge = async (showToast: (toast: ToastParam) => void) => {
     const mutationResult = await mergeCart({
       variables: { fromCart: data?.getXCart, toCart: orderForm.id },
     })
 
-    if (mutationError) {
-      console.error(mutationError)
+    if (mutationError || !mutationResult.data) {
+      mutationError && console.error(mutationError)
 
       showToast({
         message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
@@ -82,19 +84,15 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       return
     }
 
-    if (!mutationResult.data) {
-      return
-    }
-
     const newOrderForm = mutationResult.data.addXCartItems
-    const skuItems = newOrderForm.items
 
-    mutationResult.data && setOrderForm(newOrderForm)
+    setOrderForm(newOrderForm)
 
     showToast({
       message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
     })
 
+    const skuItems = newOrderForm.items
     const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
 
     push({
