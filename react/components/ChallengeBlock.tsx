@@ -26,6 +26,19 @@ const ChallengeBlock: FC<Props> = ({
   const { device } = useDevice()
   const handles = useCssHandles(CSS_HANDLES)
 
+  const callToAction = (
+    <Button
+      size="small"
+      variation="secondary"
+      onClick={() => {
+        handleAccept(toastHandler)
+      }}
+      isLoading={mutationLoading}
+    >
+      <FormattedMessage id="store/crossCart.challenge.cta" />
+    </Button>
+  )
+
   if (type === 'actionBar' || type === 'floatingBar') {
     const classes =
       type === 'floatingBar'
@@ -44,18 +57,7 @@ const ChallengeBlock: FC<Props> = ({
           <FormattedMessage id="store/crossCart.challenge.text" />
         </span>
         <div className="flex">
-          <span className="mh4">
-            <Button
-              size="small"
-              variation="secondary"
-              onClick={() => {
-                handleAccept(toastHandler)
-              }}
-              isLoading={mutationLoading}
-            >
-              <FormattedMessage id="store/crossCart.challenge.cta" />
-            </Button>
-          </span>
+          <span className="mh4">{callToAction}</span>
           <span>
             <ButtonWithIcon
               size="small"
@@ -80,20 +82,7 @@ const ChallengeBlock: FC<Props> = ({
         onClose={() => {
           handleDecline()
         }}
-        bottomBar={
-          <div className="nowrap">
-            <Button
-              size="small"
-              variation="secondary"
-              onClick={() => {
-                handleAccept(toastHandler)
-              }}
-              isLoading={mutationLoading}
-            >
-              <FormattedMessage id="store/crossCart.challenge.cta" />
-            </Button>
-          </div>
-        }
+        bottomBar={<div className="nowrap">{callToAction}</div>}
       >
         <div className="dark-gray pv7">
           <span className={`${handles.challengeText}`}>

@@ -1,7 +1,7 @@
 type ChallengeType = 'actionBar' | 'floatingBar' | 'modal'
 
 interface OrderFormContext {
-  orderForm: any
+  orderForm: PartialOrderForm
   setOrderForm: (orderForm: any) => void
 }
 
@@ -17,4 +17,9 @@ interface CrossCartProps {
 
 interface ExtendedCrossCart extends CrossCartProps {
   userId: string
+}
+
+interface PartialOrderForm {
+  id: string
+  items: any[]
 }
