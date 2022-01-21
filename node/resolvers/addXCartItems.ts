@@ -3,34 +3,17 @@ import type { OrderForm as CheckoutOrderForm } from 'vtex.checkout-graphql'
 export const addXCartItems = async (
   _: any,
   { fromCart, toCart }: { fromCart: string; toCart: string },
-  ctx: Context
+  { clients: { checkout } }: Context
 ): Promise<CheckoutOrderForm> => {
   try {
-    // eslint-disable-next-line no-console
-    console.log('-----------------NODE DEBUG-----------------------')
+    const { items } = await checkout.getOrderForm(fromCart)
 
-    const {
-      clients: { checkout },
-    } = ctx
+    const newOrderForm = await checkout.addItems(toCart, items)
 
-    const XCartOrderForm = await checkout.getOrderForm(fromCart)
-
-    // eslint-disable-next-line no-console
-    console.log(XCartOrderForm.items)
-
-    /* if (!XCartOrderForm.items.length) {
-      return
-    } */
-
-    const OrderForm = await checkout.addItems(toCart, XCartOrderForm.items)
-
-    // eslint-disable-next-line no-console
-    console.log(OrderForm.items)
-
-    return OrderForm
+    return newOrderForm
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.log('----------------------------------------', err)
+    console.log('------', err)
 
     throw err
   }

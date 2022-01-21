@@ -20,27 +20,27 @@ import { adjustSkuItemForPixelEvent } from './utils'
 // eslint-disable-next-line react/prop-types
 const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
+  const [crossCartDetected, setChallenge] = useState(false)
   const { push } = usePixel()
   const intl = useIntl()
-  const [crossCartDetected, setChallenge] = useState(false)
 
   const [getXCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
+
   const [saveXCart] = useMutation(SAVE_ID_BY_USER)
+  const [mergeCart, { error, loading: mutationLoading }] = useMutation(
+    MUTATE_CART
+  )
 
   const currentItemsQty = orderForm.items.length
 
-  const [
-    mergeCart,
-    { error: mutationError, loading: mutationLoading },
-  ] = useMutation(MUTATE_CART)
-
   const handleSaveCurrent = () => {
-    saveXCart({
-      variables: {
-        userId,
-        orderformId: orderForm.id,
-      },
-    })
+    currentItemsQty &&
+      saveXCart({
+        variables: {
+          userId,
+          orderformId: orderForm.id,
+        },
+      })
 
     crossCartDetected && setChallenge(false)
   }
@@ -56,14 +56,27 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   useEffect(() => {
     if (loading || !data) return
 
-    const XCart = data?.getXCart && data?.getXCart !== ''
+    const XCart = data?.getXCart
 
-    if (!XCart && currentItemsQty) {
+    if (!XCart) {
       handleSaveCurrent()
+
+      return
     }
 
-    if (XCart && data?.getXCart !== orderForm.id) {
+    if (XCart !== orderForm.id) {
       setChallenge(true)
+
+      return
+    }
+
+    if (!currentItemsQty) {
+      saveXCart({
+        variables: {
+          userId,
+          orderformId: null,
+        },
+      })
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -74,8 +87,8 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       variables: { fromCart: data?.getXCart, toCart: orderForm.id },
     })
 
-    if (mutationError || !mutationResult.data) {
-      mutationError && console.error(mutationError)
+    if (error || !mutationResult.data) {
+      error && console.error(error)
 
       showToast({
         message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),

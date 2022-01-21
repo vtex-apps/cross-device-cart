@@ -1,22 +1,23 @@
+/* eslint-disable no-console */
+import { APP_NAME } from '../constants'
+
 export const getXCart = async (
   _: unknown,
   { userId }: { userId: string },
-  ctx: Context
+  { clients: { vbase } }: Context
 ) => {
   let orderformId
 
   try {
-    orderformId = await ctx.clients.vbase.getJSON<{
+    orderformId = await vbase.getJSON<{
       orderformId: string | null
-    }>('vtex.cross-device-cart', userId, true)
+    }>(APP_NAME, userId, true)
 
-    // eslint-disable-next-line no-console
-    console.log('--------GETTING DEBUG------------', orderformId)
+    console.log('------ GET', orderformId)
 
     return orderformId
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log('----------------------------------------', err)
+    console.log('------', err)
 
     const status = (err as any)?.response?.status
 
