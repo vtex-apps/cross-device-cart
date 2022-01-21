@@ -4,7 +4,7 @@ import type { OrderForm as CheckoutOrderForm } from 'vtex.checkout-graphql'
 
 import { statusToError } from '../utils'
 
-export class Checkout extends JanusClient {
+export default class Checkout extends JanusClient {
   constructor(ctx: IOContext, options?: InstanceOptions) {
     super(ctx, {
       ...options,

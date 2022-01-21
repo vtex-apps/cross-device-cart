@@ -9,7 +9,8 @@
     "docs": "0.x",
     "store": "0.x",
     "node": "6.x",
-    "graphql": "1.x"
+    "graphql": "1.x",
+    "messages": "1.x"
   },
   "dependencies": {
     "vtex.session-client": "1.x",

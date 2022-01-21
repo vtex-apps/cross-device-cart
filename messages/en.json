@@ -1,0 +1,6 @@
+{
+  "store/crossCart.challenge.cta": "Do it",
+  "store/crossCart.challenge.text": "It seems you left some item/s in another device. Do you want to recover them?",
+  "store/crossCart.toast.success": "Items successfully added to your cart",
+  "store/crossCart.toast.error": "An error occurred while adding your items"
+}

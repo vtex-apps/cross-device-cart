@@ -1,12 +1,10 @@
-import React, { FC, useState } from 'react'
+import React, { FC } from 'react'
 import { useDevice } from 'vtex.device-detector'
-import {
-  Button,
-  ButtonWithIcon,
-  IconClose,
-  Alert,
-  Modal,
-} from 'vtex.styleguide'
+import { FormattedMessage } from 'react-intl'
+import { Button, ButtonWithIcon, IconClose, Modal } from 'vtex.styleguide'
+import { useCssHandles } from 'vtex.css-handles'
+
+const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 
 const close = <IconClose />
 
@@ -26,7 +24,20 @@ const ChallengeBlock: FC<Props> = ({
   toastHandler,
 }) => {
   const { device } = useDevice()
-  const [opened, handleModal] = useState(true)
+  const handles = useCssHandles(CSS_HANDLES)
+
+  const callToAction = (
+    <Button
+      size="small"
+      variation="secondary"
+      onClick={() => {
+        handleAccept(toastHandler)
+      }}
+      isLoading={mutationLoading}
+    >
+      <FormattedMessage id="store/crossCart.challenge.cta" />
+    </Button>
+  )
 
   if (type === 'actionBar' || type === 'floatingBar') {
     const classes =
@@ -36,25 +47,17 @@ const ChallengeBlock: FC<Props> = ({
 
     return (
       <div
-        className={`${classes} w-100 bg-base flex items-center justify-center`}
+        className={`${classes} w-100 bg-base flex items-center justify-center ${handles.actionBar}`}
       >
-        <span className={`t-small ${device === 'phone' ? 'pb3' : ''}`}>
-          It seems you left some item/s in another device. Do you want to
-          recover them?
+        <span
+          className={`${handles.challengeText} t-small ${
+            device === 'phone' ? 'pb3' : ''
+          }`}
+        >
+          <FormattedMessage id="store/crossCart.challenge.text" />
         </span>
         <div className="flex">
-          <span className="mh4">
-            <Button
-              size="small"
-              variation="secondary"
-              onClick={() => {
-                handleAccept(toastHandler)
-              }}
-              isLoading={mutationLoading}
-            >
-              Do it
-            </Button>
-          </span>
+          <span className="mh4">{callToAction}</span>
           <span>
             <ButtonWithIcon
               size="small"
@@ -71,46 +74,19 @@ const ChallengeBlock: FC<Props> = ({
     )
   }
 
-  if (type === 'notification') {
-    return (
-      <Alert
-        type="warning"
-        action={{ label: 'Do it', onClick: () => handleAccept(toastHandler) }}
-        onClose={() => handleDecline()}
-      >
-        It seems you left some item/s in another device. Do you want to recover
-        them?
-      </Alert>
-    )
-  }
-
   if (type === 'modal') {
     return (
       <Modal
         centered
-        isOpen={opened}
+        isOpen
         onClose={() => {
-          handleModal(false)
+          handleDecline()
         }}
-        bottomBar={
-          <div className="nowrap">
-            <Button
-              size="small"
-              variation="secondary"
-              onClick={() => {
-                handleAccept(toastHandler)
-              }}
-              isLoading={mutationLoading}
-            >
-              Do it
-            </Button>
-          </div>
-        }
+        bottomBar={<div className="nowrap">{callToAction}</div>}
       >
         <div className="dark-gray pv7">
-          <span>
-            It seems you left some item/s in another device. Do you want to
-            recover them?
+          <span className={`${handles.challengeText}`}>
+            <FormattedMessage id="store/crossCart.challenge.text" />
           </span>
         </div>
       </Modal>

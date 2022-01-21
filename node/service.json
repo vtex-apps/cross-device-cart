@@ -2,6 +2,13 @@
   "memory": 1024,
   "ttl": 60,
   "timeout": 10,
-  "minReplicas": 6,
-  "maxReplicas": 20
+  "minReplicas": 3,
+  "maxReplicas": 10,
+  "workers": 1,
+  "events": {
+    "updateOnCreatedOrder": {
+      "sender": "vtex.orders-broadcast",
+      "topics": ["order-created"]
+    }
+  }
 }

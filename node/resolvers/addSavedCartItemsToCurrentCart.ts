@@ -16,12 +16,12 @@ export const addSavedCartItemsToCurrentCart = async (
       return null
     }
 
-    const orderForm = await checkout.addItems(
+    const updatedOrderForm = await checkout.addItems(
       currentCart,
       savedCartOrderForm.items
     )
 
-    return orderForm
+    return updatedOrderForm
   } catch (err) {
     throw err
   }

@@ -1,20 +1,42 @@
-import { ClientsConfig, IOClients, LRUCache, ServiceContext } from '@vtex/api'
+import {
+  ClientsConfig,
+  EventContext,
+  IOClients,
+  LRUCache,
+  ServiceContext,
+} from '@vtex/api'
 
-import { Checkout } from './checkout'
+import Orders from './orders'
+import Checkout from './checkout'
 
 export class Clients extends IOClients {
   public get checkout() {
     return this.getOrSet('checkout', Checkout)
   }
+
+  public get orders() {
+    return this.getOrSet('orders', Orders)
+  }
 }
 
 declare global {
   type Context = ServiceContext<Clients>
+
+  interface StatusChangeContext extends EventContext<Clients> {
+    body: {
+      domain: string
+      orderId: string
+      currentState: string
+      lastState: string
+      currentChangeDate: string
+      lastChangeDate: string
+    }
+  }
 }
 
 const memoryCache = new LRUCache<string, any>({ max: 5000 })
 
-metrics.trackCache('status', memoryCache)
+metrics.trackCache('xcart', memoryCache)
 
 const clients: ClientsConfig<Clients> = {
   implementation: Clients,
