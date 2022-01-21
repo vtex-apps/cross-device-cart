@@ -1,6 +1,6 @@
 import { APP_NAME } from '../constants'
 
-export const saveXCart = async (
+export const saveCurrentCart = async (
   _: any,
   { userId, orderformId }: { userId: string; orderformId: string },
   ctx: Context

@@ -1,6 +1,6 @@
 import { APP_NAME } from '../constants'
 
-export const getXCart = async (
+export const getSavedCart = async (
   _: unknown,
   { userId }: { userId: string },
   ctx: Context
