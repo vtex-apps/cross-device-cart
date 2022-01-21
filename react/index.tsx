@@ -6,9 +6,9 @@ import { usePixel } from 'vtex.pixel-manager/PixelContext'
 import { ToastConsumer } from 'vtex.styleguide'
 import { useIntl } from 'react-intl'
 
-import GET_ID_BY_USER from './graphql/getXCart.gql'
-import SAVE_ID_BY_USER from './graphql/saveXCart.gql'
-import MUTATE_CART from './graphql/addXCartItems.gql'
+import GET_ID_BY_USER from './graphql/getSavedCart.gql'
+import SAVE_ID_BY_USER from './graphql/saveCurrentCart.gql'
+import MUTATE_CART from './graphql/mergeCarts.gql'
 import ChallengeBlock from './components/ChallengeBlock'
 import { adjustSkuItemForPixelEvent } from './utils'
 
@@ -24,9 +24,9 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { push } = usePixel()
   const intl = useIntl()
 
-  const [getXCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
+  const [getSavedCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
 
-  const [saveXCart] = useMutation(SAVE_ID_BY_USER)
+  const [saveCurrentCart] = useMutation(SAVE_ID_BY_USER)
   const [mergeCart, { error, loading: mutationLoading }] = useMutation(
     MUTATE_CART
   )
@@ -35,7 +35,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
 
   const handleSaveCurrent = () => {
     currentItemsQty &&
-      saveXCart({
+      saveCurrentCart({
         variables: {
           userId,
           orderformId: orderForm.id,
@@ -46,17 +46,17 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   }
 
   useEffect(() => {
-    getXCart({
+    getSavedCart({
       variables: {
         userId,
       },
     })
-  }, [getXCart, userId])
+  }, [getSavedCart, userId])
 
   useEffect(() => {
     if (loading || !data) return
 
-    const XCart = data?.getXCart
+    const XCart = data?.getSavedCart
 
     if (!XCart) {
       handleSaveCurrent()
@@ -71,7 +71,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
     }
 
     if (!currentItemsQty) {
-      saveXCart({
+      saveCurrentCart({
         variables: {
           userId,
           orderformId: null,
@@ -84,7 +84,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
 
   const handleMerge = async (showToast: (toast: ToastParam) => void) => {
     const mutationResult = await mergeCart({
-      variables: { fromCart: data?.getXCart, toCart: orderForm.id },
+      variables: { savedCart: data?.getSavedCart, currentCart: orderForm.id },
     })
 
     if (error || !mutationResult.data) {
@@ -97,7 +97,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       return
     }
 
-    const newOrderForm = mutationResult.data.addXCartItems
+    const newOrderForm = mutationResult.data.mergeCarts
 
     setOrderForm(newOrderForm)
 

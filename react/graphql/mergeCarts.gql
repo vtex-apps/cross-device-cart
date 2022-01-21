@@ -1,0 +1,3 @@
+mutation mergeCarts($savedCart: String, $currentCart: String) {
+  mergeCarts(savedCart: $savedCart, currentCart: $currentCart)
+}

@@ -1,6 +1,6 @@
 import { getSavedCart } from './getSavedCart'
 import { saveCurrentCart } from './saveCurrentCart'
-import { addSavedCartItemsToCurrentCart } from './addSavedCartItemsToCurrentCart'
+import { mergeCarts } from './mergeCarts'
 
 export const queries = {
   getSavedCart,
@@ -8,5 +8,5 @@ export const queries = {
 
 export const mutations = {
   saveCurrentCart,
-  addSavedCartItemsToCurrentCart,
+  mergeCarts,
 }

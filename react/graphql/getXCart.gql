@@ -1,3 +1,0 @@
-query getXCart($userId: String) {
-  getXCart(userId: $userId)
-}

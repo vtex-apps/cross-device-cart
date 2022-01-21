@@ -1,6 +1,6 @@
 import type { OrderForm as CheckoutOrderForm } from 'vtex.checkout-graphql'
 
-export const addSavedCartItemsToCurrentCart = async (
+export const mergeCarts = async (
   _: any,
   { savedCart, currentCart }: { savedCart: string; currentCart: string },
   ctx: Context

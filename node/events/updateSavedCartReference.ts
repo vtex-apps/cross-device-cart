@@ -1,6 +1,6 @@
 import { APP_NAME } from '../constants'
 
-export async function updateXCartReference(ctx: StatusChangeContext) {
+export async function updateSavedCartReference(ctx: StatusChangeContext) {
   const {
     body: { orderId },
     vtex: { logger },

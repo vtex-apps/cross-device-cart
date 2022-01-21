@@ -1,2 +1,2 @@
-export * from './updateXCartReference'
+export * from './updateSavedCartReference'
 export * from './eventsErrorHandler'
