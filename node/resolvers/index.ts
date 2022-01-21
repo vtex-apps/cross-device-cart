@@ -1,12 +1,12 @@
-import { getXCart } from './getXCart'
-import { saveXCart } from './saveXCart'
-import { addXCartItems } from './addXCartItems'
+import { getSavedCart } from './getSavedCart'
+import { saveCurrentCart } from './saveCurrentCart'
+import { addSavedCartItemsToCurrentCart } from './addSavedCartItemsToCurrentCart'
 
 export const queries = {
-  getXCart,
+  getSavedCart,
 }
 
 export const mutations = {
-  saveXCart,
-  addXCartItems,
+  saveCurrentCart,
+  addSavedCartItemsToCurrentCart,
 }
