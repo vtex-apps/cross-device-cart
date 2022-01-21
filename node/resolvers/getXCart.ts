@@ -1,23 +1,23 @@
+import { APP_NAME } from '../constants'
+
 export const getXCart = async (
   _: unknown,
   { userId }: { userId: string },
   ctx: Context
 ) => {
-  let orderformId
+  const {
+    clients: { vbase },
+  } = ctx
 
   try {
-    orderformId = await ctx.clients.vbase.getJSON<{
-      orderformId: string | null
-    }>('vtex.cross-device-cart', userId, true)
-
-    // eslint-disable-next-line no-console
-    console.log('--------GETTING DEBUG------------', orderformId)
+    const orderformId: string | null = await vbase.getJSON(
+      APP_NAME,
+      userId,
+      true
+    )
 
     return orderformId
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log('----------------------------------------', err)
-
     const status = (err as any)?.response?.status
 
     if (status === 404) {

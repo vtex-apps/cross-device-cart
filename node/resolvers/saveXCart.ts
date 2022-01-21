@@ -1,26 +1,19 @@
+import { APP_NAME } from '../constants'
+
 export const saveXCart = async (
   _: any,
   { userId, orderformId }: { userId: string; orderformId: string },
   ctx: Context
 ) => {
+  const {
+    clients: { vbase },
+  } = ctx
+
   try {
-    // eslint-disable-next-line no-console
-    console.log(userId, orderformId)
-
-    const __ = await ctx.clients.vbase.saveJSON(
-      'vtex.cross-device-cart',
-      userId,
-      orderformId
-    )
-
-    // eslint-disable-next-line no-console
-    console.log('----------SAVING DEBUG-----------', __)
+    await vbase.saveJSON(APP_NAME, userId, orderformId)
 
     return 'success'
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.log('----------------------------------------', err)
-
     throw err
   }
 }
