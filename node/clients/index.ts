@@ -7,11 +7,11 @@ import {
 } from '@vtex/api'
 
 import Orders from './orders'
-import Checkout from './checkout'
+import IOCheckout from './checkout/index'
 
 export class Clients extends IOClients {
   public get checkout() {
-    return this.getOrSet('checkout', Checkout)
+    return this.getOrSet('checkout', IOCheckout)
   }
 
   public get orders() {

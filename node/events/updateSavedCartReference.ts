@@ -15,11 +15,11 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       clientProfileData: { userProfileId },
     } = customerOrder
 
-    const XCartReference = await vbase.getJSON<{
-      orderformId: string | null
+    const crossCartReference = await vbase.getJSON<{
+      orderFormId: string | null
     }>(APP_NAME, userProfileId, true)
 
-    if (XCartReference === orderFormId) {
+    if (crossCartReference === orderFormId) {
       await vbase.saveJSON(APP_NAME, userProfileId, '')
 
       logger.info({

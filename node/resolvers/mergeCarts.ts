@@ -1,24 +1,40 @@
-import type { OrderForm as CheckoutOrderForm } from 'vtex.checkout-graphql'
+import type { ItemInput } from 'vtex.checkout-graphql'
 
+/**
+ * @returns {PartialNewOrderForm | null}
+ * If null, the Storefront Block will react with throw error
+ * @typedef PartialNewOrderForm a partial orderform, fielded
+ * enough for the Store Framework context to update cart's items
+ * relevancy data.
+ */
 export const mergeCarts = async (
   _: any,
-  { savedCart, currentCart }: { savedCart: string; currentCart: string },
+  variables: MergeCartsVariables,
   ctx: Context
-): Promise<CheckoutOrderForm | null> => {
+): Promise<PartialNewOrderForm | null> => {
+  const { savedCart, currentCart, strategy } = variables
   const {
     clients: { checkout },
   } = ctx
 
-  try {
-    const savedCartOrderForm = await checkout.getOrderForm(savedCart)
+  // eslint-disable-next-line no-console
+  console.log(currentCart, strategy)
 
-    if (!savedCartOrderForm.items.length) {
+  try {
+    const { data } = await checkout.getOrderFormItems(savedCart)
+
+    // eslint-disable-next-line no-console
+    console.log('========', data?.orderForm.items)
+
+    if (!data?.orderForm.items) {
       return null
     }
 
-    const updatedOrderForm = await checkout.addItems(
+    const itemsToUpdate = [] as ItemInput[]
+
+    const updatedOrderForm = await checkout.updateItems(
       currentCart,
-      savedCartOrderForm.items
+      itemsToUpdate
     )
 
     return updatedOrderForm

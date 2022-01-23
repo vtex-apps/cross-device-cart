@@ -1,3 +1,11 @@
-mutation mergeCarts($savedCart: String, $currentCart: String) {
-  mergeCarts(savedCart: $savedCart, currentCart: $currentCart)
+mutation mergeCarts(
+  $savedCart: String
+  $currentCart: String
+  $strategy: String
+) {
+  orderForm: mergeCarts(
+    savedCart: $savedCart
+    currentCart: $currentCart
+    strategy: $strategy
+  )
 }

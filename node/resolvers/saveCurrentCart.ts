@@ -2,7 +2,7 @@ import { APP_NAME } from '../constants'
 
 export const saveCurrentCart = async (
   _: any,
-  { userId, orderformId }: { userId: string; orderformId: string },
+  { userId, orderFormId }: { userId: string; orderFormId: string },
   ctx: Context
 ) => {
   const {
@@ -10,7 +10,7 @@ export const saveCurrentCart = async (
   } = ctx
 
   try {
-    await vbase.saveJSON(APP_NAME, userId, orderformId)
+    await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
     return 'success'
   } catch (err) {
