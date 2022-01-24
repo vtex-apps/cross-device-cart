@@ -1,22 +1,21 @@
 import type { ItemInput } from 'vtex.checkout-graphql'
 
 /**
+ * Cross cart main feature.
+ * @summary Resolves how the stored reference's items will be handled.
+ * @param {string} savedCart - Unique reference orderForm identification string
+ * @param {string} currentCart - Unique current orderForm identification string
+ * @param {MergeStrategy} strategy - Cart's items merge logic
  * @returns {PartialNewOrderForm | null}
- * If null, the Storefront Block will react with throw error
+ * If null, the Storefront Block will react throwing an error
  * @typedef PartialNewOrderForm a partial orderform, fielded
- * enough for the Store Framework context to update cart's items
- * relevancy data.
+ * enough to update Store Framework's context relevant data.
  */
 export const mergeCarts = async (
   _: any,
-  variables: MergeCartsVariables,
-  ctx: Context
+  { savedCart, currentCart, strategy }: MergeCartsVariables,
+  { clients: { checkout } }: Context
 ): Promise<PartialNewOrderForm | null> => {
-  const { savedCart, currentCart, strategy } = variables
-  const {
-    clients: { checkout },
-  } = ctx
-
   // eslint-disable-next-line no-console
   console.log(currentCart, strategy)
 
@@ -30,7 +29,11 @@ export const mergeCarts = async (
       return null
     }
 
-    const itemsToUpdate = [] as ItemInput[]
+    let itemsToUpdate: PartialItem[]
+
+    if (strategy === 'add') {
+      itemsToUpdate = data.orderForm.items
+    }
 
     const updatedOrderForm = await checkout.updateItems(
       currentCart,
