@@ -37,3 +37,21 @@ interface PartialItem {
     } | null
   }
 }
+
+interface Order {
+  origin: 'Marketplace' | 'Fulfillment'
+  paymentData: any
+  orderId: string
+  affiliateId: string
+  totals: any
+  coupon: string
+  items: any
+  marketingData?: any
+  storePreferencesData?: any
+  clientProfileData: ClientProfileData
+  orderFormId: string
+}
+
+interface ClientProfileData {
+  userProfileId: string
+}

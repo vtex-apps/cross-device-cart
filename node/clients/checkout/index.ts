@@ -4,7 +4,7 @@ import { ItemInput } from 'vtex.checkout-graphql'
 
 import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_ITEMS_MUTATION } from './queries'
 
-export default class IOCheckout extends AppGraphQLClient {
+export default class CheckoutIO extends AppGraphQLClient {
   constructor(context: IOContext, options?: InstanceOptions) {
     super('vtex.checkout-graphql@0.x', context, {
       ...options,
