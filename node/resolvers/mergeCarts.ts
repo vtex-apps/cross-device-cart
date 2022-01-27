@@ -19,11 +19,11 @@ export const mergeCarts = async (
   try {
     const savedItems = await checkoutIO.getOrderFormItems(savedCart)
 
-    const currentItems = await checkoutIO.getOrderFormItems(currentCart)
-
     if (!savedItems.length) {
       return null
     }
+
+    const currentItems = await checkoutIO.getOrderFormItems(currentCart)
 
     let items
 

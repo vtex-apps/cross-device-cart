@@ -83,7 +83,9 @@ export const combineItems = (
   )
 
   // @ts-expect-error Ramda incorrectly typed
-  const combine = pipe(groupBy(prop(['id'])), map(reduce(mergeQty, {})), values)
+  const groupById = groupBy(prop(['id']))
+  const sumDuplicatesQty = reduce(mergeQty, {})
+  const combine = pipe(groupById as any, map(sumDuplicatesQty), values)
 
   // @ts-expect-error Ramda incorrectly typed
   return combine(allItems)
