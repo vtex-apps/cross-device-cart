@@ -59,7 +59,7 @@ export const addMissingItems = (
 }
 
 /**
- * Creates an ordered set combining Items from both provided lists.
+ * Creates an orderly set combining Items from both provided lists.
  * Duplicates are grouped using their 'id' property and then
  * mapped to reduce their quantities
  *
