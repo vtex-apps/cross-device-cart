@@ -12,7 +12,6 @@ import {
   reduce,
   values,
 } from 'ramda'
-import type { Item } from 'vtex.checkout-graphql'
 
 export function statusToError(e: any) {
   if (!e.response) {

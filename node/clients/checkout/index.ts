@@ -1,6 +1,6 @@
 import type { IOContext, InstanceOptions } from '@vtex/api'
 import { AppGraphQLClient } from '@vtex/api'
-import { Item, ItemInput } from 'vtex.checkout-graphql'
+import { ItemInput } from 'vtex.checkout-graphql'
 
 import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_ITEMS_MUTATION } from './queries'
 
