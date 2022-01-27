@@ -13,29 +13,23 @@ interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }
 }
 
-interface PartialNewOrderForm extends PartialItem {
+interface PartialNewOrderForm {
   value: number
   totalizers: {
     id: string
     name: string
     value: number
   }
+  items: PartialItem[]
 }
 
 interface PartialItem {
-  items: {
-    id: string
-    quantity: number
-    seller: string
-    uniqueId: string
-    options: {
-      assemblyId: string
-      id: string
-      quantity: number
-      seller: string
-      inputValues: AssemblyOptionType[]
-    } | null
-  }
+  id: number
+  index?: number
+  quantity: number
+  seller: string
+  uniqueId: string
+  options?: AssemblyOptionInput[]
 }
 
 interface Order {

@@ -1,12 +1,15 @@
 {
   "dependencies": {
-    "@vtex/api": "6.45.6"
+    "@vtex/api": "6.45.6",
+    "ramda": "^0.26.1"
   },
   "devDependencies": {
+    "@types/ramda": "^0.26.21",
+    "@vtex/api": "6.31.1",
     "@vtex/test-tools": "vtex/test-tools",
     "@vtex/tsconfig": "^0.5.6",
     "typescript": "3.9.7",
-    "vtex.checkout-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.64.3/public/@types/vtex.checkout-graphql",
+    "vtex.checkout-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.65.1/public/@types/vtex.checkout-graphql",
     "vtex.css-handles": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles",
     "vtex.device-detector": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.device-detector@0.2.6/public/@types/vtex.device-detector",
     "vtex.order-manager": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.order-manager@0.11.1/public/@types/vtex.order-manager",

@@ -1,9 +1,10 @@
-import { eqBy, prop, unionWith } from 'ramda'
+import { addMissingItems, combineItems } from '../utils'
 /**
  * Cross cart main feature.
- * @summary Resolves how the stored reference's items will be handled.
+ * Resolves how the stored reference's items will be handled
+ *
  * @returns {PartialNewOrderForm | null}
- * If null, the Storefront Block will react throwing an error
+ * If null, the Storefront Block should react throwing an error
  * @typedef PartialNewOrderForm a partial orderform, fielded
  * enough to update Store Framework's context relevant data.
  */
@@ -16,15 +17,11 @@ export const mergeCarts = async (
   console.log(currentCart, strategy)
 
   try {
-    const { data: savedItems } = (await checkoutIO.getOrderFormItems(
-      savedCart
-    )) as any
+    const savedItems = await checkoutIO.getOrderFormItems(savedCart)
 
-    const { data: currentItems } = (await checkoutIO.getOrderFormItems(
-      currentCart
-    )) as any
+    const currentItems = await checkoutIO.getOrderFormItems(currentCart)
 
-    if (!savedItems?.orderForm.items) {
+    if (!savedItems) {
       return null
     }
 
@@ -32,6 +29,7 @@ export const mergeCarts = async (
 
     switch (strategy) {
       case 'combine':
+        items = combineItems(currentItems, savedItems)
         break
 
       case 'replace':
@@ -40,19 +38,9 @@ export const mergeCarts = async (
         break
 
       default:
-      case 'add': {
-        const uniqueByID = eqBy(prop('id'))
-
-        /* Combines two lists into a set; the ID property is used to
-        determine duplicated items. If an element exists in both lists,
-        the first element from the first list will be used. */
-        items = unionWith(uniqueByID, currentItems, savedItems)
-      }
+      case 'add':
+        items = addMissingItems(currentItems, savedItems)
     }
-
-    items.forEach((element, index) => {
-      element.index = index
-    })
 
     const updatedOrderForm = await checkoutIO.updateItems(currentCart, items)
 
