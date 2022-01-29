@@ -1,8 +1,32 @@
-import type { IOContext, InstanceOptions } from '@vtex/api'
+import type {
+  IOContext,
+  InstanceOptions,
+  Serializable,
+  GraphQLResponse,
+} from '@vtex/api'
 import { AppGraphQLClient } from '@vtex/api'
 import { ItemInput } from 'vtex.checkout-graphql'
 
 import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_ITEMS_MUTATION } from './queries'
+
+class CustomGraphQLError extends Error {
+  public graphQLErrors: any
+
+  constructor(message: string, graphQLErrors: any[]) {
+    super(message)
+    this.graphQLErrors = graphQLErrors
+  }
+}
+
+function throwOnGraphQLErrors<T extends Serializable>(message: string) {
+  return function maybeGraphQLResponse(response: GraphQLResponse<T>) {
+    if (response && response.errors && response.errors.length > 0) {
+      throw new CustomGraphQLError(message, response.errors)
+    }
+
+    return response
+  }
+}
 
 export default class CheckoutIO extends AppGraphQLClient {
   constructor(context: IOContext, options?: InstanceOptions) {
@@ -22,8 +46,10 @@ export default class CheckoutIO extends AppGraphQLClient {
    * @param {string} orderFormId OrderForm ID
    * @return {PartialItem[]} List of partial Items
    */
-  public getOrderFormItems = (orderFormId: string) => {
-    return this.graphql
+  public getOrderFormItems = async (
+    orderFormId: string
+  ): Promise<PartialItem[]> => {
+    const partialItems = await this.graphql
       .query<PartialOrderFormItems, { orderFormId: string }>(
         {
           query: GET_ORDERFORM_ITEMS_QUERY,
@@ -35,7 +61,16 @@ export default class CheckoutIO extends AppGraphQLClient {
           metric: 'checkout-orderform',
         }
       )
-      .then((res) => res.data?.orderForm.items) as Promise<PartialItem[]>
+      .then(
+        throwOnGraphQLErrors(
+          'Error getting items data from vtex.checkout-graphql'
+        )
+      )
+      .then((query) => {
+        return query.data!.orderForm.items
+      })
+
+    return partialItems
   }
 
   /**
@@ -52,10 +87,12 @@ export default class CheckoutIO extends AppGraphQLClient {
    * @param {string} orderFormId OrderForm ID
    * @param {ItemInput[]} items Input list of Items
    * @return {PartialNewOrderForm} New partial OrderForm
-   * @see {@link https://developers.vtex.com/vtex-rest-api/reference/orders}
    */
-  public updateItems = (orderFormId: string, items: ItemInput[]) => {
-    return this.graphql
+  public updateItems = async (
+    orderFormId: string,
+    items: ItemInput[]
+  ): Promise<PartialNewOrderForm> => {
+    const partialNewOrderForm = await this.graphql
       .query<
         PartialNewOrderForm,
         { orderFormId: string; orderItems: ItemInput[] }
@@ -71,6 +108,13 @@ export default class CheckoutIO extends AppGraphQLClient {
           metric: 'checkout-update-items',
         }
       )
-      .then((res) => res.data) as Promise<PartialNewOrderForm>
+      .then(
+        throwOnGraphQLErrors('Error updating items with vtex.checkout-graphql')
+      )
+      .then((query) => {
+        return query.data!
+      })
+
+    return partialNewOrderForm
   }
 }
