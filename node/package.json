@@ -1,10 +1,8 @@
 {
   "dependencies": {
-    "@vtex/api": "6.45.6",
-    "ramda": "^0.26.1"
+    "@vtex/api": "6.45.6"
   },
   "devDependencies": {
-    "@types/ramda": "^0.26.21",
     "@vtex/api": "6.31.1",
     "@vtex/test-tools": "vtex/test-tools",
     "@vtex/tsconfig": "^0.5.6",

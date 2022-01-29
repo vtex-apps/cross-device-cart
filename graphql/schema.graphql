@@ -1,24 +1,22 @@
 type Query {
   """
-  Retrieve a previous session OrderForm ID. Will return NULL if no reference was stored
+  Retrieves a cross cart OrderForm ID. Will return NULL if no reference was stored.
   """
-  getSavedCart(userId: String): String
+  getSavedCart(userId: String!): String
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
 }
 
 type Mutation {
   """
-  Store an OrderForm ID in VBASE, for cross cart reference
+  Stores an OrderForm ID for a specific user, as a cross cart reference.
   """
-  saveCurrentCart(userId: String, orderFormId: String): String
+  saveCurrentCart(userId: String!, orderFormId: String!): String
   """
-  Merge items, from another OrderForm to the current one, depending on the strategy provided
+  Merge items from one OrderForm to another depending on the strategy provided.
   """
   mergeCarts(
-    savedCart: String
-    currentCart: String
-    strategy: String
+    savedCart: String!
+    currentCart: String!
+    strategy: Strategy
   ): PartialOrderForm
 }
-
-scalar PartialOrderForm

@@ -7,7 +7,7 @@ interface MergeCartsVariables {
   strategy: MergeStrategy
 }
 
-type MergeStrategy = 'add' | 'combine' | 'replace'
+type MergeStrategy = 'ADD' | 'COMBINE' | 'REPLACE'
 
 interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }

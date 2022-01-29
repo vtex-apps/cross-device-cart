@@ -1,4 +1,4 @@
-import { addMissingItems, combineItems } from '../utils'
+import { mergeItems } from '../utils'
 /**
  * Cross cart main feature.
  * Resolves how the stored reference's items will be handled
@@ -10,42 +10,35 @@ import { addMissingItems, combineItems } from '../utils'
  */
 export const mergeCarts = async (
   _: any,
-  { savedCart, currentCart, strategy = 'add' }: MergeCartsVariables,
+  { savedCart, currentCart, strategy = 'ADD' }: MergeCartsVariables,
   { clients: { checkoutIO, requestHub } }: Context
 ): Promise<PartialNewOrderForm | null> => {
-  // eslint-disable-next-line no-console
-  console.log(currentCart, strategy)
+  const savedItems = await checkoutIO.getOrderFormItems(savedCart)
 
-  try {
-    const savedItems = await checkoutIO.getOrderFormItems(savedCart)
-
-    if (!savedItems.length) {
-      return null
-    }
-
-    const currentItems = await checkoutIO.getOrderFormItems(currentCart)
-
-    let items
-
-    switch (strategy) {
-      case 'combine':
-        items = combineItems(currentItems, savedItems)
-        break
-
-      case 'replace':
-        await requestHub.clearCart(currentCart)
-        items = savedItems
-        break
-
-      default:
-      case 'add':
-        items = addMissingItems(currentItems, savedItems)
-    }
-
-    const updatedOrderForm = await checkoutIO.updateItems(currentCart, items)
-
-    return updatedOrderForm
-  } catch (err) {
-    throw err
+  if (!savedItems.length) {
+    return null
   }
+
+  const currentItems = await checkoutIO.getOrderFormItems(currentCart)
+
+  let items
+
+  switch (strategy) {
+    case 'COMBINE':
+      items = mergeItems(currentItems, savedItems, true)
+      break
+
+    case 'REPLACE':
+      await requestHub.clearCart(currentCart)
+      items = savedItems
+      break
+
+    default:
+    case 'ADD':
+      items = mergeItems(currentItems, savedItems, false)
+  }
+
+  const updatedOrderForm = await checkoutIO.updateItems(currentCart, items)
+
+  return updatedOrderForm
 }

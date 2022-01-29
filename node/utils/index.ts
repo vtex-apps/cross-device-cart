@@ -1,17 +1,5 @@
 import { AxiosError } from 'axios'
 import { AuthenticationError, ForbiddenError, UserInputError } from '@vtex/api'
-import {
-  eqBy,
-  prop,
-  unionWith,
-  concat,
-  mergeWithKey,
-  pipe,
-  groupBy,
-  map,
-  reduce,
-  values,
-} from 'ramda'
 
 export function statusToError(e: any) {
   if (!e.response) {
@@ -37,56 +25,30 @@ export function statusToError(e: any) {
 }
 
 /**
- * Creates a set of Items from the first list adding the missing Items from the second.
- * Duplicate Items are compared using their 'id' property and discarded
+ * Returns a set from both provided lists.
+ * Duplicates from the second one are discarded or,
+ * if desired, their quantities added to the existing items.
  *
- * @func addMissingItems
- * @param {PartialItem[]} list1 First list of Items
- * @param {PartialItem[]} list2 Second list of Items to add
- * @return {PartialItem[]} New set of items
- * @see {@link https://ramdajs.com/docs/#unionWith}
- * @example
- *
- * addMissingItems([{id: 3}, {id: 1}], [{id: 2}, {id: 1}]) //=> [{ id: 3}, {id: 1}, {id: 2 }]
- */
-export const addMissingItems = (
-  list1: PartialItem[],
-  list2: PartialItem[]
-): PartialItem[] => {
-  const byID = eqBy(prop('id') as any)
-
-  return unionWith(byID, list1, list2)
-}
-
-/**
- * Creates an orderly set combining Items from both provided lists.
- * Duplicates are grouped using their 'id' property and then
- * mapped to reduce their quantities
- *
- * @func combineItems
+ * @func mergeItems
  * @param {PartialItem[]} list1 First list of Items
  * @param {PartialItem[]} list2 Second list of Items
+ * @param {boolean} tally Sum duplicate's quantities
  * @return {PartialItem[]} New set of items
- * @see {@link https://ramdajs.com/docs/#mergeWithKey}
  * @example
  *
- * addMissingItems([{id: 3}, {id: 1, qty: 2}], [{id: 2}, {id: 1: qty: 1}]) //=> [{ id: 1, qty: 3}, {id: 2}, {id: 3 }]
+ * mergeItems([{id: 3, qty: 1}, {id: 1, qty: 2}], [{id: 2, qty: 2}, {id: 1: qty: 1}], true)
+ * //=> [{ id: 3, qty: 1}, {id: 1, qty: 3}, {id: 2, qty: 2 }]
  */
-export const combineItems = (
+export const mergeItems = (
   list1: PartialItem[],
-  list2: PartialItem[]
+  list2: PartialItem[],
+  tally: boolean
 ): PartialItem[] => {
-  const allItems = concat(list1, list2)
+  return [...list1, ...list2].reduce((acc: PartialItem[], curr) => {
+    const existing = acc.find((el) => el.id === curr.id)
 
-  const mergeQty = mergeWithKey((key: string, left: number, right: number) =>
-    key === 'quantity' ? left + right : left
-  )
+    existing ? tally && (existing.quantity += curr.quantity) : acc.push(curr)
 
-  // @ts-expect-error Ramda incorrectly typed
-  const groupById = groupBy(prop(['id']))
-  const sumDuplicatesQty = reduce(mergeQty, {})
-  const combine = pipe(groupById as any, map(sumDuplicatesQty), values)
-
-  // @ts-expect-error Ramda incorrectly typed
-  return combine(allItems)
+    return acc
+  }, [])
 }

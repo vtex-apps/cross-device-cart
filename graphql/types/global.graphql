@@ -1,0 +1,49 @@
+enum Strategy {
+  ADD
+  COMBINE
+  REPLACE
+}
+
+scalar InputValues
+
+type PartialOrderForm {
+  items: [PartialItem!]!
+  value: Float!
+  totalizers: [Totalizer!]!
+}
+
+type Totalizer {
+  id: String!
+  name: String
+  value: Float!
+}
+
+type PartialItem {
+  availability: String
+  id: ID!
+  imageUrls: ImageUrls
+  listPrice: Float
+  price: Float
+  productId: String
+  quantity: Float!
+  seller: String
+  sellingPrice: Float
+  skuName: String
+  uniqueId: String!
+  options: [AssemblyOptionType]
+}
+
+type ImageUrls {
+  at1x: String!
+  at2x: String!
+  at3x: String!
+}
+
+type AssemblyOptionType {
+  assemblyId: String!
+  id: ID
+  quantity: Int
+  seller: String
+  inputValues: InputValues
+  options: [AssemblyOptionType!]
+}
