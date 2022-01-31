@@ -2,5 +2,12 @@
   "store/crossCart.challenge.cta": "Faça",
   "store/crossCart.challenge.text": "Parece que você deixou alguns itens em outro dispositivo. ¿Quer recuperá-los?",
   "store/crossCart.toast.success": "Itens adicionados com sucesso ao seu carrinho",
-  "store/crossCart.toast.error": "Ocorreu um erro ao adicionar seus itens"
+  "store/crossCart.toast.error": "Ocorreu um erro ao adicionar seus itens",
+  "store/crossCart.modal.title": "Que você quier façer",
+  "store/crossCart.modal.previous-cart": "Produtos ..",
+  "store/crossCart.modal.more-items": "produito(s) mais",
+  "store/crossCart.modal.buttons.title": "Que você quier façer",
+  "store/crossCart.modal.buttons.merge": "Combinar carrinhos",
+  "store/crossCart.modal.buttons.replace": "Reemplaçar carrinhos",
+  "store/crossCart.modal.buttons.add": "Sumar carrinhos"
 }

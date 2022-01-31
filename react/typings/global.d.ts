@@ -1,4 +1,5 @@
 type ChallengeType = 'actionBar' | 'floatingBar' | 'modal'
+type Strategy = 'combine' | 'replace' | 'add'
 
 interface OrderFormContext {
   orderForm: PartialOrderForm
@@ -13,6 +14,8 @@ interface ToastParam {
 
 interface CrossCartProps {
   challengeType: ChallengeType
+  strategies: Strategy[]
+  isAutomatic: boolean
 }
 
 interface ExtendedCrossCart extends CrossCartProps {
