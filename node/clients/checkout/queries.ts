@@ -18,18 +18,12 @@ query orderForm($orderFormId: ID) {
 }
 `
 export const UPDATE_ITEMS_MUTATION = `
-mutation updateItems(
-  $orderFormId: ID
-  $orderItems: [ItemInput]
-) {
-  updateItems(
-    orderFormId: $orderFormId
-    orderItems: $orderItems
-  ) {
+mutation updateItems($orderFormId: ID, $orderItems: [ItemInput]) {
+  updateItems(orderFormId: $orderFormId, orderItems: $orderItems) {
     items {
       availability
       id
-      imageUrls{
+      imageUrls {
         at1x
         at2x
         at3x
@@ -56,7 +50,6 @@ mutation updateItems(
       name
       value
     }
-  }
   }
 }
 `

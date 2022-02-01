@@ -44,7 +44,7 @@ const CrossDeviceCart: FC<Props> = ({
       saveCurrentCart({
         variables: {
           userId,
-          orderformId: orderForm.id,
+          orderFormId: orderForm.id,
         },
       })
 
@@ -122,7 +122,7 @@ const CrossDeviceCart: FC<Props> = ({
       saveCurrentCart({
         variables: {
           userId,
-          orderformId: null,
+          orderFormId: null,
         },
       })
     }

@@ -1,11 +1,42 @@
 mutation mergeCarts(
-  $savedCart: String
-  $currentCart: String
-  $strategy: String
+  $savedCart: String!
+  $currentCart: String!
+  $strategy: Strategy
 ) {
   newOrderForm: mergeCarts(
     savedCart: $savedCart
     currentCart: $currentCart
     strategy: $strategy
-  )
+  ) {
+    items {
+      availability
+      id
+      imageUrls {
+        at1x
+        at2x
+        at3x
+      }
+      listPrice
+      price
+      productId
+      quantity
+      seller
+      sellingPrice
+      skuName
+      uniqueId
+      options {
+        assemblyId
+        id
+        quantity
+        seller
+        inputValues
+      }
+    }
+    value
+    totalizers {
+      id
+      name
+      value
+    }
+  }
 }

@@ -38,6 +38,11 @@ export const mergeCarts = async (
       items = mergeItems(currentItems, savedItems, false)
   }
 
+  items.forEach((element, index) => {
+    element.id = Number(element.id)
+    element.index = index
+  })
+
   const updatedOrderForm = await checkoutIO.updateItems(currentCart, items)
 
   return updatedOrderForm
