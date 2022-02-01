@@ -7,7 +7,7 @@ import type {
 import { AppGraphQLClient } from '@vtex/api'
 import { ItemInput } from 'vtex.checkout-graphql'
 
-import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_ITEMS_MUTATION } from './queries'
+import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_CART_MUTATION } from './queries'
 
 class CustomGraphQLError extends Error {
   public graphQLErrors: any
@@ -74,34 +74,23 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
-   * With the items update request you can:
-   *
-   * - Add items to the cart
-   *
-   * - Change the quantity of one or more items
-   *
-   * - Remove items from the cart (by changing their quantity to 0)
-   *
-   * @func updateItems
+   * @func updateCart
    * @public
    * @param {string} orderFormId OrderForm ID
    * @param {ItemInput[]} items Input list of Items
    * @return {PartialNewOrderForm} New partial OrderForm
    */
-  public updateItems = async (
+  public updateCart = async (
     orderFormId: string,
     items: ItemInput[]
   ): Promise<PartialNewOrderForm> => {
     const partialNewOrderForm = await this.graphql
-      .mutate<
-        PartialNewOrderForm,
-        { orderFormId: string; orderItems: ItemInput[] }
-      >(
+      .mutate<any, { orderFormId: string; items: ItemInput[] }>(
         {
-          mutate: UPDATE_ITEMS_MUTATION,
+          mutate: UPDATE_CART_MUTATION,
           variables: {
             orderFormId,
-            orderItems: items,
+            items,
           },
         },
         {
@@ -112,7 +101,7 @@ export default class CheckoutIO extends AppGraphQLClient {
         throwOnGraphQLErrors('Error updating items with vtex.checkout-graphql')
       )
       .then((query) => {
-        return query.data!
+        return query.data!.orderForm
       })
 
     return partialNewOrderForm

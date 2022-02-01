@@ -21,16 +21,17 @@ export const mergeCarts = async (
 
   const currentItems = await checkoutIO.getOrderFormItems(currentCart)
 
+  await requestHub.clearCart(currentCart)
+
   let items
 
   switch (strategy) {
-    case 'COMBINE':
-      items = mergeItems(currentItems, savedItems, true)
+    case 'REPLACE':
+      items = savedItems
       break
 
-    case 'REPLACE':
-      await requestHub.clearCart(currentCart)
-      items = savedItems
+    case 'COMBINE':
+      items = mergeItems(currentItems, savedItems, true)
       break
 
     default:
@@ -43,7 +44,7 @@ export const mergeCarts = async (
     element.index = index
   })
 
-  const updatedOrderForm = await checkoutIO.updateItems(currentCart, items)
+  const updatedOrderForm = await checkoutIO.updateCart(currentCart, items)
 
   return updatedOrderForm
 }

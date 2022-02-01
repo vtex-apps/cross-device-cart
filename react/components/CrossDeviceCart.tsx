@@ -39,16 +39,18 @@ const CrossDeviceCart: FC<Props> = ({
 
   const currentItemsQty = orderForm.items.length
 
-  const handleSaveCurrent = () => {
-    currentItemsQty &&
+  const handleSaveCurrent = (forceSaving?: boolean) => {
+    crossCartDetected && setChallenge(false)
+
+    const save = currentItemsQty || forceSaving
+
+    save &&
       saveCurrentCart({
         variables: {
           userId,
           orderFormId: orderForm.id,
         },
       })
-
-    crossCartDetected && setChallenge(false)
   }
 
   const handleMerge = async (
@@ -89,7 +91,7 @@ const CrossDeviceCart: FC<Props> = ({
       items: pixelEventItems,
     })
 
-    handleSaveCurrent()
+    handleSaveCurrent(true)
   }
 
   useEffect(() => {
@@ -105,7 +107,7 @@ const CrossDeviceCart: FC<Props> = ({
 
     const crossCart = data?.id
 
-    if (!crossCart) {
+    if (!crossCart && currentItemsQty) {
       handleSaveCurrent()
 
       return

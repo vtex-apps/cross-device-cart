@@ -18,5 +18,5 @@ type Mutation {
     savedCart: String!
     currentCart: String!
     strategy: Strategy
-  ): PartialOrderForm
+  ): OrderForm
 }
