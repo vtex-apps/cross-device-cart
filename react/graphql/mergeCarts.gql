@@ -3,7 +3,7 @@ mutation mergeCarts(
   $currentCart: String
   $strategy: String
 ) {
-  orderForm: mergeCarts(
+  newOrderForm: mergeCarts(
     savedCart: $savedCart
     currentCart: $currentCart
     strategy: $strategy

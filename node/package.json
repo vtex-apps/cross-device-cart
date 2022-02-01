@@ -3,7 +3,7 @@
     "@vtex/api": "6.45.6"
   },
   "devDependencies": {
-    "@vtex/api": "6.31.1",
+    "@vtex/api": "6.45.6",
     "@vtex/test-tools": "vtex/test-tools",
     "@vtex/tsconfig": "^0.5.6",
     "typescript": "3.9.7",

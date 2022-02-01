@@ -1,11 +1,8 @@
-export const ADD = 'add'
-export const ADD_DESCRIPTION =
-  "Merge both carts' items  and add items quantities"
+export const ADD = 'ADD'
+export const ADD_DESCRIPTION = 'Add missing items'
 
-export const COMBINE = 'combine'
-export const COMBINE_DESCRIPTION =
-  "Merge both carts and don't add items quantities"
+export const COMBINE = 'COMBINE'
+export const COMBINE_DESCRIPTION = 'Combine current and missing items'
 
-export const REPLACE = 'replace'
-export const REPLACE_DESCRIPTION =
-  'Replace current cart entirely with previous items'
+export const REPLACE = 'REPLACE'
+export const REPLACE_DESCRIPTION = 'Replace current items entirely'

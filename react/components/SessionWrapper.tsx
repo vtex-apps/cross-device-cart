@@ -1,19 +1,21 @@
+/* eslint-disable react/prop-types */
 import React, { FC } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
+import { ToastConsumer } from 'vtex.styleguide'
 
 import { CrossDeviceCart } from './CrossDeviceCart'
 
 interface Props {
-  challengeType: ChallengeType
-  strategies: Strategy[]
+  mergeStrategy: Strategy
   isAutomatic: boolean
+  advancedOptions: boolean
 }
 
 const SessionWrapper: FC<Props> = ({
-  challengeType = 'actionBar',
-  strategies = ['add', 'combine', 'replace'],
-  isAutomatic = false,
+  mergeStrategy = 'ADD',
+  isAutomatic = true,
+  advancedOptions = false,
 }) => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
@@ -37,12 +39,17 @@ const SessionWrapper: FC<Props> = ({
   const userId = profile?.id.value
 
   return (
-    <CrossDeviceCart
-      isAutomatic={isAutomatic}
-      challengeType={challengeType}
-      strategies={strategies}
-      userId={userId}
-    />
+    <ToastConsumer>
+      {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
+        <CrossDeviceCart
+          isAutomatic={isAutomatic}
+          mergeStrategy={mergeStrategy}
+          userId={userId}
+          toastHandler={showToast}
+          advancedOptions={advancedOptions}
+        />
+      )}
+    </ToastConsumer>
   )
 }
 

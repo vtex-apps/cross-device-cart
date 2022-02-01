@@ -1,6 +1,6 @@
 import React, { FC, Fragment } from 'react'
 import { FormattedMessage } from 'react-intl'
-import { Button, Divider, Modal } from 'vtex.styleguide'
+import { Button, Modal } from 'vtex.styleguide'
 
 import { capitalize } from '../utils'
 import {
@@ -13,30 +13,35 @@ import {
 } from '../utils/constants'
 
 interface Props {
-  items: any[]
+  /* items: any[] */
   strategies: Strategy[]
   isOpen: boolean
   handleClose: () => void
   showItems?: boolean
+  handleAccept: (
+    showToast: (toast: ToastParam) => void,
+    strategy: Strategy
+  ) => Promise<void>
+  toastHandler: (toast: ToastParam) => void
 }
 
 const MergeOptionsModal: FC<Props> = ({
-  items,
   strategies,
   isOpen,
   handleClose,
-  showItems = true,
+  showItems = false,
+  handleAccept,
+  toastHandler,
 }) => {
   const handleCloseModal = () => {
     handleClose()
   }
 
-  const handleMergeCarts = (strategy: string) => {
-    // eslint-disable-next-line no-console
-    console.log({ strategy })
+  const handleMergeCarts = (strategy: Strategy) => {
+    handleAccept(toastHandler, strategy)
   }
 
-  const actionButtons = strategies.map((strategy: string) => {
+  const actionButtons = strategies.map((strategy: Strategy) => {
     let description = ''
 
     switch (strategy) {
@@ -59,18 +64,17 @@ const MergeOptionsModal: FC<Props> = ({
     return (
       <Fragment key={strategy}>
         <div className="w-33 pa5">
-          <h3 className="tc black-80">{capitalize(strategy)} Carts</h3>
+          <h3 className="tc black-80">{capitalize(strategy)}</h3>
           <p className="dark-gray t-small">{description}</p>
           <Button block onClick={() => handleMergeCarts(strategy)}>
-            {/* <FormattedMessage id="store/crossCart.modal.buttons.merge" /> */}
-            Hazlo
+            <FormattedMessage id="store/crossCart.challenge.cta" />
           </Button>
         </div>
       </Fragment>
     )
   })
 
-  const savedCartItems = []
+  /* const savedCartItems = []
   const numOfProductsToShow = items.length <= 4 ? items.length : 4
 
   for (let i = 0; i < numOfProductsToShow; i++) {
@@ -105,7 +109,7 @@ const MergeOptionsModal: FC<Props> = ({
         </div>
       </div>
     )
-  }
+  } */
 
   return (
     <Modal
@@ -121,8 +125,9 @@ const MergeOptionsModal: FC<Props> = ({
         <div className="flex">{actionButtons}</div>
       </div>
 
-      {showItems && (
-        <Fragment>
+      {showItems &&
+        {
+          /* <Fragment>
           <Divider />
           <div className="saved-cart">
             <h3 className="tc mb0">
@@ -140,8 +145,8 @@ const MergeOptionsModal: FC<Props> = ({
               )}
             </div>
           </div>
-        </Fragment>
-      )}
+        </Fragment> */
+        }}
     </Modal>
   )
 }
