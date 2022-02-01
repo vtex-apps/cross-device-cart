@@ -12,7 +12,7 @@
 
 The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
 
-To do so, this app was created to expose two blocks to enable `logged in` users to retrieve their items from their last session.
+To do so, this app was created to to enable `logged in` users to retrieve their items from their last session.
 
 ## Configuration
 
@@ -52,19 +52,19 @@ To do so, this app was created to expose two blocks to enable `logged in` users 
 
 ### `cross-device-cart` props
 
-| Prop name         | Type      | Description                                                                                                                                                                                        | Default value |
-| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| `isAutomatic`     | `boolean` | If the items merging is done automatically or requires a challenge block to be rendered                                                                                                            | `true`        |
-| `mergeStrategy`   | `enum`    | The default strategy for merging carts `ADD`, `COMBINE`, `REPLACE`                                                                                                                                 | `ADD`         |
-| `advancedOptions` | `boolean` | (isAutomatic dependency) If isAutomatic is set to `false`, you can opt to enable this prop; which renders a modal with all the 3 strategies for the user to decide instead of the default strategy | `false`       |
+| Prop name         | Type      | Description                                                                                                                                                                                                 | Default value |
+| ----------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `isAutomatic`     | `boolean` | If the items merge is done automatically or requires user input via a challenge block. If `false`, an action bar will be rendered where the block is declared on your store-theme                           | `true`        |
+| `mergeStrategy`   | `enum`    | The default strategy for merging carts `ADD`, `COMBINE`, `REPLACE`                                                                                                                                          | `ADD`         |
+| `advancedOptions` | `boolean` | (Dependency of `isAutomatic`) If isAutomatic is set to `false`, you can opt to enable this prop. This renders a modal when the user accepts the challenge, with all the 3 strategies for the user to decide | `false`       |
 
 - `mergeStrategy` enum:
 
-| value     | Type     | Description                                                                                                                                       |
-| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ADD`     | `string` | This strategy allows the customer to ADD the missing items to the ones currently in the session. This means that repeated items will be _OMITTED_ |
-| `COMBINE` | `string` | Sums both cart's items and quantities                                                                                                             |
-| `REPLACE` | `sting`  | Replaces _CURRENT_ cart items with the last ones                                                                                                  |
+| value     | Type     | Description                                                                                          |
+| --------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `ADD`     | `string` | ADDS the missing items to the current cart session. This means that repeated items will be _OMITTED_ |
+| `COMBINE` | `string` | SUMS both cart's items and quantities into one                                                       |
+| `REPLACE` | `sting`  | REPLACES current cart items                                                                          |
 
 ## Customization
 
