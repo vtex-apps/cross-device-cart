@@ -6,16 +6,16 @@ import {
   ServiceContext,
 } from '@vtex/api'
 
-import Orders from './orders'
-import Checkout from './checkout'
+import RequestHub from './hub'
+import CheckoutIO from './checkout'
 
 export class Clients extends IOClients {
-  public get checkout() {
-    return this.getOrSet('checkout', Checkout)
+  public get checkoutIO() {
+    return this.getOrSet('checkoutIO', CheckoutIO)
   }
 
-  public get orders() {
-    return this.getOrSet('orders', Orders)
+  public get requestHub() {
+    return this.getOrSet('requestHub', RequestHub)
   }
 }
 
@@ -45,8 +45,11 @@ const clients: ClientsConfig<Clients> = {
       retries: 2,
       timeout: 800,
     },
-    orders: {
+    requestHub: {
       timeout: 3000,
+    },
+    checkoutIO: {
+      timeout: 5000,
     },
     status: {
       memoryCache,

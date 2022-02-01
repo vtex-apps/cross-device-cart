@@ -24,10 +24,12 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   const { push } = usePixel()
   const intl = useIntl()
 
-  const [getSavedCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
+  const [getSavedCart, { data: crossCart, loading }] = useLazyQuery(
+    GET_ID_BY_USER
+  )
 
   const [saveCurrentCart] = useMutation(SAVE_ID_BY_USER)
-  const [mergeCart, { error, loading: mutationLoading }] = useMutation(
+  const [mergeCarts, { error, loading: mutationLoading }] = useMutation(
     MUTATE_CART
   )
 
@@ -38,7 +40,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       saveCurrentCart({
         variables: {
           userId,
-          orderformId: orderForm.id,
+          orderFormId: orderForm.id,
         },
       })
 
@@ -54,17 +56,15 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
   }, [getSavedCart, userId])
 
   useEffect(() => {
-    if (loading || !data) return
+    if (loading || !crossCart) return
 
-    const XCart = data?.getSavedCart
-
-    if (!XCart) {
+    if (!crossCart.id) {
       handleSaveCurrent()
 
       return
     }
 
-    if (XCart !== orderForm.id) {
+    if (crossCart.id !== orderForm.id) {
       setChallenge(true)
 
       return
@@ -74,18 +74,27 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       saveCurrentCart({
         variables: {
           userId,
-          orderformId: null,
+          orderFormId: null,
         },
       })
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading, currentItemsQty])
+  }, [crossCart, loading, currentItemsQty])
 
   const handleMerge = async (showToast: (toast: ToastParam) => void) => {
-    const mutationResult = await mergeCart({
-      variables: { savedCart: data?.getSavedCart, currentCart: orderForm.id },
+    const variables = {
+      savedCart: crossCart?.id,
+      currentCart: orderForm.id,
+      strategy: 'add',
+    }
+
+    const mutationResult = await mergeCarts({
+      variables,
     })
+
+    // eslint-disable-next-line no-console
+    console.log(mutationResult.data)
 
     if (error || !mutationResult.data) {
       error && console.error(error)
@@ -97,7 +106,7 @@ const CrossDeviceCart: FC<ExtendedCrossCart> = ({ challengeType, userId }) => {
       return
     }
 
-    const newOrderForm = mutationResult.data.mergeCarts
+    const newOrderForm = mutationResult.data.orderForm
 
     setOrderForm(newOrderForm)
 

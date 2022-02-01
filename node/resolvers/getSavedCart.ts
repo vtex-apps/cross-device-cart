@@ -1,22 +1,23 @@
 import { APP_NAME } from '../constants'
 
+/**
+ * Retrieve a previous session OrderForm ID
+ * @param {string} userId - Unique user identification string
+ * @returns {string | null} orderFormId
+ */
 export const getSavedCart = async (
   _: unknown,
   { userId }: { userId: string },
-  ctx: Context
-) => {
-  const {
-    clients: { vbase },
-  } = ctx
-
+  { clients: { vbase } }: Context
+): Promise<string | null> => {
   try {
-    const orderformId: string | null = await vbase.getJSON(
+    const orderFormId: string | null = await vbase.getJSON(
       APP_NAME,
       userId,
       true
     )
 
-    return orderformId
+    return orderFormId
   } catch (err) {
     const status = (err as any)?.response?.status
 
