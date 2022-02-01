@@ -1,37 +1,54 @@
-import React, { FC } from 'react'
+import React, { FC, useState } from 'react'
 import { useDevice } from 'vtex.device-detector'
 import { FormattedMessage } from 'react-intl'
-import { Button, ButtonWithIcon, IconClose, Modal } from 'vtex.styleguide'
+import { Button, ButtonWithIcon, IconClose } from 'vtex.styleguide'
 import { useCssHandles } from 'vtex.css-handles'
+
+import { MergeOptionsModal } from './MergeOptionsModal'
 
 const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 
 const close = <IconClose />
 
 interface Props {
-  type: ChallengeType
-  handleAccept: (showToast: (toast: ToastParam) => void) => Promise<void>
+  handleAccept: (
+    showToast: (toast: ToastParam) => void,
+    strategy: Strategy
+  ) => Promise<void>
+  mergeStrategy: Strategy
   handleDecline: () => void
   mutationLoading: boolean
   toastHandler: (toast: ToastParam) => void
+  advancedOptions: boolean
+  /* items: unknown[] */
 }
 
 const ChallengeBlock: FC<Props> = ({
-  type,
+  mergeStrategy,
   handleAccept,
   handleDecline,
   mutationLoading,
   toastHandler,
+  advancedOptions,
 }) => {
   const { device } = useDevice()
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const handles = useCssHandles(CSS_HANDLES)
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  const deviceClass = `${device === 'phone' ? 'flex-column' : ''}`
 
   const callToAction = (
     <Button
       size="small"
       variation="secondary"
       onClick={() => {
-        handleAccept(toastHandler)
+        advancedOptions
+          ? setIsModalOpen(true)
+          : handleAccept(toastHandler, mergeStrategy)
       }}
       isLoading={mutationLoading}
     >
@@ -39,15 +56,18 @@ const ChallengeBlock: FC<Props> = ({
     </Button>
   )
 
-  if (type === 'actionBar' || type === 'floatingBar') {
-    const classes =
-      type === 'floatingBar'
-        ? 'shadow-2 pa5 fixed bottom-0 z-999 left-0'
-        : `pa4 tc ${device === 'phone' ? 'flex-column' : ''}`
-
-    return (
+  return (
+    <>
+      <MergeOptionsModal
+        /* items={items} */
+        strategies={['ADD', 'COMBINE', 'REPLACE']}
+        isOpen={isModalOpen}
+        handleClose={handleCloseModal}
+        handleAccept={handleAccept}
+        toastHandler={toastHandler}
+      />
       <div
-        className={`${classes} w-100 bg-base flex items-center justify-center ${handles.actionBar}`}
+        className={`${deviceClass} pa4 tc w-100 bg-base flex items-center justify-center ${handles.actionBar}`}
       >
         <span
           className={`${handles.challengeText} t-small ${
@@ -71,29 +91,8 @@ const ChallengeBlock: FC<Props> = ({
           </span>
         </div>
       </div>
-    )
-  }
-
-  if (type === 'modal') {
-    return (
-      <Modal
-        centered
-        isOpen
-        onClose={() => {
-          handleDecline()
-        }}
-        bottomBar={<div className="nowrap">{callToAction}</div>}
-      >
-        <div className="dark-gray pv7">
-          <span className={`${handles.challengeText}`}>
-            <FormattedMessage id="store/crossCart.challenge.text" />
-          </span>
-        </div>
-      </Modal>
-    )
-  }
-
-  return null
+    </>
+  )
 }
 
 export default ChallengeBlock

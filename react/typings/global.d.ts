@@ -1,4 +1,4 @@
-type ChallengeType = 'actionBar' | 'floatingBar' | 'modal'
+type Strategy = 'COMBINE' | 'REPLACE' | 'ADD'
 
 interface OrderFormContext {
   orderForm: PartialOrderForm
@@ -9,14 +9,6 @@ interface ToastParam {
   message: string
   duration?: number
   horizontalPosition?: 'left' | 'right'
-}
-
-interface CrossCartProps {
-  challengeType: ChallengeType
-}
-
-interface ExtendedCrossCart extends CrossCartProps {
-  userId: string
 }
 
 interface PartialOrderForm {
