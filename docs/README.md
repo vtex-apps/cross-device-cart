@@ -10,85 +10,61 @@
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- DOCS-IGNORE:end -->
 
-⚠️ **WORK IN PROGRESS - APP NOT PUBLISHED**
-
 The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
 
-To do so, this app was created to expose two blocks to enable `logged in` users to retrieve their items from their recorded last session.
+To do so, this app was created to expose two blocks to enable `logged in` users to retrieve their items from their last session.
 
 ## Configuration
 
 1. Import the app to your theme's dependencies in `manifest.json`, for example:
 
-```json
-  "dependencies": {
-    // ...
-    "vtex.cross-device-cart": "0.x"
-  }
-```
-
-2. Decide if you will use the automatic challenge `block` or if you opt for the manual one `block`.
-
-   1. If `block` declare the Block as a Challenge of each store template you want to have this feature activated, for i.e:
-
-   ```diff
-
-   ```
-
-   2.If `block`, the block exported is a call to action button that we recommend placing inside the minicart layour, for i.e:
-
-   ```diff
-
-   ```
-
-3. (Optional) You can tailor the default experience by declaring the standalone `block` and configuring it via props
-
-   1. `block`
-
    ```json
-   "cross-device-cart": {
-     "props": {
-       "challengeType": "floatingBar"
+     "dependencies": {
+       // ...
+       "vtex.cross-device-cart": "0.x"
      }
-   },
    ```
 
-   2. `block`
+2. Add the `cross-device-cart` block as a children of your store header, for i.e:
+
+   ```diff
+   "header-layout.desktop": {
+       "children": [
+   +     "cross-device-cart",
+         "flex-layout.row#1-desktop",
+         "flex-layout.row#2-desktop",
+         "flex-layout.row#3-desktop",
+         "sticky-layout#4-desktop"
+       ]
+     },
+   ```
+
+3. (Optional) You can tailor the default experience by declaring the standalone block and configuring it via props
 
    ```json
    "cross-device-cart": {
      "props": {
-       "challengeType": "floatingBar"
+       "isAutomatic": "false",
+       "mergeStrategy": "REPLACE"
      }
    },
    ```
 
 ### `cross-device-cart` props
 
-| Prop name       | Type    | Description                                                                                                                                                                                                        | Default value             |
-| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
-| `challengeType` | `enum`  | How the user challenge will be rendered. Possible values are `actionBar` which renders a full width block, `floatingBar` similar to the actionBar but positioned at the bottom, `modal` renders the modal directly | `actionBar`               |
-| `strategy`      | `Array` | The selected strategies to resolve the cross cart action. Possible values are `add`, `combine`, `replace`                                                                                                          | `[add, combine, replace]` |
+| Prop name         | Type      | Description                                                                                                                                                                                        | Default value |
+| ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `isAutomatic`     | `boolean` | If the items merging is done automatically or requires a challenge block to be rendered                                                                                                            | `true`        |
+| `mergeStrategy`   | `enum`    | The default strategy for merging carts `ADD`, `COMBINE`, `REPLACE`                                                                                                                                 | `ADD`         |
+| `advancedOptions` | `boolean` | (isAutomatic dependency) If isAutomatic is set to `false`, you can opt to enable this prop; which renders a modal with all the 3 strategies for the user to decide instead of the default strategy | `false`       |
 
-### `manual block` props
-
-| Prop name  | Type    | Description                                                                                               | Default value             |
-| ---------- | ------- | --------------------------------------------------------------------------------------------------------- | ------------------------- |
-| `strategy` | `Array` | The selected strategies to resolve the cross cart action. Possible values are `add`, `combine`, `replace` | `[add, combine, replace]` |
-
-- `strategy` array:
+- `mergeStrategy` enum:
 
 | value     | Type     | Description                                                                                                                                       |
 | --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `add`     | `string` | This strategy allows the customer to ADD the missing items to the ones currently in the session. This means that repeated items will be _OMITTED_ |
-| `combine` | `string` | Sums both cart's items and quantities                                                                                                             |
-| `replace` | `sting`  | Replaces _CURRENT_ cart items with the cross cart ones (last session)                                                                             |
-
-## Modus Operandi _(not mandatory)_
-
-There are scenarios in which an app can behave differently in a store, according to how it was added to the catalog, for example. It's crucial to go through these **behavioral changes** in this section, allowing users to fully understand the **practical application** of the app in their store.
-
-If you feel compelled to give further details about the app, such as it's **relationship with the VTEX admin**, don't hesitate to use this section.
+| `ADD`     | `string` | This strategy allows the customer to ADD the missing items to the ones currently in the session. This means that repeated items will be _OMITTED_ |
+| `COMBINE` | `string` | Sums both cart's items and quantities                                                                                                             |
+| `REPLACE` | `sting`  | Replaces _CURRENT_ cart items with the last ones                                                                                                  |
 
 ## Customization
 
