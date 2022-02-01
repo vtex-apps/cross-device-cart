@@ -107,8 +107,8 @@ const CrossDeviceCart: FC<Props> = ({
 
     const crossCart = data?.id
 
-    if (!crossCart && currentItemsQty) {
-      handleSaveCurrent()
+    if (!crossCart) {
+      currentItemsQty && handleSaveCurrent()
 
       return
     }
