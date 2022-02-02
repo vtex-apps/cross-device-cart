@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import React, { FC } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
@@ -38,17 +37,21 @@ const SessionWrapper: FC<Props> = ({
 
   const userId = profile?.id.value
 
+  const crossDeviceCart = (toastHandler: (toast: ToastParam) => void) => (
+    <CrossDeviceCart
+      isAutomatic={isAutomatic}
+      mergeStrategy={mergeStrategy}
+      userId={userId}
+      toastHandler={toastHandler}
+      advancedOptions={advancedOptions}
+    />
+  )
+
   return (
     <ToastConsumer>
-      {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
-        <CrossDeviceCart
-          isAutomatic={isAutomatic}
-          mergeStrategy={mergeStrategy}
-          userId={userId}
-          toastHandler={showToast}
-          advancedOptions={advancedOptions}
-        />
-      )}
+      {({ showToast }: { showToast: (toast: ToastParam) => void }) =>
+        crossDeviceCart(showToast)
+      }
     </ToastConsumer>
   )
 }

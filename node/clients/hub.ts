@@ -38,7 +38,9 @@ export default class RequestHub extends JanusClient {
     this.post(this.routes.clearCart(orderFormId), {})
 
   protected get = <T>(url: string, config: RequestConfig = {}) => {
-    return this.http.get<T>(url, config).catch(statusToError) as Promise<T>
+    return this.http
+      .get<T>(url, config)
+      .catch((err) => statusToError(err)) as Promise<T>
   }
 
   protected post = async <T>(
@@ -52,7 +54,7 @@ export default class RequestHub extends JanusClient {
 
     return this.http
       .post<T>(url, data, config)
-      .catch(statusToError) as Promise<T>
+      .catch((err) => statusToError(err)) as Promise<T>
   }
 
   private get routes() {

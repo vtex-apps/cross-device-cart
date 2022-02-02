@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC, Fragment, useState } from 'react'
 import { useDevice } from 'vtex.device-detector'
 import { FormattedMessage } from 'react-intl'
 import { Button, ButtonWithIcon, IconClose } from 'vtex.styleguide'
@@ -8,17 +8,17 @@ import { MergeOptionsModal } from './MergeOptionsModal'
 
 const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 
-const close = <IconClose />
+const closeIcon = <IconClose />
 
 interface Props {
   handleAccept: (
     showToast: (toast: ToastParam) => void,
     strategy: Strategy
   ) => Promise<void>
-  mergeStrategy: Strategy
-  handleDecline: () => void
-  mutationLoading: boolean
   toastHandler: (toast: ToastParam) => void
+  handleDecline: () => void
+  mergeStrategy: Strategy
+  mutationLoading: boolean
   advancedOptions: boolean
   /* items: unknown[] */
 }
@@ -57,7 +57,7 @@ const ChallengeBlock: FC<Props> = ({
   )
 
   return (
-    <>
+    <Fragment>
       <MergeOptionsModal
         /* items={items} */
         strategies={['ADD', 'COMBINE', 'REPLACE']}
@@ -81,7 +81,7 @@ const ChallengeBlock: FC<Props> = ({
           <span>
             <ButtonWithIcon
               size="small"
-              icon={close}
+              icon={closeIcon}
               variation="tertiary"
               onClick={() => {
                 handleDecline()
@@ -91,7 +91,7 @@ const ChallengeBlock: FC<Props> = ({
           </span>
         </div>
       </div>
-    </>
+    </Fragment>
   )
 }
 

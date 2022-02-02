@@ -13,23 +13,23 @@ import {
 } from '../utils/constants'
 
 interface Props {
-  /* items: any[] */
-  strategies: Strategy[]
-  isOpen: boolean
-  handleClose: () => void
-  showItems?: boolean
   handleAccept: (
     showToast: (toast: ToastParam) => void,
     strategy: Strategy
   ) => Promise<void>
   toastHandler: (toast: ToastParam) => void
+  handleClose: () => void
+  strategies: Strategy[]
+  isOpen: boolean
+  /* showItems?: boolean */
+  /* items: any[] */
 }
 
 const MergeOptionsModal: FC<Props> = ({
   strategies,
   isOpen,
   handleClose,
-  showItems = false,
+  // showItems = false,
   handleAccept,
   toastHandler,
 }) => {
@@ -44,6 +44,7 @@ const MergeOptionsModal: FC<Props> = ({
   const actionButtons = strategies.map((strategy: Strategy) => {
     let description = ''
 
+    // eslint-disable-next-line default-case
     switch (strategy) {
       case ADD:
         description = ADD_DESCRIPTION
@@ -55,9 +56,6 @@ const MergeOptionsModal: FC<Props> = ({
 
       case REPLACE:
         description = REPLACE_DESCRIPTION
-        break
-
-      default:
         break
     }
 
@@ -125,9 +123,8 @@ const MergeOptionsModal: FC<Props> = ({
         <div className="flex">{actionButtons}</div>
       </div>
 
-      {showItems &&
-        {
-          /* <Fragment>
+      {/* {showItems && (
+        <Fragment>
           <Divider />
           <div className="saved-cart">
             <h3 className="tc mb0">
@@ -145,8 +142,8 @@ const MergeOptionsModal: FC<Props> = ({
               )}
             </div>
           </div>
-        </Fragment> */
-        }}
+        </Fragment>
+      )} */}
     </Modal>
   )
 }

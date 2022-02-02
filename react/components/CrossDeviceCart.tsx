@@ -18,7 +18,6 @@ interface Props {
   toastHandler: (toast: ToastParam) => void
 }
 
-/* eslint-disable react/prop-types */
 const CrossDeviceCart: FC<Props> = ({
   mergeStrategy,
   isAutomatic,

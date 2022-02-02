@@ -30,11 +30,14 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       await vbase.saveJSON(APP_NAME, userProfileId, null)
 
       logger.info({
-        message: `User ${userProfileId} got it's XCart reference removed`,
+        message: `Cross Device Cart reference removed for user ${userProfileId}`,
       })
     }
   } catch (error) {
-    if (error instanceof Error) throw error
-    throw new Error(error)
+    logger.error({
+      orderId,
+      message: 'There was a problem removing the reference for this order.',
+      data: error,
+    })
   }
 }
