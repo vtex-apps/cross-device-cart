@@ -4,6 +4,7 @@ import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
 
 import { CrossDeviceCart } from './CrossDeviceCart'
+import { COMBINE } from '../utils/constants'
 
 interface Props {
   mergeStrategy: Strategy
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const SessionWrapper: FC<Props> = ({
-  mergeStrategy = 'ADD',
+  mergeStrategy = COMBINE,
   isAutomatic = true,
   advancedOptions = false,
 }) => {
@@ -30,8 +31,6 @@ const SessionWrapper: FC<Props> = ({
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
   if (!isAuthenticated) {
-    console.error('User not authenticated')
-
     return null
   }
 

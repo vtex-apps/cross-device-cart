@@ -1,4 +1,5 @@
 import { mergeItems } from '../utils'
+
 /**
  * Cross cart main feature.
  * Resolves how the stored reference's items will be handled
@@ -10,7 +11,7 @@ import { mergeItems } from '../utils'
  */
 export const mergeCarts = async (
   _: any,
-  { savedCart, currentCart, strategy = 'ADD' }: MergeCartsVariables,
+  { savedCart, currentCart, strategy = 'COMBINE' }: MergeCartsVariables,
   { clients: { checkoutIO, requestHub } }: Context
 ): Promise<PartialNewOrderForm | null> => {
   const savedItems = await checkoutIO.getOrderFormItems(savedCart)
@@ -30,13 +31,13 @@ export const mergeCarts = async (
       items = savedItems
       break
 
-    case 'COMBINE':
-      items = mergeItems(currentItems, savedItems, true)
+    case 'ADD':
+      items = mergeItems(currentItems, savedItems, false)
       break
 
     default:
-    case 'ADD':
-      items = mergeItems(currentItems, savedItems, false)
+    case 'COMBINE':
+      items = mergeItems(currentItems, savedItems, true)
   }
 
   items.forEach((element, index) => {

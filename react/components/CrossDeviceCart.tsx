@@ -43,13 +43,20 @@ const CrossDeviceCart: FC<Props> = ({
 
     const save = currentItemsQty || forceSaving
 
-    save &&
+    if (save) {
       saveCurrentCart({
         variables: {
           userId,
           orderFormId: orderForm.id,
         },
       })
+
+      getSavedCart({
+        variables: {
+          userId,
+        },
+      })
+    }
   }
 
   const handleMerge = async (
@@ -64,7 +71,7 @@ const CrossDeviceCart: FC<Props> = ({
       },
     })
 
-    if (error || !mutationResult.data) {
+    if (error || !mutationResult.data || !mutationResult.data.newOrderForm) {
       error && console.error(error)
 
       showToast({
