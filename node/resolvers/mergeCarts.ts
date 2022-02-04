@@ -12,7 +12,7 @@ import { mergeItems } from '../utils'
  */
 export const mergeCarts = async (
   _: any,
-  { savedCart, currentCart, strategy = 'COMBINE', userId }: MergeCartsVariables,
+  { savedCart, currentCart, strategy = 'REPLACE', userId }: MergeCartsVariables,
   { clients: { checkoutIO, requestHub, vbase } }: Context
 ): Promise<PartialNewOrderForm | null> => {
   const savedItems = await checkoutIO.getOrderFormItems(savedCart)
@@ -30,6 +30,7 @@ export const mergeCarts = async (
   let items
 
   switch (strategy) {
+    default:
     case 'REPLACE':
       items = savedItems
       break
@@ -38,7 +39,6 @@ export const mergeCarts = async (
       items = mergeItems(currentItems, savedItems, false)
       break
 
-    default:
     case 'COMBINE':
       items = mergeItems(currentItems, savedItems, true)
   }

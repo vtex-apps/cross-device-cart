@@ -45,7 +45,7 @@ To do so, this app was created to to enable `logged in` users to retrieve their 
    "cross-device-cart": {
      "props": {
        "isAutomatic": "false",
-       "mergeStrategy": "REPLACE"
+       "mergeStrategy": "ADD"
      }
    },
    ```
@@ -55,7 +55,7 @@ To do so, this app was created to to enable `logged in` users to retrieve their 
 | Prop name         | Type      | Description                                                                                                                                                                                                 | Default value |
 | ----------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | `isAutomatic`     | `boolean` | If the items merge is done automatically or requires user input via a challenge block. If `false`, an action bar will be rendered where the block is declared on your store-theme                           | `true`        |
-| `mergeStrategy`   | `enum`    | The default strategy for merging carts `ADD`, `COMBINE`, `REPLACE`                                                                                                                                          | `ADD`         |
+| `mergeStrategy`   | `enum`    | The default strategy for merging carts `ADD`, `COMBINE` or `REPLACE`                                                                                                                                        | `REPLACE`     |
 | `advancedOptions` | `boolean` | (Dependency of `isAutomatic`) If isAutomatic is set to `false`, you can opt to enable this prop. This renders a modal when the user accepts the challenge, with all the 3 strategies for the user to decide | `false`       |
 
 - `mergeStrategy` enum:

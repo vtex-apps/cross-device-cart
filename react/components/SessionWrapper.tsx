@@ -4,7 +4,7 @@ import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
 
 import { CrossDeviceCart } from './CrossDeviceCart'
-import { COMBINE } from '../utils/constants'
+import { REPLACE } from '../utils/constants'
 
 interface Props {
   mergeStrategy: MergeStrategy
@@ -13,7 +13,7 @@ interface Props {
 }
 
 const SessionWrapper: FC<Props> = ({
-  mergeStrategy = COMBINE,
+  mergeStrategy = REPLACE,
   isAutomatic = true,
   advancedOptions = false,
 }) => {
