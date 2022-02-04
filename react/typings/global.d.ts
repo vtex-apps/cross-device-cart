@@ -17,8 +17,8 @@ interface PartialOrderForm {
 }
 
 interface MergeCartsVariables {
-  savedCart: Scalars['ID']
-  currentCart: Scalars['ID']
+  savedCart: string
+  currentCart: string
   strategy: MergeStrategy
   userId: string
 }
