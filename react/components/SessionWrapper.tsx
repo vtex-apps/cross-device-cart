@@ -7,7 +7,7 @@ import { CrossDeviceCart } from './CrossDeviceCart'
 import { COMBINE } from '../utils/constants'
 
 interface Props {
-  mergeStrategy: Strategy
+  mergeStrategy: MergeStrategy
   isAutomatic: boolean
   advancedOptions: boolean
 }

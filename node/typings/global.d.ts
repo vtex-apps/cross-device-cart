@@ -5,6 +5,7 @@ interface MergeCartsVariables {
   savedCart: Scalars['ID']
   currentCart: Scalars['ID']
   strategy: MergeStrategy
+  userId: Scalars['ID']
 }
 
 type MergeStrategy = 'ADD' | 'COMBINE' | 'REPLACE'

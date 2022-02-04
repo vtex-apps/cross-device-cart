@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useCallback, useEffect, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
@@ -11,7 +11,7 @@ import { adjustSkuItemForPixelEvent } from '../utils'
 import ChallengeBlock from './ChallengeBlock'
 
 interface Props {
-  mergeStrategy: Strategy
+  mergeStrategy: MergeStrategy
   isAutomatic: boolean
   advancedOptions: boolean
   userId: string
@@ -26,25 +26,31 @@ const CrossDeviceCart: FC<Props> = ({
   advancedOptions,
 }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
-  const [crossCartDetected, setChallenge] = useState(false)
+  const [challengeActive, setChallenge] = useState(false)
+  const [didMerge, setMergeStatus] = useState(false)
   const { push } = usePixel()
   const intl = useIntl()
 
-  const [getSavedCart, { data, loading }] = useLazyQuery(GET_ID_BY_USER)
-  const [saveCurrentCart] = useMutation(SAVE_ID_BY_USER)
-  const [mergeCarts, { error, loading: mutationLoading }] = useMutation(
-    MUTATE_CART
-  )
+  const [getSavedCart, { data, loading }] = useLazyQuery<
+    CrossCartData,
+    CrossCartVars
+  >(GET_ID_BY_USER, {
+    fetchPolicy: 'network-only',
+  })
 
-  const currentItemsQty = orderForm.items.length
+  const [saveCurrentCart] = useMutation<Success, NewCrossCart>(SAVE_ID_BY_USER)
+  const [mergeCarts, { error, loading: mutationLoading }] = useMutation<
+    NewOrderForm,
+    MergeCartsVariables
+  >(MUTATE_CART)
 
-  const handleSaveCurrent = (forceSaving?: boolean) => {
-    crossCartDetected && setChallenge(false)
+  const hasItems = Boolean(orderForm.items.length)
 
-    const save = currentItemsQty || forceSaving
+  const handleSaveCurrent = useCallback(async () => {
+    challengeActive && setChallenge(false)
 
-    if (save) {
-      saveCurrentCart({
+    if (hasItems) {
+      await saveCurrentCart({
         variables: {
           userId,
           orderFormId: orderForm.id,
@@ -57,48 +63,78 @@ const CrossDeviceCart: FC<Props> = ({
         },
       })
     }
-  }
+  }, [
+    challengeActive,
+    hasItems,
+    getSavedCart,
+    orderForm.id,
+    saveCurrentCart,
+    userId,
+  ])
 
-  const handleMerge = async (
-    showToast: (toast: ToastParam) => void,
-    strategy: Strategy
-  ) => {
-    const mutationResult = await mergeCarts({
-      variables: {
-        savedCart: data?.id,
-        currentCart: orderForm.id,
-        strategy,
-      },
-    })
+  const handleMerge = useCallback(
+    async (showToast: (toast: ToastParam) => void, strategy: MergeStrategy) => {
+      if (!data?.id || didMerge) return
 
-    if (error || !mutationResult.data || !mutationResult.data.newOrderForm) {
-      error && console.error(error)
+      setMergeStatus(true)
 
-      showToast({
-        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
+      const mutationResult = await mergeCarts({
+        variables: {
+          savedCart: data.id,
+          currentCart: orderForm.id,
+          strategy,
+          userId,
+        },
       })
 
-      return
-    }
+      if (error || !mutationResult.data || !mutationResult.data.newOrderForm) {
+        error && console.error(error)
 
-    const { newOrderForm } = mutationResult.data
+        !isAutomatic &&
+          showToast({
+            message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
+          })
 
-    setOrderForm(newOrderForm)
+        return
+      }
 
-    showToast({
-      message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
-    })
+      const { newOrderForm } = mutationResult.data
 
-    const skuItems = newOrderForm.items
-    const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
+      setOrderForm(newOrderForm)
 
-    push({
-      event: 'addToCart',
-      items: pixelEventItems,
-    })
+      !isAutomatic &&
+        showToast({
+          message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
+        })
 
-    handleSaveCurrent(true)
-  }
+      const skuItems = newOrderForm.items
+      const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
+
+      push({
+        event: 'addToCart',
+        items: pixelEventItems,
+      })
+
+      getSavedCart({
+        variables: {
+          userId,
+        },
+      })
+    },
+    [
+      data?.id,
+      didMerge,
+      error,
+      getSavedCart,
+      intl,
+      isAutomatic,
+      mergeCarts,
+      orderForm.id,
+      push,
+      setOrderForm,
+      userId,
+    ]
+  )
 
   useEffect(() => {
     getSavedCart({
@@ -114,19 +150,21 @@ const CrossDeviceCart: FC<Props> = ({
     const crossCart = data?.id
 
     if (!crossCart) {
-      currentItemsQty && handleSaveCurrent()
+      handleSaveCurrent()
 
       return
     }
 
-    if (crossCart !== orderForm.id) {
+    const equalCarts = crossCart === orderForm.id
+
+    if (!equalCarts) {
       !isAutomatic && setChallenge(true)
       isAutomatic && handleMerge(toastHandler, mergeStrategy)
 
       return
     }
 
-    if (!currentItemsQty) {
+    if (!hasItems && equalCarts) {
       saveCurrentCart({
         variables: {
           userId,
@@ -134,11 +172,21 @@ const CrossDeviceCart: FC<Props> = ({
         },
       })
     }
+  }, [
+    hasItems,
+    data,
+    handleMerge,
+    handleSaveCurrent,
+    isAutomatic,
+    loading,
+    mergeStrategy,
+    orderForm.id,
+    saveCurrentCart,
+    toastHandler,
+    userId,
+  ])
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, loading, currentItemsQty])
-
-  if (!crossCartDetected || isAutomatic) {
+  if (!challengeActive || isAutomatic) {
     return null
   }
 

@@ -10,7 +10,7 @@ type Mutation {
   """
   Stores an OrderForm ID for a specific user, as a cross cart reference.
   """
-  saveCurrentCart(userId: String!, orderFormId: String!): String
+  saveCurrentCart(userId: String!, orderFormId: String): String
   """
   Merge items from one OrderForm to another depending on the strategy provided.
   """
@@ -18,5 +18,6 @@ type Mutation {
     savedCart: String!
     currentCart: String!
     strategy: Strategy
+    userId: String!
   ): OrderForm
 }

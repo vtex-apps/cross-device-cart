@@ -11,11 +11,7 @@ export const saveCurrentCart = async (
   { userId, orderFormId }: { userId: string; orderFormId: string },
   { clients: { vbase } }: Context
 ): Promise<string> => {
-  try {
-    await vbase.saveJSON(APP_NAME, userId, orderFormId)
+  await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
-    return 'success'
-  } catch (err) {
-    throw err
-  }
+  return 'success'
 }

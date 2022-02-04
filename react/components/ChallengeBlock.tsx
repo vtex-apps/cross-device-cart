@@ -13,11 +13,11 @@ const closeIcon = <IconClose />
 interface Props {
   handleAccept: (
     showToast: (toast: ToastParam) => void,
-    strategy: Strategy
+    strategy: MergeStrategy
   ) => Promise<void>
   toastHandler: (toast: ToastParam) => void
   handleDecline: () => void
-  mergeStrategy: Strategy
+  mergeStrategy: MergeStrategy
   mutationLoading: boolean
   advancedOptions: boolean
   /* items: unknown[] */

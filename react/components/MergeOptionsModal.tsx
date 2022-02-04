@@ -15,11 +15,11 @@ import {
 interface Props {
   handleAccept: (
     showToast: (toast: ToastParam) => void,
-    strategy: Strategy
+    strategy: MergeStrategy
   ) => Promise<void>
   toastHandler: (toast: ToastParam) => void
   handleClose: () => void
-  strategies: Strategy[]
+  strategies: MergeStrategy[]
   isOpen: boolean
   /* showItems?: boolean */
   /* items: any[] */
@@ -37,11 +37,11 @@ const MergeOptionsModal: FC<Props> = ({
     handleClose()
   }
 
-  const handleMergeCarts = (strategy: Strategy) => {
+  const handleMergeCarts = (strategy: MergeStrategy) => {
     handleAccept(toastHandler, strategy)
   }
 
-  const actionButtons = strategies.map((strategy: Strategy) => {
+  const actionButtons = strategies.map((strategy: MergeStrategy) => {
     let description = ''
 
     // eslint-disable-next-line default-case

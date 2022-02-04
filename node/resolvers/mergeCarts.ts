@@ -1,3 +1,4 @@
+import { APP_NAME } from '../constants'
 import { mergeItems } from '../utils'
 
 /**
@@ -5,18 +6,20 @@ import { mergeItems } from '../utils'
  * Resolves how the stored reference's items will be handled
  *
  * @returns {PartialNewOrderForm | null}
- * If null, the Storefront Block should react throwing an error
+ * If null, the Storefront Block will react showing an error Toast
  * @typedef PartialNewOrderForm a partial orderform, fielded
- * enough to update Store Framework's context relevant data.
+ * to update Store Framework's context relevant data.
  */
 export const mergeCarts = async (
   _: any,
-  { savedCart, currentCart, strategy = 'COMBINE' }: MergeCartsVariables,
-  { clients: { checkoutIO, requestHub } }: Context
+  { savedCart, currentCart, strategy = 'COMBINE', userId }: MergeCartsVariables,
+  { clients: { checkoutIO, requestHub, vbase } }: Context
 ): Promise<PartialNewOrderForm | null> => {
   const savedItems = await checkoutIO.getOrderFormItems(savedCart)
 
   if (!savedItems.length) {
+    await vbase.saveJSON(APP_NAME, userId, null)
+
     return null
   }
 
@@ -46,6 +49,8 @@ export const mergeCarts = async (
   })
 
   const updatedOrderForm = await checkoutIO.updateCart(currentCart, items)
+
+  await vbase.saveJSON(APP_NAME, userId, currentCart)
 
   return updatedOrderForm
 }
