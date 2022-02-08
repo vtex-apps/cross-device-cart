@@ -1,16 +1,20 @@
 type Query {
   """
-  Retrieves a cross cart OrderForm ID. Will return NULL if no reference was stored.
+  Retrieves a cross cart OrderForm ID and isMerged flag. Will return NULL if no reference was stored.
   """
-  getSavedCart(userId: String!): String
+  getSavedCart(userId: String!): CrossCartData
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
 }
 
 type Mutation {
   """
-  Stores an OrderForm ID for a specific user, as a cross cart reference.
+  Stores an OrderForm ID and isMerged flag for a specific user, as a cross cart reference.
   """
-  saveCurrentCart(userId: String!, orderFormId: String): String
+  saveCurrentCart(
+    userId: String!
+    orderFormId: String
+    isMerged: Boolean
+  ): String
   """
   Merge items from one OrderForm to another depending on the strategy provided.
   """

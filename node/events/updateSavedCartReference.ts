@@ -20,14 +20,19 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       clientProfileData: { userProfileId },
     } = customerOrder
 
-    const crossCartReference: string | null = await vbase.getJSON(
+    const crossCartReference: CrossCartData | null = await vbase.getJSON(
       APP_NAME,
       userProfileId,
       true
     )
 
-    if (crossCartReference === orderFormId) {
-      await vbase.saveJSON(APP_NAME, userProfileId, null)
+    if (crossCartReference?.orderFormId === orderFormId) {
+      const crossCartData: CrossCartData = {
+        orderFormId: null,
+        isMerged: false,
+      }
+
+      await vbase.saveJSON(APP_NAME, userProfileId, crossCartData)
 
       logger.info({
         message: `Cross Device Cart reference removed for user ${userProfileId}`,

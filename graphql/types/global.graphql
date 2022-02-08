@@ -11,3 +11,8 @@ scalar InputValues
 by the setOrderForm callback; used to update the storefront context
 """
 scalar OrderForm
+
+type CrossCartData {
+  orderFormId: String
+  isMerged: Boolean
+}

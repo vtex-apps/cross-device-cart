@@ -1,3 +1,11 @@
-mutation saveCurrentCart($userId: String!, $orderFormId: String) {
-  saveCurrentCart(userId: $userId, orderFormId: $orderFormId)
+mutation saveCurrentCart(
+  $userId: String!
+  $orderFormId: String
+  $isMerged: Boolean
+) {
+  saveCurrentCart(
+    userId: $userId
+    orderFormId: $orderFormId
+    isMerged: $isMerged
+  )
 }

@@ -50,3 +50,17 @@ interface Order {
 interface ClientProfileData {
   userProfileId: string
 }
+
+interface CurrentCartProps {
+  userId: string
+  crossCartData: CrossCartData
+}
+
+interface CrossCartData {
+  orderFormId: string | null
+  isMerged: boolean
+}
+
+interface SaveCurrentCartData extends CrossCartData {
+  userId: string
+}

@@ -32,7 +32,7 @@ const CrossDeviceCart: FC<Props> = ({
   const intl = useIntl()
 
   const [getSavedCart, { data, loading }] = useLazyQuery<
-    CrossCartData,
+    CrossCartData | null,
     CrossCartVars
   >(GET_ID_BY_USER, {
     fetchPolicy: 'network-only',
@@ -54,6 +54,7 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           userId,
           orderFormId: orderForm.id,
+          isMerged: false,
         },
       })
 
@@ -73,16 +74,16 @@ const CrossDeviceCart: FC<Props> = ({
   ])
 
   const handleMerge = useCallback(
-    async (showToast: (toast: ToastParam) => void, strategy: MergeStrategy) => {
-      if (!data?.id || didMerge) return
+    async (showToast: (toast: ToastParam) => void) => {
+      if (!data?.crossCartData || didMerge) return
 
       setMergeStatus(true)
 
       const mutationResult = await mergeCarts({
         variables: {
-          savedCart: data.id,
+          savedCart: data.crossCartData.orderFormId,
           currentCart: orderForm.id,
-          strategy,
+          strategy: data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE',
           userId,
         },
       })
@@ -115,14 +116,23 @@ const CrossDeviceCart: FC<Props> = ({
         items: pixelEventItems,
       })
 
+      await saveCurrentCart({
+        variables: {
+          userId,
+          orderFormId: orderForm.id,
+          isMerged: true,
+        },
+      })
+
       getSavedCart({
         variables: {
           userId,
         },
       })
     },
+
     [
-      data?.id,
+      data?.crossCartData,
       didMerge,
       error,
       getSavedCart,
@@ -131,6 +141,7 @@ const CrossDeviceCart: FC<Props> = ({
       mergeCarts,
       orderForm.id,
       push,
+      saveCurrentCart,
       setOrderForm,
       userId,
     ]
@@ -147,7 +158,7 @@ const CrossDeviceCart: FC<Props> = ({
   useEffect(() => {
     if (loading || !data) return
 
-    const crossCart = data?.id
+    const crossCart = data?.crossCartData?.orderFormId
 
     if (!crossCart) {
       handleSaveCurrent()
@@ -159,7 +170,7 @@ const CrossDeviceCart: FC<Props> = ({
 
     if (!equalCarts) {
       !isAutomatic && setChallenge(true)
-      isAutomatic && handleMerge(toastHandler, mergeStrategy)
+      isAutomatic && handleMerge(toastHandler)
 
       return
     }
@@ -169,6 +180,7 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           userId,
           orderFormId: null,
+          isMerged: false,
         },
       })
     }
