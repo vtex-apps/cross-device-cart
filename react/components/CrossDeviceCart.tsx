@@ -74,8 +74,12 @@ const CrossDeviceCart: FC<Props> = ({
   ])
 
   const handleMerge = useCallback(
-    async (showToast: (toast: ToastParam) => void) => {
+    async (showToast: (toast: ToastParam) => void, strategy: MergeStrategy) => {
       if (!data?.crossCartData || didMerge) return
+
+      if (isAutomatic) {
+        strategy = data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE'
+      }
 
       setMergeStatus(true)
 
@@ -83,7 +87,7 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           savedCart: data.crossCartData.orderFormId,
           currentCart: orderForm.id,
-          strategy: data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE',
+          strategy,
           userId,
         },
       })
@@ -170,7 +174,11 @@ const CrossDeviceCart: FC<Props> = ({
 
     if (!equalCarts) {
       !isAutomatic && setChallenge(true)
-      isAutomatic && handleMerge(toastHandler)
+      isAutomatic &&
+        handleMerge(
+          toastHandler,
+          data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE'
+        )
 
       return
     }
