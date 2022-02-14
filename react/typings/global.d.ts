@@ -24,10 +24,7 @@ interface MergeCartsVariables {
 }
 
 interface CrossCartData {
-  crossCartData: {
-    orderFormId: string
-    isMerged: boolean
-  }
+  id: string
 }
 
 interface CrossCartVars {
@@ -37,7 +34,6 @@ interface CrossCartVars {
 interface NewCrossCart {
   userId: string
   orderFormId: string | null
-  isMerged: boolean
 }
 
 type NewOrderForm = { [key: string]: any }

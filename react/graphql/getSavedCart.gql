@@ -1,6 +1,3 @@
 query getSavedCart($userId: String!) {
-  crossCartData: getSavedCart(userId: $userId) {
-    orderFormId
-    isMerged
-  }
+  id: getSavedCart(userId: $userId)
 }

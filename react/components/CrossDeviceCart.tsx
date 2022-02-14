@@ -28,23 +28,23 @@ const CrossDeviceCart: FC<Props> = ({
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [challengeActive, setChallenge] = useState(false)
   const [didMerge, setMergeStatus] = useState(false)
+  const hasItems = Boolean(orderForm.items.length)
   const { push } = usePixel()
   const intl = useIntl()
 
   const [getSavedCart, { data, loading }] = useLazyQuery<
-    CrossCartData | null,
+    CrossCartData,
     CrossCartVars
   >(GET_ID_BY_USER, {
     fetchPolicy: 'network-only',
   })
 
   const [saveCurrentCart] = useMutation<Success, NewCrossCart>(SAVE_ID_BY_USER)
+
   const [mergeCarts, { error, loading: mutationLoading }] = useMutation<
     NewOrderForm,
     MergeCartsVariables
   >(MUTATE_CART)
-
-  const hasItems = Boolean(orderForm.items.length)
 
   const handleSaveCurrent = useCallback(async () => {
     challengeActive && setChallenge(false)
@@ -54,7 +54,6 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           userId,
           orderFormId: orderForm.id,
-          isMerged: false,
         },
       })
 
@@ -75,17 +74,16 @@ const CrossDeviceCart: FC<Props> = ({
 
   const handleMerge = useCallback(
     async (showToast: (toast: ToastParam) => void, strategy: MergeStrategy) => {
-      if (!data?.crossCartData || didMerge) return
-
-      if (isAutomatic) {
-        strategy = data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE'
-      }
+      if (!data?.id || didMerge) return
 
       setMergeStatus(true)
 
+      // eslint-disable-next-line no-console
+      console.log({ strategy })
+
       const mutationResult = await mergeCarts({
         variables: {
-          savedCart: data.crossCartData.orderFormId,
+          savedCart: data.id,
           currentCart: orderForm.id,
           strategy,
           userId,
@@ -106,6 +104,7 @@ const CrossDeviceCart: FC<Props> = ({
       const { newOrderForm } = mutationResult.data
 
       setOrderForm(newOrderForm)
+      sessionStorage.setItem('isCombined', 'true')
 
       !isAutomatic &&
         showToast({
@@ -124,7 +123,6 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           userId,
           orderFormId: orderForm.id,
-          isMerged: true,
         },
       })
 
@@ -136,7 +134,7 @@ const CrossDeviceCart: FC<Props> = ({
     },
 
     [
-      data?.crossCartData,
+      data?.id,
       didMerge,
       error,
       getSavedCart,
@@ -160,9 +158,18 @@ const CrossDeviceCart: FC<Props> = ({
   }, [getSavedCart, userId])
 
   useEffect(() => {
-    if (loading || !data) return
+    saveCurrentCart({
+      variables: {
+        userId,
+        orderFormId: orderForm.id,
+      },
+    })
+  }, [orderForm.items, orderForm.id, saveCurrentCart, userId])
 
-    const crossCart = data?.crossCartData?.orderFormId
+  useEffect(() => {
+    if (loading) return
+
+    const crossCart = data?.id
 
     if (!crossCart) {
       handleSaveCurrent()
@@ -174,11 +181,7 @@ const CrossDeviceCart: FC<Props> = ({
 
     if (!equalCarts) {
       !isAutomatic && setChallenge(true)
-      isAutomatic &&
-        handleMerge(
-          toastHandler,
-          data.crossCartData.isMerged ? 'REPLACE' : 'COMBINE'
-        )
+      isAutomatic && handleMerge(toastHandler, mergeStrategy)
 
       return
     }
@@ -188,7 +191,6 @@ const CrossDeviceCart: FC<Props> = ({
         variables: {
           userId,
           orderFormId: null,
-          isMerged: false,
         },
       })
     }

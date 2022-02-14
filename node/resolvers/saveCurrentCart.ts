@@ -3,20 +3,15 @@ import { APP_NAME } from '../constants'
 /**
  * Store an OrderForm ID and isMerged flag reference for a specific user
  * @param {string} userId - Unique user identification string
- * @param {CurrentCartProps} currentCartData - Unique orderForm identification string and isMerged flag
+ * @param {string | null} orderFormId - Unique orderForm identification string
  * @returns {string} If promise was fulfilled
  */
 export const saveCurrentCart = async (
   _: any,
-  { userId, orderFormId, isMerged }: SaveCurrentCartData,
+  { userId, orderFormId }: { userId: string; orderFormId: string | null },
   { clients: { vbase } }: Context
 ): Promise<string> => {
-  const currentCartData = {
-    orderFormId,
-    isMerged,
-  }
-
-  await vbase.saveJSON(APP_NAME, userId, currentCartData)
+  await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
   return 'success'
 }
