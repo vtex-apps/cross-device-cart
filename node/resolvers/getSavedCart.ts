@@ -7,10 +7,18 @@ import { APP_NAME } from '../constants'
  */
 export const getSavedCart = async (
   _: unknown,
-  { userId }: { userId: string },
-  { clients: { vbase } }: Context
+  { userId, isAutomatic }: { userId: string; isAutomatic: boolean },
+  { clients: { vbase, checkoutIO } }: Context
 ): Promise<string | null> => {
   const orderFormId: string | null = await vbase.getJSON(APP_NAME, userId, true)
+
+  if (!isAutomatic && orderFormId) {
+    const savedItems = await checkoutIO.getOrderFormItems(orderFormId)
+
+    if (!savedItems.length) {
+      return null
+    }
+  }
 
   return orderFormId
 }

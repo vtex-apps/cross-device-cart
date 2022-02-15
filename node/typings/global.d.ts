@@ -14,7 +14,7 @@ interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }
 }
 
-interface PartialNewOrderForm {
+interface PartialOrderForm {
   value: number
   totalizers: {
     id: string

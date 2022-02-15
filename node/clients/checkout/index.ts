@@ -7,7 +7,11 @@ import type {
 import { AppGraphQLClient } from '@vtex/api'
 import { ItemInput } from 'vtex.checkout-graphql'
 
-import { GET_ORDERFORM_ITEMS_QUERY, UPDATE_CART_MUTATION } from './queries'
+import {
+  GET_ORDERFORM_ITEMS_QUERY,
+  GET_ORDERFORM_QUERY,
+  UPDATE_CART_MUTATION,
+} from './queries'
 
 class CustomGraphQLError extends Error {
   public graphQLErrors: any
@@ -39,7 +43,7 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
-   * This request gets all Items associated to a given shopping cart
+   * Gets only the Items associated to a given shopping cart
    *
    * @func getOrderFormItems
    * @public
@@ -74,17 +78,50 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
+   * Gets all Items plus extra data associated to a given shopping cart
+   *
+   * @func getOrderForm
+   * @public
+   * @param {string} orderFormId OrderForm ID
+   * @return {PartialOrderForm} New partial OrderForm
+   */
+  public getOrderForm = async (
+    orderFormId: string
+  ): Promise<PartialOrderForm> => {
+    const partialOrderForm = await this.graphql
+      .query<any, { orderFormId: string }>(
+        {
+          query: GET_ORDERFORM_QUERY,
+          variables: {
+            orderFormId,
+          },
+        },
+        {
+          metric: 'checkout-orderform',
+        }
+      )
+      .then(
+        throwOnGraphQLErrors('Error getting data from vtex.checkout-graphql')
+      )
+      .then((query) => {
+        return query.data!.orderForm
+      })
+
+    return partialOrderForm
+  }
+
+  /**
    * @func updateCart
    * @public
    * @param {string} orderFormId OrderForm ID
    * @param {ItemInput[]} items Input list of Items
-   * @return {PartialNewOrderForm} New partial OrderForm
+   * @return {PartialOrderForm} New partial OrderForm
    */
   public updateCart = async (
     orderFormId: string,
     items: ItemInput[]
-  ): Promise<PartialNewOrderForm> => {
-    const partialNewOrderForm = await this.graphql
+  ): Promise<PartialOrderForm> => {
+    const partialOrderForm = await this.graphql
       .mutate<any, { orderFormId: string; items: ItemInput[] }>(
         {
           mutate: UPDATE_CART_MUTATION,
@@ -104,6 +141,6 @@ export default class CheckoutIO extends AppGraphQLClient {
         return query.data!.orderForm
       })
 
-    return partialNewOrderForm
+    return partialOrderForm
   }
 }

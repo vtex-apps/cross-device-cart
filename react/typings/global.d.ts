@@ -29,6 +29,7 @@ interface CrossCartData {
 
 interface CrossCartVars {
   userId: string
+  isAutomatic: boolean
 }
 
 interface NewCrossCart {

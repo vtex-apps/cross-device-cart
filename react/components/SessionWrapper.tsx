@@ -4,7 +4,7 @@ import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
 
 import { CrossDeviceCart } from './CrossDeviceCart'
-import { COMBINE, REPLACE } from '../utils/constants'
+import { REPLACE, SESSION_ITEM } from '../utils/constants'
 
 interface Props {
   mergeStrategy: MergeStrategy
@@ -19,7 +19,6 @@ const SessionWrapper: FC<Props> = ({
 }: Props) => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
-  // const [updateSession, mutationResult] = useUpdateSessionInline()
 
   if (error || loading || !session || orderLoading) {
     return null
@@ -32,25 +31,12 @@ const SessionWrapper: FC<Props> = ({
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
   if (!isAuthenticated) {
-    sessionStorage.setItem('isCombined', 'false')
-    // updateSession({
-    //   variables: {
-    //     fields: {
-    //       isCombined: 'false',
-    //     },
-    //   },
-    // }).then(() => console.log({ mutationResult }))
+    sessionStorage.setItem(SESSION_ITEM, 'false')
 
     return null
   }
 
   const userId = profile?.id.value
-  // const isCombined = publicFields?.isCombined?.value === 'true'
-  const isCombined = Boolean(sessionStorage.getItem('isCombined'))
-
-  if (isAutomatic && isAuthenticated !== isCombined) {
-    mergeStrategy = COMBINE
-  }
 
   return (
     <ToastConsumer>

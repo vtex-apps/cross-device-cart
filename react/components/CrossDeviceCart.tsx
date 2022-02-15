@@ -9,6 +9,7 @@ import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
 import MUTATE_CART from '../graphql/mergeCarts.gql'
 import { adjustSkuItemForPixelEvent } from '../utils'
 import ChallengeBlock from './ChallengeBlock'
+import { REPLACE, SESSION_ITEM } from '../utils/constants'
 
 interface Props {
   mergeStrategy: MergeStrategy
@@ -28,9 +29,11 @@ const CrossDeviceCart: FC<Props> = ({
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [challengeActive, setChallenge] = useState(false)
   const [didMerge, setMergeStatus] = useState(false)
-  const hasItems = Boolean(orderForm.items.length)
   const { push } = usePixel()
   const intl = useIntl()
+
+  const hasItems = Boolean(orderForm.items.length)
+  const hasAlreadyCombined = sessionStorage.getItem(SESSION_ITEM)
 
   const [getSavedCart, { data, loading }] = useLazyQuery<
     CrossCartData,
@@ -49,7 +52,7 @@ const CrossDeviceCart: FC<Props> = ({
   const handleSaveCurrent = useCallback(async () => {
     challengeActive && setChallenge(false)
 
-    if (hasItems) {
+    if (hasItems || isAutomatic) {
       await saveCurrentCart({
         variables: {
           userId,
@@ -60,16 +63,18 @@ const CrossDeviceCart: FC<Props> = ({
       getSavedCart({
         variables: {
           userId,
+          isAutomatic,
         },
       })
     }
   }, [
     challengeActive,
     hasItems,
-    getSavedCart,
-    orderForm.id,
+    isAutomatic,
     saveCurrentCart,
     userId,
+    orderForm.id,
+    getSavedCart,
   ])
 
   const handleMerge = useCallback(
@@ -78,8 +83,9 @@ const CrossDeviceCart: FC<Props> = ({
 
       setMergeStatus(true)
 
-      // eslint-disable-next-line no-console
-      console.log({ strategy })
+      if (isAutomatic && hasAlreadyCombined === 'true') {
+        strategy = REPLACE
+      }
 
       const mutationResult = await mergeCarts({
         variables: {
@@ -104,7 +110,8 @@ const CrossDeviceCart: FC<Props> = ({
       const { newOrderForm } = mutationResult.data
 
       setOrderForm(newOrderForm)
-      sessionStorage.setItem('isCombined', 'true')
+
+      sessionStorage.setItem(SESSION_ITEM, 'true')
 
       !isAutomatic &&
         showToast({
@@ -129,6 +136,7 @@ const CrossDeviceCart: FC<Props> = ({
       getSavedCart({
         variables: {
           userId,
+          isAutomatic,
         },
       })
     },
@@ -138,6 +146,7 @@ const CrossDeviceCart: FC<Props> = ({
       didMerge,
       error,
       getSavedCart,
+      hasAlreadyCombined,
       intl,
       isAutomatic,
       mergeCarts,
@@ -153,21 +162,13 @@ const CrossDeviceCart: FC<Props> = ({
     getSavedCart({
       variables: {
         userId,
+        isAutomatic,
       },
     })
-  }, [getSavedCart, userId])
+  }, [getSavedCart, userId, isAutomatic])
 
   useEffect(() => {
-    saveCurrentCart({
-      variables: {
-        userId,
-        orderFormId: orderForm.id,
-      },
-    })
-  }, [orderForm.items, orderForm.id, saveCurrentCart, userId])
-
-  useEffect(() => {
-    if (loading) return
+    if (loading || !data) return
 
     const crossCart = data?.id
 
@@ -181,12 +182,12 @@ const CrossDeviceCart: FC<Props> = ({
 
     if (!equalCarts) {
       !isAutomatic && setChallenge(true)
-      isAutomatic && handleMerge(toastHandler, mergeStrategy)
+      isAutomatic && handleMerge(toastHandler, 'COMBINE')
 
       return
     }
 
-    if (!hasItems && equalCarts) {
+    if (!hasItems && !isAutomatic) {
       saveCurrentCart({
         variables: {
           userId,
@@ -199,11 +200,10 @@ const CrossDeviceCart: FC<Props> = ({
     data,
     handleMerge,
     handleSaveCurrent,
-    isAutomatic,
     loading,
-    mergeStrategy,
-    orderForm.id,
     saveCurrentCart,
+    orderForm.id,
+    isAutomatic,
     toastHandler,
     userId,
   ])

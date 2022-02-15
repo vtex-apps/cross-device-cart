@@ -5,22 +5,25 @@ import { mergeItems } from '../utils'
  * Cross cart main feature.
  * Resolves how the stored reference's items will be handled
  *
- * @returns {PartialNewOrderForm | null}
+ * @returns {PartialOrderForm | null}
  * If null, the Storefront Block will react showing an error Toast
- * @typedef PartialNewOrderForm a partial orderform, fielded
+ * @typedef PartialOrderForm a partial orderform, fielded
  * to update Store Framework's context relevant data.
  */
 export const mergeCarts = async (
   _: any,
   { savedCart, currentCart, strategy = 'REPLACE', userId }: MergeCartsVariables,
   { clients: { checkoutIO, requestHub, vbase } }: Context
-): Promise<PartialNewOrderForm | null> => {
+): Promise<PartialOrderForm | null> => {
+  await vbase.saveJSON(APP_NAME, userId, currentCart)
+
   const savedItems = await checkoutIO.getOrderFormItems(savedCart)
 
-  if (!savedItems.length) {
-    await vbase.saveJSON(APP_NAME, userId, null)
+  if (!savedItems.length && strategy === 'REPLACE') {
+    await requestHub.clearCart(currentCart)
+    const emptyOrderForm = await checkoutIO.getOrderForm(currentCart)
 
-    return null
+    return emptyOrderForm
   }
 
   const currentItems = await checkoutIO.getOrderFormItems(currentCart)
@@ -49,8 +52,6 @@ export const mergeCarts = async (
   })
 
   const updatedOrderForm = await checkoutIO.updateCart(currentCart, items)
-
-  await vbase.saveJSON(APP_NAME, userId, currentCart)
 
   return updatedOrderForm
 }
