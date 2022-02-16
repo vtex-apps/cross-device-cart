@@ -2,9 +2,11 @@ import React, { FC } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
+import { useRuntime } from 'vtex.render-runtime'
 
 import { CrossDeviceCart } from './CrossDeviceCart'
-import { REPLACE, SESSION_ITEM } from '../utils/constants'
+import { REPLACE } from '../utils/constants'
+import { patchSession } from '../utils/patchSession'
 
 interface Props {
   mergeStrategy: MergeStrategy
@@ -19,6 +21,7 @@ const SessionWrapper: FC<Props> = ({
 }: Props) => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
+  const { rootPath } = useRuntime()
 
   if (error || loading || !session || orderLoading) {
     return null
@@ -31,7 +34,7 @@ const SessionWrapper: FC<Props> = ({
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
   if (!isAuthenticated) {
-    sessionStorage.setItem(SESSION_ITEM, 'false')
+    patchSession('false', rootPath)
 
     return null
   }

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useState } from 'react'
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
@@ -9,7 +9,8 @@ import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
 import MUTATE_CART from '../graphql/mergeCarts.gql'
 import { adjustSkuItemForPixelEvent } from '../utils'
 import ChallengeBlock from './ChallengeBlock'
-import { REPLACE, SESSION_ITEM } from '../utils/constants'
+import { REPLACE } from '../utils/constants'
+import { getSession, patchSession } from '../utils/patchSession'
 
 interface Props {
   mergeStrategy: MergeStrategy
@@ -33,7 +34,7 @@ const CrossDeviceCart: FC<Props> = ({
   const intl = useIntl()
 
   const hasItems = Boolean(orderForm.items.length)
-  const hasAlreadyCombined = sessionStorage.getItem(SESSION_ITEM)
+  const hasAlreadyCombined = useRef('false')
 
   const [getSavedCart, { data, loading }] = useLazyQuery<
     CrossCartData,
@@ -83,7 +84,7 @@ const CrossDeviceCart: FC<Props> = ({
 
       setMergeStatus(true)
 
-      if (isAutomatic && hasAlreadyCombined === 'true') {
+      if (isAutomatic && hasAlreadyCombined.current === 'true') {
         strategy = REPLACE
       }
 
@@ -107,11 +108,11 @@ const CrossDeviceCart: FC<Props> = ({
         return
       }
 
+      patchSession('true')
+
       const { newOrderForm } = mutationResult.data
 
       setOrderForm(newOrderForm)
-
-      sessionStorage.setItem(SESSION_ITEM, 'true')
 
       !isAutomatic &&
         showToast({
@@ -157,6 +158,16 @@ const CrossDeviceCart: FC<Props> = ({
       userId,
     ]
   )
+
+  useEffect(() => {
+    const getUpdatedSession = async () => {
+      const res = await getSession()
+
+      hasAlreadyCombined.current = res
+    }
+
+    getUpdatedSession()
+  }, [])
 
   useEffect(() => {
     getSavedCart({
