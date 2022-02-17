@@ -1,0 +1,13 @@
+{
+  "store/crossCart.challenge.cta": "Recuperar",
+  "store/crossCart.challenge.text": "Sembla que has deixat productes a la cistella d'un altre dispositiu. Vols recuperar-los?",
+  "store/crossCart.toast.success": "Els productes s'han afegit a la cistella",
+  "store/crossCart.toast.error": "Hi ha hagut un error a l'afegir els productes",
+  "store/crossCart.modal.title": "Què vols fer amb la teva cistella anterior?",
+  "store/crossCart.modal.previous-cart": "Productes de la teva cistella anterior",
+  "store/crossCart.modal.more-items": "producte(s) més",
+  "store/crossCart.modal.buttons.title": "Què vols fer amb la teva cistella anterior?",
+  "store/crossCart.modal.buttons.merge": "Combinar",
+  "store/crossCart.modal.buttons.replace": "Reemplaçar",
+  "store/crossCart.modal.buttons.add": "Afegir"
+}
