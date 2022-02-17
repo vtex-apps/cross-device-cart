@@ -1,4 +1,4 @@
-📢 Use this project, [contribute](https://github.com/{OrganizationName}/{AppName}) to it or open issues to help evolve it using [Store Discussion](https://github.com/vtex-apps/store-discussion).
+=� Use this project, [contribute](https://github.com/{OrganizationName}/{AppName}) to it or open issues to help evolve it using [Store Discussion](https://github.com/vtex-apps/store-discussion).
 
 # CROSS DEVICE CART
 
@@ -75,7 +75,7 @@ To do so, this app was created to to enable `logged in` users to retrieve their 
 
 <!-- DOCS-IGNORE:start -->
 
-## Contributors ✨
+## Contributors (
 
 Thanks goes to these wonderful people:
 
@@ -90,3 +90,8 @@ Thanks goes to these wonderful people:
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are welcome!
 
 <!-- DOCS-IGNORE:end -->
+
+
+**Upcoming documentation:**
+
+ - [Client migration](https://github.com/vtex-apps/cross-device-cart/pull/3)
