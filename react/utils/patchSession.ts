@@ -23,9 +23,9 @@ export const patchSession = async (isCombined: string, rootPath?: string) => {
 }
 
 export const getSession = async (rootPath?: string) => {
-  const res = await (
+  const session = await (
     await fetch(`${rootPath ?? ''}/api/sessions?items=public.isCombined`)
   ).json()
 
-  return res.namespaces.public.isCombined.value as string
+  return session.namespaces.public.isCombined.value as string
 }
