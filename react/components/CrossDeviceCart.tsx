@@ -161,9 +161,9 @@ const CrossDeviceCart: FC<Props> = ({
 
   useEffect(() => {
     const getUpdatedSession = async () => {
-      const res = await getSession()
+      const updatedSession = await getSession()
 
-      setCombinedFlag(res ?? 'false')
+      setCombinedFlag(updatedSession ?? 'false')
     }
 
     getUpdatedSession()
