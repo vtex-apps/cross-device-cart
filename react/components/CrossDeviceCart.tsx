@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react'
+import React, { FC, useCallback, useEffect, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
@@ -30,11 +30,11 @@ const CrossDeviceCart: FC<Props> = ({
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [challengeActive, setChallenge] = useState(false)
   const [didMerge, setMergeStatus] = useState(false)
+  const [hasAlreadyCombined, setCombinedFlag] = useState<string | null>(null)
   const { push } = usePixel()
   const intl = useIntl()
 
   const hasItems = Boolean(orderForm.items.length)
-  const hasAlreadyCombined = useRef('false')
 
   const [getSavedCart, { data, loading }] = useLazyQuery<
     CrossCartData,
@@ -84,7 +84,7 @@ const CrossDeviceCart: FC<Props> = ({
 
       setMergeStatus(true)
 
-      if (isAutomatic && hasAlreadyCombined.current === 'true') {
+      if (isAutomatic && hasAlreadyCombined === 'true') {
         strategy = REPLACE
       }
 
@@ -163,7 +163,7 @@ const CrossDeviceCart: FC<Props> = ({
     const getUpdatedSession = async () => {
       const res = await getSession()
 
-      hasAlreadyCombined.current = res
+      setCombinedFlag(res ?? 'false')
     }
 
     getUpdatedSession()
@@ -179,7 +179,7 @@ const CrossDeviceCart: FC<Props> = ({
   }, [getSavedCart, userId, isAutomatic])
 
   useEffect(() => {
-    if (loading || !data) return
+    if (loading || !data || !hasAlreadyCombined) return
 
     const crossCart = data?.id
 
@@ -217,6 +217,7 @@ const CrossDeviceCart: FC<Props> = ({
     isAutomatic,
     toastHandler,
     userId,
+    hasAlreadyCombined,
   ])
 
   if (!challengeActive || isAutomatic) {

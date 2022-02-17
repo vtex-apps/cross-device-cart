@@ -27,5 +27,5 @@ export const getSession = async (rootPath?: string) => {
     await fetch(`${rootPath ?? ''}/api/sessions?items=public.isCombined`)
   ).json()
 
-  return res.namespaces.public.isCombined.value
+  return res.namespaces.public.isCombined.value as string
 }
