@@ -1,0 +1,14 @@
+{
+  "name": "Cross Device Cart",
+  "headline": "Let your logged in customers retrieve shopping cart items from another device",
+  "overview": "The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.\\\\n\\\\nTo do so, this app enables logged in users to retrieve their items from their last session.",
+  "features": [
+    "Retrieves items left on another device or session",
+    "Allows the customer to decide how to integrate those items",
+    "Can be automatically triggered, or manually, via a store front interface"
+  ],
+  "websiteURL": "https://vtex.com/",
+  "support": {
+    "url": "https://support.vtex.com/hc/requests"
+  }
+}

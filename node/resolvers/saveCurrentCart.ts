@@ -1,19 +1,17 @@
 import { APP_NAME } from '../constants'
 
+/**
+ * Store an OrderForm ID and isMerged flag reference for a specific user
+ * @param {string} userId - Unique user identification string
+ * @param {string | null} orderFormId - Unique orderForm identification string
+ * @returns {string} If promise was fulfilled
+ */
 export const saveCurrentCart = async (
   _: any,
-  { userId, orderformId }: { userId: string; orderformId: string },
-  ctx: Context
-) => {
-  const {
-    clients: { vbase },
-  } = ctx
+  { userId, orderFormId }: { userId: string; orderFormId: string | null },
+  { clients: { vbase } }: Context
+): Promise<string> => {
+  await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
-  try {
-    await vbase.saveJSON(APP_NAME, userId, orderformId)
-
-    return 'success'
-  } catch (err) {
-    throw err
-  }
+  return 'success'
 }

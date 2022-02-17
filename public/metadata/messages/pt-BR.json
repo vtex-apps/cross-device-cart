@@ -1,0 +1,14 @@
+{
+  "name": "Cross Device Cart",
+  "headline": "Deixe seus clientes logados recuperarem itens do carrinho de compras de outro dispositivo",
+  "overview": "A principal característica que os usuários procuram é manter um carrinho de compras atualizado em diferentes dispositivos; uma das experiências mais importantes de um comércio verdadeiramente unificado.\\\\n\\\\nEste aplicativo permite que usuários logados recuperem seus itens de sua última sessão.",
+  "features": [
+    "Recupera itens deixados em outro dispositivo ou sessão",
+    "Permite ao cliente decidir como integrar esses itens",
+    "Pode ser acionado automaticamente ou manualmente, por meio de uma interface de loja"
+  ],
+  "websiteURL": "https://vtex.com/",
+  "support": {
+    "url": "https://support.vtex.com/hc/requests"
+  }
+}

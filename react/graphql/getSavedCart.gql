@@ -1,3 +1,3 @@
-query getSavedCart($userId: String) {
-  getSavedCart(userId: $userId)
+query getSavedCart($userId: String!, $isAutomatic: Boolean) {
+  id: getSavedCart(userId: $userId, isAutomatic: $isAutomatic)
 }

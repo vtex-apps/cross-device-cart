@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
-    "types": [
-      "node",
-      "jest"
-    ],
-    "typeRoots": [
-      "node_modules/@types"
-    ],
+    "types": ["node", "jest"],
+    "typeRoots": ["node_modules/@types"],
     "target": "es2019",
     "module": "commonjs",
     "moduleResolution": "node",
     "allowJs": false,
     "esModuleInterop": true,
-    "noEmitOnError": true,
+    "noEmitOnError": false,
     "noImplicitReturns": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -26,11 +21,6 @@
   "typeAcquisition": {
     "enable": false
   },
-  "include": [
-    "./**/*.ts",
-    "./typings/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["./**/*.ts", "./typings/*.d.ts"],
+  "exclude": ["node_modules"]
 }

@@ -12,48 +12,59 @@
 
 The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
 
-To do so in VTEX we created a feature that enables `logged in` users to retrieve their items on any session.
+To do so, this app was created to to enable `logged in` users to retrieve their items from their last session.
 
 ## Configuration
 
 1. Import the app to your theme's dependencies in `manifest.json`, for example:
 
-```json
-  "dependencies": {
-    // ...
-    "vtex.cross-device-cart": "0.x"
-  }
-```
+   ```json
+     "dependencies": {
+       // ...
+       "vtex.cross-device-cart": "0.x"
+     }
+   ```
 
 2. Add the `cross-device-cart` block as a children of your store header, for i.e:
 
-```diff
- "header-layout.desktop": {
-    "children": [
-+     "cross-device-cart",
-      "flex-layout.row#1-desktop",
-      "flex-layout.row#2-desktop",
-      "flex-layout.row#3-desktop",
-      "sticky-layout#4-desktop"
-    ]
-  },
-```
+   ```diff
+   "header-layout.desktop": {
+       "children": [
+   +     "cross-device-cart",
+         "flex-layout.row#1-desktop",
+         "flex-layout.row#2-desktop",
+         "flex-layout.row#3-desktop",
+         "sticky-layout#4-desktop"
+       ]
+     },
+   ```
 
-3. (Optional) Declare the `cross-device-cart` block, using its props to define the Challenge UI that will be rendered:
+3. (Optional) You can tailor the default experience by declaring the standalone block and configuring it via props
 
-```json
-"cross-device-cart": {
-  "props": {
-    "challengeType": "floatingBar"
-  }
-},
-```
+   ```json
+   "cross-device-cart": {
+     "props": {
+       "isAutomatic": "false",
+       "mergeStrategy": "ADD"
+     }
+   },
+   ```
 
 ### `cross-device-cart` props
 
-| Prop name       | Type     | Description                                                                                      | Default value |
-| --------------- | -------- | ------------------------------------------------------------------------------------------------ | ------------- |
-| `challengeType` | `string` | How the user challenge will be rendered. Possible values are `actionBar`, `floatingBar`, `modal` | `actionBar`   |
+| Prop name         | Type      | Description                                                                                                                                                                       | Default value |
+| ----------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `isAutomatic`     | `boolean` | If the items merge is done automatically or requires user input via a challenge block. If `false`, an action bar will be rendered where the block is declared on your store-theme | `true`        |
+| `mergeStrategy`   | `enum`    | If `isAutomatic` is set to `false`, you can set the default strategy for manualling merging carts; `ADD`, `COMBINE` or `REPLACE`                                                  | `REPLACE`     |
+| `advancedOptions` | `boolean` | If `isAutomatic` is set to `false`, you can opt to enable this prop. This renders a modal when the user accepts the challenge, with all the 3 strategies for the user to decide   | `false`       |
+
+- `mergeStrategy` enum:
+
+| value     | Type     | Description                                                                                          |
+| --------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `ADD`     | `string` | ADDS the missing items to the current cart session. This means that repeated items will be _OMITTED_ |
+| `COMBINE` | `string` | SUMS both cart's items and quantities into one                                                       |
+| `REPLACE` | `sting`  | REPLACES current cart items                                                                          |
 
 ## Customization
 
