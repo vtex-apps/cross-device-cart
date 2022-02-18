@@ -38,6 +38,7 @@ const MergeOptionsModal: FC<Props> = ({
   }
 
   const handleMergeCarts = (strategy: MergeStrategy) => {
+    handleCloseModal()
     handleAccept(toastHandler, strategy)
   }
 

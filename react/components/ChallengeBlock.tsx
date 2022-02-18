@@ -5,6 +5,7 @@ import { Button, ButtonWithIcon, IconClose } from 'vtex.styleguide'
 import { useCssHandles } from 'vtex.css-handles'
 
 import { MergeOptionsModal } from './MergeOptionsModal'
+import { ADD, COMBINE, REPLACE } from '../utils/constants'
 
 const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 
@@ -20,6 +21,7 @@ interface Props {
   mergeStrategy: MergeStrategy
   mutationLoading: boolean
   advancedOptions: boolean
+  hasItems: boolean
   /* items: unknown[] */
 }
 
@@ -30,6 +32,7 @@ const ChallengeBlock: FC<Props> = ({
   mutationLoading,
   toastHandler,
   advancedOptions,
+  hasItems,
 }) => {
   const { device } = useDevice()
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -39,17 +42,27 @@ const ChallengeBlock: FC<Props> = ({
     setIsModalOpen(false)
   }
 
+  const handleChallengeClick = () => {
+    if (advancedOptions && hasItems) {
+      setIsModalOpen(true)
+
+      return
+    }
+
+    if (!hasItems) {
+      mergeStrategy = REPLACE
+    }
+
+    handleAccept(toastHandler, mergeStrategy)
+  }
+
   const deviceClass = `${device === 'phone' ? 'flex-column' : ''}`
 
   const callToAction = (
     <Button
       size="small"
       variation="secondary"
-      onClick={() => {
-        advancedOptions
-          ? setIsModalOpen(true)
-          : handleAccept(toastHandler, mergeStrategy)
-      }}
+      onClick={handleChallengeClick}
       isLoading={mutationLoading}
     >
       <FormattedMessage id="store/crossCart.challenge.cta" />
@@ -60,7 +73,7 @@ const ChallengeBlock: FC<Props> = ({
     <Fragment>
       <MergeOptionsModal
         /* items={items} */
-        strategies={['ADD', 'COMBINE', 'REPLACE']}
+        strategies={[ADD, COMBINE, REPLACE]}
         isOpen={isModalOpen}
         handleClose={handleCloseModal}
         handleAccept={handleAccept}

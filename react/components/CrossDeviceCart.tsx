@@ -9,7 +9,7 @@ import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
 import MUTATE_CART from '../graphql/mergeCarts.gql'
 import { adjustSkuItemForPixelEvent } from '../utils'
 import ChallengeBlock from './ChallengeBlock'
-import { REPLACE } from '../utils/constants'
+import { COMBINE, REPLACE } from '../utils/constants'
 import { getSession, patchSession } from '../utils/patchSession'
 
 interface Props {
@@ -114,10 +114,12 @@ const CrossDeviceCart: FC<Props> = ({
 
       setOrderForm(newOrderForm)
 
-      !isAutomatic &&
+      if (!isAutomatic) {
+        challengeActive && setChallenge(false)
         showToast({
           message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
         })
+      }
 
       const skuItems = newOrderForm.items
       const pixelEventItems = skuItems.map(adjustSkuItemForPixelEvent)
@@ -143,6 +145,7 @@ const CrossDeviceCart: FC<Props> = ({
     },
 
     [
+      challengeActive,
       data?.id,
       didMerge,
       error,
@@ -192,8 +195,8 @@ const CrossDeviceCart: FC<Props> = ({
     const equalCarts = crossCart === orderForm.id
 
     if (!equalCarts) {
-      !isAutomatic && setChallenge(true)
-      isAutomatic && handleMerge(toastHandler, 'COMBINE')
+      !isAutomatic && !didMerge && setChallenge(true)
+      isAutomatic && handleMerge(toastHandler, COMBINE)
 
       return
     }
@@ -209,6 +212,7 @@ const CrossDeviceCart: FC<Props> = ({
   }, [
     hasItems,
     data,
+    didMerge,
     handleMerge,
     handleSaveCurrent,
     loading,
@@ -231,6 +235,7 @@ const CrossDeviceCart: FC<Props> = ({
       handleDecline={handleSaveCurrent}
       mutationLoading={mutationLoading}
       advancedOptions={advancedOptions}
+      hasItems={hasItems}
       // These need to be the XCART items
       /* items={orderForm.items} */
       toastHandler={toastHandler}
