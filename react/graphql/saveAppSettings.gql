@@ -1,0 +1,3 @@
+mutation saveAppSettings($isAutomatic: Boolean) {
+  saveAppSettings(isAutomatic: $isAutomatic)
+}

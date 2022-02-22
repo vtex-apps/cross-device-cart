@@ -60,3 +60,7 @@ interface CrossCartData {
 interface SaveCurrentCartData extends CrossCartData {
   userId: string
 }
+
+interface AppSettings {
+  isAutomatic: boolean
+}

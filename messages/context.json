@@ -9,5 +9,12 @@
   "store/crossCart.modal.buttons.title": "Merge options title",
   "store/crossCart.modal.buttons.merge": "Merge carts option",
   "store/crossCart.modal.buttons.replace": "Replace cart option",
-  "store/crossCart.modal.buttons.add": "Add carts option"
+  "store/crossCart.modal.buttons.add": "Add carts option",
+  "admin/cross-device-cart.title": "Admin panel title",
+  "admin/cross-device-cart.subtitle": "Admin panel subtitle",
+  "admin/cross-device-cart.error": "Alert on error fetching the app settings",
+  "admin/cross-device-cart.automatic-toggle-automatic": "Automatic toggle label when toggle is on",
+  "admin/cross-device-cart.automatic-toggle-manual": "Automatic toggle label when toggle is off",
+  "admin/cross-device-cart.automatic-toggle-help-text": "Automatic toggle help text",
+  "admin/cross-device-cart.automatic-toggle-explanation": "Automatic toggle modes explanation"
 }

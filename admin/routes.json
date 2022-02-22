@@ -1,0 +1,6 @@
+{
+  "admin.app.cross-device-cart": {
+    "component": "AdminPanel",
+    "path": "/admin/app/cross-device-cart"
+  }
+}

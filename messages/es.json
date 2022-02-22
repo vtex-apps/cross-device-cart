@@ -9,5 +9,12 @@
   "store/crossCart.modal.buttons.title": "¿Qué te gustaría hacer con tu carrito anterior?",
   "store/crossCart.modal.buttons.merge": "Combinar",
   "store/crossCart.modal.buttons.replace": "Reemplazar",
-  "store/crossCart.modal.buttons.add": "Sumar"
+  "store/crossCart.modal.buttons.add": "Sumar",
+  "admin/cross-device-cart.title": "Cross Device Cart",
+  "admin/cross-device-cart.subtitle": "Configuración de la aplicación",
+  "admin/cross-device-cart.error": "Ha ocurrido un problema cargando la configuración de la aplicación",
+  "admin/cross-device-cart.automatic-toggle-automatic": "Automático",
+  "admin/cross-device-cart.automatic-toggle-manual": "Manual",
+  "admin/cross-device-cart.automatic-toggle-help-text": "Elija entre el modo Automático o Manual para el cross device cart.",
+  "admin/cross-device-cart.automatic-toggle-explanation": "Cuando se selecciona el modo 'Automático' no se le pedirá al usuario que realice ninguna acción. Si se selecciona el modo 'Manual' el usuario deberá confirmar qué quiere hacer con los artículos que estaban previamente en el carrito."
 }

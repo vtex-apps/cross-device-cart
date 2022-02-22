@@ -9,5 +9,12 @@
   "store/crossCart.modal.buttons.title": "What would you like to do with your previous cart?",
   "store/crossCart.modal.buttons.merge": "Merge carts",
   "store/crossCart.modal.buttons.replace": "Replace",
-  "store/crossCart.modal.buttons.add": "Add carts"
+  "store/crossCart.modal.buttons.add": "Add carts",
+  "admin/cross-device-cart.title": "Cross Device Cart",
+  "admin/cross-device-cart.subtitle": "App Settings",
+  "admin/cross-device-cart.error": "There was a problem loading the application settings",
+  "admin/cross-device-cart.automatic-toggle-automatic": "Automatic",
+  "admin/cross-device-cart.automatic-toggle-manual": "Manual",
+  "admin/cross-device-cart.automatic-toggle-help-text": "Toggle between Automatic and Manual mode for the cross device cart.",
+  "admin/cross-device-cart.automatic-toggle-explanation": "When the 'Automatic' mode is selected the user will not be prompted to take any action. If 'Manual' mode is selected the user will need to confirm what they want to do with the items that were previously in the cart."
 }
