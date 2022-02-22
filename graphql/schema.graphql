@@ -4,6 +4,11 @@ type Query {
   """
   getSavedCart(userId: String!, isAutomatic: Boolean): String
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
+
+  """
+  Retrieve app settings
+  """
+  getAppSettings: CrossDeviceCartSettings
 }
 
 type Mutation {
@@ -20,4 +25,9 @@ type Mutation {
     strategy: Strategy
     userId: String!
   ): OrderForm
+
+  """
+  Save app settings
+  """
+  saveAppSettings(isAutomatic: Boolean): Boolean
 }
