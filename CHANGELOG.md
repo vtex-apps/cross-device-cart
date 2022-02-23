@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Fixed settings on first time installation
+
 ## [1.0.0] - 2022-02-23
 
 - New version replacing how the cross cart is handled
