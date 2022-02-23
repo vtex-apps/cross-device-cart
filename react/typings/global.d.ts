@@ -37,3 +37,7 @@ interface NewCrossCart {
 type NewOrderForm = { [key: string]: any }
 
 type Success = 'success'
+
+type AppSettings = {
+  isAutomatic: boolean
+}

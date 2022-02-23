@@ -1,20 +1,29 @@
-import React, { FC } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
+import { useQuery } from 'react-apollo'
 
 import { CrossCart } from './CrossCart'
 import { patchSessionFlag } from '../utils/patchSessionFlag'
+import getAppSettings from '../graphql/getAppSettings.gql'
 
-interface Props {
-  isAutomatic: boolean
-}
-
-const SessionWrapper: FC<Props> = ({ isAutomatic = true }: Props) => {
+const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
+  const [appSettings, setAppSettings] = useState({} as AppSettings)
 
-  if (error || loading || !session || orderLoading) {
+  const { data } = useQuery(getAppSettings, { ssr: false })
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    setAppSettings(data.appSettings)
+  }, [data])
+
+  if (error || loading || !session || orderLoading || !data) {
     return null
   }
 
@@ -38,7 +47,7 @@ const SessionWrapper: FC<Props> = ({ isAutomatic = true }: Props) => {
         <CrossCart
           toastHandler={showToast}
           userId={userId}
-          isAutomatic={isAutomatic}
+          isAutomatic={appSettings.isAutomatic}
         />
       )}
     </ToastConsumer>
