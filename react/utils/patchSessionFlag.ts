@@ -1,4 +1,4 @@
-export const patchSession = async (isCombined: string, rootPath?: string) => {
+export const patchSessionFlag = async (isCombined: string) => {
   const myHeaders = new Headers()
 
   myHeaders.append('Content-Type', 'application/json')
@@ -17,14 +17,14 @@ export const patchSession = async (isCombined: string, rootPath?: string) => {
     body: sessionBody,
   }
 
-  await fetch(`${rootPath ?? ''}/api/sessions`, options)
+  await fetch(`/api/sessions`, options)
 
-  return 'success'
+  return true
 }
 
-export const getSession = async (rootPath?: string) => {
+export const getSessionFlag = async () => {
   const session = await (
-    await fetch(`${rootPath ?? ''}/api/sessions?items=public.isCombined`)
+    await fetch(`/api/sessions?items=public.isCombined`)
   ).json()
 
   return session.namespaces.public.isCombined.value as string

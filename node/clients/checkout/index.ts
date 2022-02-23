@@ -45,14 +45,12 @@ export default class CheckoutIO extends AppGraphQLClient {
   /**
    * Gets only the Items associated to a given shopping cart
    *
-   * @func getOrderFormItems
+   * @func getItems
    * @public
    * @param {string} orderFormId OrderForm ID
    * @return {PartialItem[]} List of partial Items
    */
-  public getOrderFormItems = async (
-    orderFormId: string
-  ): Promise<PartialItem[]> => {
+  public getItems = async (orderFormId: string): Promise<PartialItem[]> => {
     const partialItems = await this.graphql
       .query<PartialOrderFormItems, { orderFormId: string }>(
         {

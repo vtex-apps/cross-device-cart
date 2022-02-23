@@ -1,0 +1,11 @@
+mutation replaceCart(
+  $savedCart: String!
+  $currentCart: String!
+  $hasToCombine: Boolean
+) {
+  newOrderForm: replaceCart(
+    savedCart: $savedCart
+    currentCart: $currentCart
+    hasToCombine: $hasToCombine
+  )
+}

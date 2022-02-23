@@ -1,9 +1,3 @@
-enum Strategy {
-  ADD
-  COMBINE
-  REPLACE
-}
-
 scalar InputValues
 
 """

@@ -1,5 +1,3 @@
-type MergeStrategy = 'COMBINE' | 'REPLACE' | 'ADD'
-
 interface OrderFormContext {
   orderForm: PartialOrderForm
   setOrderForm: (orderForm: any) => void
@@ -16,11 +14,10 @@ interface PartialOrderForm {
   items: any[]
 }
 
-interface MergeCartsVariables {
+interface ReplaceCartVariables {
   savedCart: string
   currentCart: string
-  strategy: MergeStrategy
-  userId: string
+  hasToCombine: boolean
 }
 
 interface CrossCartData {
@@ -29,7 +26,7 @@ interface CrossCartData {
 
 interface CrossCartVars {
   userId: string
-  isAutomatic: boolean
+  nullOnEmpty?: boolean
 }
 
 interface NewCrossCart {

@@ -1,19 +1,20 @@
 import { APP_NAME } from '../constants'
 
 /**
- * Retrieve a previous session OrderForm ID and isMerged flag
+ * Retrieve a previous session OrderForm ID
  * @param {string} userId - Unique user identification string
- * @returns {string} orderFormId
+ * @param {boolean} nullOnEmpty - Return null if the orderForm doesn't have items
+ * @returns {string | null} orderFormId
  */
 export const getSavedCart = async (
   _: unknown,
-  { userId, isAutomatic }: { userId: string; isAutomatic: boolean },
+  { userId, nullOnEmpty }: { userId: string; nullOnEmpty: boolean },
   { clients: { vbase, checkoutIO } }: Context
 ): Promise<string | null> => {
   const orderFormId: string | null = await vbase.getJSON(APP_NAME, userId, true)
 
-  if (!isAutomatic && orderFormId) {
-    const savedItems = await checkoutIO.getOrderFormItems(orderFormId)
+  if (nullOnEmpty && orderFormId) {
+    const savedItems = await checkoutIO.getItems(orderFormId)
 
     if (!savedItems.length) {
       return null
