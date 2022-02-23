@@ -25,7 +25,7 @@ To do so, this app was created to enable `logged in` users to retrieve their car
      }
    ```
 
-2. Add the `cross-device-cart` block as a children of your store header, for i.e:
+2. Add the `cross-device-cart` block as a children of your store header, desktop and mobile, for i.e:
 
    ```diff
    "header-layout.desktop": {
@@ -35,6 +35,13 @@ To do so, this app was created to enable `logged in` users to retrieve their car
          "flex-layout.row#2-desktop",
          "flex-layout.row#3-desktop",
          "sticky-layout#4-desktop"
+       ]
+     },
+     "header-layout.mobile": {
+       "children": [
+   +     "cross-device-cart",
+         "flex-layout.row#1-mobile",
+         "sticky-layout#2-mobile"
        ]
      },
    ```

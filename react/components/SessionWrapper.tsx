@@ -47,7 +47,7 @@ const SessionWrapper: FC = () => {
         <CrossCart
           toastHandler={showToast}
           userId={userId}
-          isAutomatic={appSettings.isAutomatic}
+          isAutomatic={appSettings.isAutomatic ?? true}
         />
       )}
     </ToastConsumer>
