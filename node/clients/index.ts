@@ -5,6 +5,7 @@ import {
   LRUCache,
   ServiceContext,
 } from '@vtex/api'
+import { OMS } from '@vtex/clients'
 
 import RequestHub from './hub'
 import CheckoutIO from './checkout'
@@ -16,6 +17,10 @@ export class Clients extends IOClients {
 
   public get requestHub() {
     return this.getOrSet('requestHub', RequestHub)
+  }
+
+  public get oms() {
+    return this.getOrSet('oms', OMS)
   }
 }
 
@@ -50,9 +55,6 @@ const clients: ClientsConfig<Clients> = {
     },
     checkoutIO: {
       timeout: 5000,
-    },
-    status: {
-      memoryCache,
     },
   },
 }

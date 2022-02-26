@@ -10,7 +10,7 @@ import { ItemInput } from 'vtex.checkout-graphql'
 import {
   GET_ORDERFORM_ITEMS_QUERY,
   GET_ORDERFORM_QUERY,
-  UPDATE_CART_MUTATION,
+  ADD_ITEMS_MUTATION,
 } from './queries'
 
 class CustomGraphQLError extends Error {
@@ -43,7 +43,7 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
-   * Gets only the Items associated to a given shopping cart
+   * Retrieves the Items associated to a given shopping cart
    *
    * @func getItems
    * @public
@@ -76,7 +76,7 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
-   * Gets all Items plus extra data associated to a given shopping cart
+   * Retrieves data associated to a given shopping cart
    *
    * @func getOrderForm
    * @public
@@ -109,31 +109,31 @@ export default class CheckoutIO extends AppGraphQLClient {
   }
 
   /**
-   * @func updateCart
+   * @func addToCart
    * @public
    * @param {string} orderFormId OrderForm ID
    * @param {ItemInput[]} items Input list of Items
    * @return {PartialOrderForm} New partial OrderForm
    */
-  public updateCart = async (
+  public addToCart = async (
     orderFormId: string,
     items: ItemInput[]
   ): Promise<PartialOrderForm> => {
     const partialOrderForm = await this.graphql
       .mutate<any, { orderFormId: string; items: ItemInput[] }>(
         {
-          mutate: UPDATE_CART_MUTATION,
+          mutate: ADD_ITEMS_MUTATION,
           variables: {
             orderFormId,
             items,
           },
         },
         {
-          metric: 'checkout-update-items',
+          metric: 'checkout-add-items',
         }
       )
       .then(
-        throwOnGraphQLErrors('Error updating items with vtex.checkout-graphql')
+        throwOnGraphQLErrors('Error adding items with vtex.checkout-graphql')
       )
       .then((query) => {
         return query.data!.orderForm

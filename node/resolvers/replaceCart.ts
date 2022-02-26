@@ -1,3 +1,5 @@
+import { serialize } from 'cookie'
+
 import { mergeItems } from '../utils'
 
 /**
@@ -13,16 +15,18 @@ export const replaceCart = async (
 ): Promise<any> => {
   const {
     clients: { checkoutIO, requestHub },
-    cookies,
+    response,
   } = context
 
   const host = context.get('x-forwarded-host')
 
-  cookies.set('checkout.vtex.com', `__ofid=${savedCart}`, {
-    domain: host,
-    overwrite: true,
-    maxAge: 86400,
-  })
+  response.set(
+    'set-cookie',
+    serialize('checkout.vtex.com', `__ofid=${savedCart}`, {
+      domain: host,
+      maxAge: 86400,
+    })
+  )
 
   const orderForm = await checkoutIO.getOrderForm(savedCart)
 
@@ -30,16 +34,18 @@ export const replaceCart = async (
     const savedItems = await checkoutIO.getItems(savedCart)
     const currentItems = await checkoutIO.getItems(currentCart)
 
-    await requestHub.clearCart(savedCart)
-
     const items = mergeItems(currentItems, savedItems)
+
+    if (!items.length) return orderForm
+
+    await requestHub.clearCart(savedCart)
 
     items.forEach((element, index) => {
       element.id = Number(element.id)
       element.index = index
     })
 
-    const newOrderForm = await checkoutIO.updateCart(savedCart, items)
+    const newOrderForm = await checkoutIO.addToCart(savedCart, items)
 
     return newOrderForm
   }

@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
+import axios from 'axios'
 
 import GET_ID_BY_USER from '../graphql/getSavedCart.gql'
 import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
@@ -33,7 +34,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
     CrossCartData,
     CrossCartVars
   >(GET_ID_BY_USER, {
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'no-cache',
   })
 
   const [saveCurrentCart] = useMutation<Success, NewCrossCart>(SAVE_ID_BY_USER)
@@ -93,6 +94,20 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
     showToast({
       message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
     })
+
+    try {
+      await axios.post(
+        `/api/checkout/pub/orderForm/${data.id}`,
+        {},
+        {
+          headers: {
+            'set-cookie': `checkout.vtex.com=__ofid=${data.id}`,
+          },
+        }
+      )
+    } catch (e) {
+      console.error('Error replacing OrderForm')
+    }
 
     getSavedCart({
       variables: {

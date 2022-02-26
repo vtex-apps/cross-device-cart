@@ -27,5 +27,5 @@ export const getSessionFlag = async () => {
     await fetch(`/api/sessions?items=public.isCombined`)
   ).json()
 
-  return session.namespaces.public.isCombined.value as string
+  return session?.namespaces?.public?.isCombined.value ?? 'false'
 }

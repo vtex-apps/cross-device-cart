@@ -249,7 +249,7 @@ query orderForm($orderFormId: ID) {
   }
 }
 `
-export const UPDATE_CART_MUTATION = `
+export const ADD_ITEMS_MUTATION = `
 mutation addToCart($orderFormId: ID, $items: [ItemInput]) {
   orderForm: addToCart(orderFormId: $orderFormId, items: $items) {
     id
