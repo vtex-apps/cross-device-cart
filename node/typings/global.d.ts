@@ -4,9 +4,10 @@ type AssemblyOptionType = import('vtex.checkout-graphql').AssemblyOptionType
 interface ReplaceCartVariables {
   savedCart: Scalars['ID']
   currentCart: Scalars['ID']
-  hasToCombine: boolean
+  strategy: Strategy
 }
 
+type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
 interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }
 }

@@ -17,7 +17,7 @@ interface PartialOrderForm {
 interface ReplaceCartVariables {
   savedCart: string
   currentCart: string
-  hasToCombine: boolean
+  strategy: Strategy
 }
 
 interface CrossCartData {
@@ -38,6 +38,13 @@ type NewOrderForm = { [key: string]: any }
 
 type Success = 'success'
 
-type AppSettings = {
+interface AppSettings {
   isAutomatic: boolean
+  strategy: Strategy
+}
+
+type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
+
+interface AppSettingsData {
+  appSettings: AppSettings
 }

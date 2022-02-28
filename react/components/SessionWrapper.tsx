@@ -5,15 +5,16 @@ import { ToastConsumer } from 'vtex.styleguide'
 import { useQuery } from 'react-apollo'
 
 import { CrossCart } from './CrossCart'
-import { patchSessionFlag } from '../utils/patchSessionFlag'
 import getAppSettings from '../graphql/getAppSettings.gql'
 
 const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
-  const [appSettings, setAppSettings] = useState({} as AppSettings)
+  const [settings, setAppSettings] = useState({} as AppSettings)
 
-  const { data } = useQuery(getAppSettings, { ssr: false })
+  const { data } = useQuery<AppSettingsData>(getAppSettings, {
+    ssr: false,
+  })
 
   useEffect(() => {
     if (!data) {
@@ -31,11 +32,11 @@ const SessionWrapper: FC = () => {
     namespaces: { profile },
   } = session as SessionSuccess
 
+  const { isAutomatic, strategy } = settings
+
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
   if (!isAuthenticated) {
-    patchSessionFlag('false')
-
     return null
   }
 
@@ -47,7 +48,8 @@ const SessionWrapper: FC = () => {
         <CrossCart
           toastHandler={showToast}
           userId={userId}
-          isAutomatic={appSettings.isAutomatic ?? true}
+          isAutomatic={isAutomatic}
+          strategy={strategy}
         />
       )}
     </ToastConsumer>

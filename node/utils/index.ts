@@ -34,12 +34,13 @@ export function statusToError(err: AxiosError): Error {
 
 /**
  * Returns a set from both provided cart's items.
- * Duplicates from the second one have their
+ * If desired, duplicates from the second one have their
  * quantities added to the first provided list of items.
  *
  * @func mergeItems
  * @param {PartialItem[]} currentItems Current cart list of Items
  * @param {PartialItem[]} previousItems Previous cart list of Items
+ * @param {boolean} sumDuplicates
  * @return {PartialItem[]} Set of items
  * @example
  *
@@ -48,14 +49,15 @@ export function statusToError(err: AxiosError): Error {
  */
 export const mergeItems = (
   currentItems: PartialItem[],
-  previousItems: PartialItem[]
+  previousItems: PartialItem[],
+  sumDuplicates: boolean
 ): PartialItem[] =>
   [...currentItems, ...previousItems].reduce(
     (mergedItems: PartialItem[], item) => {
       const existingItem = mergedItems.find(({ id }) => id === item.id)
 
       existingItem
-        ? (existingItem.quantity += item.quantity)
+        ? sumDuplicates && (existingItem.quantity += item.quantity)
         : mergedItems.push(item)
 
       return mergedItems

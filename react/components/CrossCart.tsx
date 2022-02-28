@@ -8,12 +8,12 @@ import GET_ID_BY_USER from '../graphql/getSavedCart.gql'
 import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
 import MUTATE_CART from '../graphql/replaceCart.gql'
 import ChallengeBlock from './ChallengeBlock'
-import { getSessionFlag, patchSessionFlag } from '../utils/patchSessionFlag'
 
 interface Props {
   userId: string
   isAutomatic: boolean
   toastHandler: (toast: ToastParam) => void
+  strategy: Strategy
 }
 
 /**
@@ -21,10 +21,14 @@ interface Props {
  * it will try to request a new Cookie with the saved OrderForm, and
  * if the session flag is false, it will try to combine the leftover items
  */
-const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
+const CrossCart: FC<Props> = ({
+  userId,
+  isAutomatic,
+  strategy,
+  toastHandler,
+}) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [hasMerged, setMergeStatus] = useState(false)
-  const [hasAlreadyCombined, setCombinedFlag] = useState<string | null>(null)
   const [challengeActive, setChallenge] = useState(false)
   const intl = useIntl()
 
@@ -62,18 +66,11 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
 
     setMergeStatus(true)
 
-    let hasToCombine = false
-
-    if (hasAlreadyCombined === 'false') {
-      hasToCombine = true
-      patchSessionFlag('true')
-    }
-
     const mutationResult = await replaceCart({
       variables: {
         currentCart: orderForm.id,
         savedCart: data.id,
-        hasToCombine,
+        strategy,
       },
     })
 
@@ -124,19 +121,11 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
         nullOnEmpty: !isAutomatic,
       },
     })
-
-    const getIsCombined = async () => {
-      const isCombined = await getSessionFlag()
-
-      setCombinedFlag(isCombined ?? 'false')
-    }
-
-    getIsCombined()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (loading || !data || hasAlreadyCombined === null) return
+    if (loading || !data) return
 
     const crossCart = data?.id
 
@@ -169,7 +158,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, toastHandler }) => {
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, data, hasItems, hasAlreadyCombined])
+  }, [loading, data, hasItems])
 
   if (!challengeActive || isAutomatic) {
     return null

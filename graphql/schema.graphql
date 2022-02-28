@@ -23,7 +23,7 @@ type Mutation {
   replaceCart(
     savedCart: String!
     currentCart: String!
-    hasToCombine: Boolean
+    strategy: Strategy!
   ): OrderForm
 
   """

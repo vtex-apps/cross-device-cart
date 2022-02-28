@@ -10,7 +10,7 @@ import { mergeItems } from '../utils'
  */
 export const replaceCart = async (
   _: any,
-  { savedCart, currentCart, hasToCombine }: ReplaceCartVariables,
+  { savedCart, currentCart, strategy }: ReplaceCartVariables,
   context: Context
 ): Promise<any> => {
   const {
@@ -30,11 +30,12 @@ export const replaceCart = async (
 
   const orderForm = await checkoutIO.getOrderForm(savedCart)
 
-  if (hasToCombine) {
-    const savedItems = await checkoutIO.getItems(savedCart)
+  if (strategy !== 'REPLACE') {
     const currentItems = await checkoutIO.getItems(currentCart)
 
-    const items = mergeItems(currentItems, savedItems)
+    const tally = strategy === 'COMBINE'
+
+    const items = mergeItems(currentItems, orderForm.items, tally)
 
     if (!items.length) return orderForm
 
