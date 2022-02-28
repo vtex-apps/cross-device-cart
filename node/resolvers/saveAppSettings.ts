@@ -2,13 +2,9 @@ import { BUCKET, SETTINGS_PATH } from '../constants'
 
 export const saveAppSettings = async (
   _: unknown,
-  { isAutomatic }: AppSettings,
+  settings: AppSettings,
   { clients: { vbase }, vtex: { logger } }: Context
 ): Promise<boolean> => {
-  const settings = {
-    isAutomatic,
-  }
-
   try {
     await vbase.saveJSON(BUCKET, SETTINGS_PATH, settings)
 

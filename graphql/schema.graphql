@@ -18,7 +18,7 @@ type Mutation {
   """
   saveCurrentCart(userId: String!, orderFormId: String): String
   """
-  Replaces current cart with a saved cart. Optionally, you can request that both list of items be combined.
+  Replaces current cart with a saved cart. Optionally, you can request that both list of items be merged.
   """
   replaceCart(
     savedCart: String!
@@ -29,5 +29,5 @@ type Mutation {
   """
   Save app settings
   """
-  saveAppSettings(isAutomatic: Boolean): Boolean
+  saveAppSettings(settings: CrossDeviceCartSettings): Boolean
 }

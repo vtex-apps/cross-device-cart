@@ -8,6 +8,7 @@ enum Strategy {
 
 type CrossDeviceCartSettings {
   isAutomatic: Boolean
+  strategy: Strategy
 }
 
 """
