@@ -1,11 +1,11 @@
 mutation replaceCart(
   $savedCart: String!
   $currentCart: String!
-  $hasToCombine: Boolean
+  $strategy: Strategy
 ) {
   newOrderForm: replaceCart(
     savedCart: $savedCart
     currentCart: $currentCart
-    hasToCombine: $hasToCombine
+    strategy: $strategy
   )
 }

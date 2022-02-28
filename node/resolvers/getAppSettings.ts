@@ -5,7 +5,7 @@ export const getAppSettings = async (
   __: unknown,
   { clients: { vbase }, vtex: { logger } }: Context
 ): Promise<AppSettings | null> => {
-  const appSettings: AppSettings = await vbase.getJSON(
+  const appSettings: AppSettings | null = await vbase.getJSON(
     BUCKET,
     SETTINGS_PATH,
     true

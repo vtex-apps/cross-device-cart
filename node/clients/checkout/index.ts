@@ -87,7 +87,7 @@ export default class CheckoutIO extends AppGraphQLClient {
     orderFormId: string
   ): Promise<PartialOrderForm> => {
     const partialOrderForm = await this.graphql
-      .query<any, { orderFormId: string }>(
+      .query<{ orderForm: PartialOrderForm }, { orderFormId: string }>(
         {
           query: GET_ORDERFORM_QUERY,
           variables: {
@@ -120,7 +120,10 @@ export default class CheckoutIO extends AppGraphQLClient {
     items: ItemInput[]
   ): Promise<PartialOrderForm> => {
     const partialOrderForm = await this.graphql
-      .mutate<any, { orderFormId: string; items: ItemInput[] }>(
+      .mutate<
+        { orderForm: PartialOrderForm },
+        { orderFormId: string; items: ItemInput[] }
+      >(
         {
           mutate: ADD_ITEMS_MUTATION,
           variables: {

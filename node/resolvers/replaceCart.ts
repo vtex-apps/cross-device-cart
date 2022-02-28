@@ -12,7 +12,7 @@ export const replaceCart = async (
   _: any,
   { savedCart, currentCart, strategy }: ReplaceCartVariables,
   context: Context
-): Promise<any> => {
+): Promise<PartialOrderForm> => {
   const {
     clients: { checkoutIO, requestHub },
     response,
