@@ -12,7 +12,7 @@ import ChallengeBlock from './ChallengeBlock'
 interface Props {
   userId: string
   isAutomatic: boolean
-  toastHandler: (toast: ToastParam) => void
+  showToast: (toast: ToastParam) => void
   strategy: Strategy
 }
 
@@ -21,12 +21,7 @@ interface Props {
  * it will try to request a new Cookie with the saved OrderForm, and
  * if the session flag is false, it will try to combine the leftover items
  */
-const CrossCart: FC<Props> = ({
-  userId,
-  isAutomatic,
-  strategy,
-  toastHandler,
-}) => {
+const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [hasMerged, setMergeStatus] = useState(false)
   const [challengeActive, setChallenge] = useState(false)
@@ -61,7 +56,7 @@ const CrossCart: FC<Props> = ({
     }
   }
 
-  const handleMerge = async (showToast: (toast: ToastParam) => void) => {
+  const handleMerge = async () => {
     if (!data?.id || hasMerged) return
 
     setMergeStatus(true)
@@ -144,7 +139,7 @@ const CrossCart: FC<Props> = ({
 
     if (!equalCarts) {
       !isAutomatic && setChallenge(true)
-      isAutomatic && handleMerge(toastHandler)
+      isAutomatic && handleMerge()
 
       return
     }
@@ -169,7 +164,6 @@ const CrossCart: FC<Props> = ({
       handleAccept={handleMerge}
       handleDecline={handleSaveCurrent}
       mutationLoading={mutationLoading}
-      toastHandler={toastHandler}
     />
   )
 }

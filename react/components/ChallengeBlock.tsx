@@ -9,8 +9,7 @@ const CSS_HANDLES = ['actionBar', 'challengeText'] as const
 const closeIcon = <IconClose />
 
 interface Props {
-  handleAccept: (showToast: (toast: ToastParam) => void) => void
-  toastHandler: (toast: ToastParam) => void
+  handleAccept: () => void
   handleDecline: () => void
   mutationLoading: boolean
 }
@@ -19,7 +18,6 @@ const ChallengeBlock: FC<Props> = ({
   handleAccept,
   handleDecline,
   mutationLoading,
-  toastHandler,
 }) => {
   const { device } = useDevice()
   const handles = useCssHandles(CSS_HANDLES)
@@ -44,7 +42,7 @@ const ChallengeBlock: FC<Props> = ({
               size="small"
               variation="secondary"
               onClick={() => {
-                handleAccept(toastHandler)
+                handleAccept()
               }}
               isLoading={mutationLoading}
             >

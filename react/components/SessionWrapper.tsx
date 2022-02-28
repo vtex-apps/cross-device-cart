@@ -46,7 +46,7 @@ const SessionWrapper: FC = () => {
     <ToastConsumer>
       {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
         <CrossCart
-          toastHandler={showToast}
+          showToast={showToast}
           userId={userId}
           isAutomatic={isAutomatic}
           strategy={strategy}
