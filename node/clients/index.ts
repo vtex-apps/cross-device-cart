@@ -39,6 +39,7 @@ declare global {
   }
 }
 
+const TIMEOUT_MS = 5000
 const memoryCache = new LRUCache<string, any>({ max: 5000 })
 
 metrics.trackCache('xcart', memoryCache)
@@ -48,13 +49,9 @@ const clients: ClientsConfig<Clients> = {
   options: {
     default: {
       retries: 2,
-      timeout: 800,
-    },
-    requestHub: {
-      timeout: 3000,
-    },
-    checkoutIO: {
-      timeout: 5000,
+      timeout: TIMEOUT_MS,
+      concurrency: 2,
+      memoryCache,
     },
   },
 }

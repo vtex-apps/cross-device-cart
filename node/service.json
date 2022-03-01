@@ -1,10 +1,15 @@
 {
-  "memory": 256,
+  "stack": "nodejs",
+  "memory": 512,
   "ttl": 60,
-  "timeout": 500,
+  "timeout": 50,
   "minReplicas": 2,
-  "maxReplicas": 6,
-  "workers": 1,
+  "maxReplicas": 12,
+  "cpu": {
+    "type": "shared",
+    "value": 80,
+    "scalingPercentage": 95
+  },
   "events": {
     "updateOnCreatedOrder": {
       "sender": "vtex.orders-broadcast",
