@@ -46,5 +46,5 @@ interface AppSettings {
 type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
 
 interface AppSettingsData {
-  appSettings: AppSettings
+  settings: AppSettings
 }

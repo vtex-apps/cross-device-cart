@@ -21,7 +21,7 @@ const SessionWrapper: FC = () => {
       return
     }
 
-    setAppSettings(data.appSettings)
+    setAppSettings(data.settings)
   }, [data])
 
   if (error || loading || !session || orderLoading || !data) {
