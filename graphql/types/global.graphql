@@ -11,8 +11,9 @@ type CrossDeviceCartSettings {
   strategy: Strategy
 }
 
-type CrossDeviceCartSettings {
+input SaveSettings {
   isAutomatic: Boolean
+  strategy: Strategy
 }
 
 """

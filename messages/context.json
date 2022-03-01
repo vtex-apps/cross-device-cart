@@ -9,5 +9,8 @@
   "admin/cross-device-cart.automatic-toggle-automatic": "Automatic toggle label when toggle is on",
   "admin/cross-device-cart.automatic-toggle-manual": "Automatic toggle label when toggle is off",
   "admin/cross-device-cart.automatic-toggle-help-text": "Automatic toggle help text",
-  "admin/cross-device-cart.automatic-toggle-explanation": "Automatic toggle modes explanation"
+  "admin/cross-device-cart.automatic-toggle-explanation": "Automatic toggle modes explanation",
+  "admin/cross-device-cart.strategy-explanation.replace": "Replace strategy explanation",
+  "admin/cross-device-cart.strategy-explanation.combine": "Combine strategy explanation",
+  "admin/cross-device-cart.strategy-explanation.add": "Add strategy explanation"
 }

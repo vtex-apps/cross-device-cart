@@ -1,5 +1,6 @@
 query getAppSettings {
-  appSettings: getAppSettings {
+  settings: getAppSettings {
     isAutomatic
+    strategy
   }
 }
