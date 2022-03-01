@@ -1,13 +1,11 @@
-mutation mergeCarts(
+mutation replaceCart(
   $savedCart: String!
   $currentCart: String!
   $strategy: Strategy
-  $userId: String!
 ) {
-  newOrderForm: mergeCarts(
+  newOrderForm: replaceCart(
     savedCart: $savedCart
     currentCart: $currentCart
     strategy: $strategy
-    userId: $userId
   )
 }

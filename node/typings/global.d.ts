@@ -1,15 +1,13 @@
 type Scalars = import('vtex.checkout-graphql').Scalars
 type AssemblyOptionType = import('vtex.checkout-graphql').AssemblyOptionType
 
-interface MergeCartsVariables {
+interface ReplaceCartVariables {
   savedCart: Scalars['ID']
   currentCart: Scalars['ID']
   strategy: Strategy
-  userId: Scalars['ID']
 }
 
 type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
-
 interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }
 }
@@ -58,7 +56,6 @@ interface CurrentCartProps {
 
 interface CrossCartData {
   orderFormId: string | null
-  isMerged: boolean
 }
 
 interface SaveCurrentCartData extends CrossCartData {

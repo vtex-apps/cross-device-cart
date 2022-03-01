@@ -1,10 +1,10 @@
 import { APP_NAME } from '../constants'
 
 /**
- * Store an OrderForm ID and isMerged flag reference for a specific user
+ * Store an OrderForm ID reference for a specific user
  * @param {string} userId - Unique user identification string
  * @param {string | null} orderFormId - Unique orderForm identification string
- * @returns {string} If promise was fulfilled
+ * @returns {string} As fulfilled
  */
 export const saveCurrentCart = async (
   _: any,

@@ -1,10 +1,15 @@
+scalar InputValues
+
 enum Strategy {
-  ADD
-  COMBINE
   REPLACE
+  COMBINE
+  ADD
 }
 
-scalar InputValues
+type CrossDeviceCartSettings {
+  isAutomatic: Boolean
+  strategy: Strategy
+}
 
 type CrossDeviceCartSettings {
   isAutomatic: Boolean

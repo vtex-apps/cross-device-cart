@@ -1,29 +1,30 @@
-import React, { FC } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { SessionSuccess, useRenderSession } from 'vtex.session-client'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import { ToastConsumer } from 'vtex.styleguide'
-import { useRuntime } from 'vtex.render-runtime'
+import { useQuery } from 'react-apollo'
 
-import { CrossDeviceCart } from './CrossDeviceCart'
-import { REPLACE } from '../utils/constants'
-import { patchSession } from '../utils/patchSession'
+import { CrossCart } from './CrossCart'
+import getAppSettings from '../graphql/getAppSettings.gql'
 
-interface Props {
-  mergeStrategy: MergeStrategy
-  isAutomatic: boolean
-  advancedOptions: boolean
-}
-
-const SessionWrapper: FC<Props> = ({
-  mergeStrategy = REPLACE,
-  isAutomatic = true,
-  advancedOptions = false,
-}: Props) => {
+const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading } = useOrderForm()
-  const { rootPath } = useRuntime()
+  const [settings, setAppSettings] = useState({} as AppSettings)
 
-  if (error || loading || !session || orderLoading) {
+  const { data } = useQuery<AppSettingsData>(getAppSettings, {
+    ssr: false,
+  })
+
+  useEffect(() => {
+    if (!data) {
+      return
+    }
+
+    setAppSettings(data.appSettings)
+  }, [data])
+
+  if (error || loading || !session || orderLoading || !data) {
     return null
   }
 
@@ -31,11 +32,11 @@ const SessionWrapper: FC<Props> = ({
     namespaces: { profile },
   } = session as SessionSuccess
 
+  const { isAutomatic, strategy } = settings
+
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
 
   if (!isAuthenticated) {
-    patchSession('false', rootPath)
-
     return null
   }
 
@@ -44,12 +45,11 @@ const SessionWrapper: FC<Props> = ({
   return (
     <ToastConsumer>
       {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
-        <CrossDeviceCart
-          isAutomatic={isAutomatic}
-          mergeStrategy={mergeStrategy}
+        <CrossCart
+          showToast={showToast}
           userId={userId}
-          toastHandler={showToast}
-          advancedOptions={advancedOptions}
+          isAutomatic={isAutomatic}
+          strategy={strategy}
         />
       )}
     </ToastConsumer>

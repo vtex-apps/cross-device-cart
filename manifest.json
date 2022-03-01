@@ -1,7 +1,7 @@
 {
   "vendor": "vtex",
   "name": "cross-device-cart",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "title": "Cross device cart",
   "description": "Seamlessly allow a client to retrieve items left on a different device's cart",
   "builders": {
@@ -28,6 +28,9 @@
   "policies": [
     {
       "name": "vbase-read-write"
+    },
+    {
+      "name": "OMSViewer"
     },
     {
       "name": "graphql-query"

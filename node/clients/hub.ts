@@ -9,22 +9,11 @@ export default class RequestHub extends JanusClient {
       ...options,
       headers: {
         ...options?.headers,
-        VtexIdclientAutCookie: context.authToken,
+        VtexIdclientAutCookie:
+          context.storeUserAuthToken ?? context.adminUserAuthToken ?? '',
       },
     })
   }
-
-  /**
-   * Retrieve order details by searching a specific order ID or sequence number
-   *
-   * @func getOrder
-   * @public
-   * @param {string} orderId Order ID or sequence number
-   * @return {Order} Order details
-   * @see {@link https://developers.vtex.com/vtex-rest-api/reference/orders}
-   */
-  public getOrder = (orderId: string): Promise<Order> =>
-    this.get(this.routes.orders(orderId))
 
   /**
    * This request removes all items from a given cart, leaving it empty
@@ -38,6 +27,10 @@ export default class RequestHub extends JanusClient {
     this.post(this.routes.clearCart(orderFormId), {})
 
   protected get = <T>(url: string, config: RequestConfig = {}) => {
+    config.headers = {
+      ...config.headers,
+    }
+
     return this.http
       .get<T>(url, config)
       .catch((err) => statusToError(err)) as Promise<T>
@@ -59,7 +52,6 @@ export default class RequestHub extends JanusClient {
 
   private get routes() {
     return {
-      orders: (orderId: string) => `/api/oms/pvt/orders/${orderId}`,
       clearCart: (orderFormId: string) =>
         `/api/checkout/pub/orderForm/${orderFormId}/items/removeAll`,
     }

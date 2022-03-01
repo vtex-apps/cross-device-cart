@@ -3,17 +3,17 @@ import { APP_NAME } from '../constants'
 /**
  * Listens to the event "order-created" from the broadcaster.
  * If the owner of the order has a cross cart reference stored with
- * the same orderForm ID, we delete that reference.
+ * the same orderForm ID, we delete it.
  */
 export async function updateSavedCartReference(ctx: StatusChangeContext) {
   const {
     body: { orderId },
     vtex: { logger },
-    clients: { requestHub, vbase },
+    clients: { oms, vbase },
   } = ctx
 
   try {
-    const customerOrder = await requestHub.getOrder(orderId)
+    const customerOrder = await oms.order(orderId)
 
     const {
       orderFormId,
