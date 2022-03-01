@@ -1,7 +1,7 @@
 {
   "vendor": "vtex",
   "name": "cross-device-cart",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "title": "Cross device cart",
   "description": "Seamlessly allow a client to retrieve items left on a different device's cart",
   "builders": {
@@ -23,9 +23,7 @@
     "vtex.order-manager": "0.x",
     "vtex.pixel-manager": "1.x"
   },
-  "registries": [
-    "smartcheckout"
-  ],
+  "registries": ["smartcheckout"],
   "credentialType": "absolute",
   "policies": [
     {
@@ -64,9 +62,7 @@
       "url": "https://support.vtex.com/hc/requests"
     },
     "type": "free",
-    "availableCountries": [
-      "*"
-    ]
+    "availableCountries": ["*"]
   },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
 }
