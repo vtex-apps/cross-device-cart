@@ -9,5 +9,8 @@
   "admin/cross-device-cart.automatic-toggle-automatic": "Automatic",
   "admin/cross-device-cart.automatic-toggle-manual": "Manual",
   "admin/cross-device-cart.automatic-toggle-help-text": "Toggle between Automatic and Manual mode for the cross device cart.",
-  "admin/cross-device-cart.automatic-toggle-explanation": "When the 'Automatic' mode is selected the user will not be prompted to take any action. If 'Manual' mode is selected the user will need to confirm what they want to do with the items that were previously in the cart."
+  "admin/cross-device-cart.automatic-toggle-explanation": "When the 'Automatic' mode is selected the user will not be prompted to take any action. If 'Manual' mode is selected the user will need to confirm what they want to do with the items that were previously in the cart.",
+  "admin/cross-device-cart.strategy-explanation.replace": "Replace all items on current cart with the items on the saved Cross Device Cart.",
+  "admin/cross-device-cart.strategy-explanation.combine": "Combine items in the current cart with and the saved Cross Device Cart adding items quantities",
+  "admin/cross-device-cart.strategy-explanation.add": "Add items in the current cart if they're missing in the Cross Device Cart without adding items quantities "
 }

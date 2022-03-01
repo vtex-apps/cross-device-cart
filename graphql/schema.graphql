@@ -29,5 +29,5 @@ type Mutation {
   """
   Save app settings
   """
-  saveAppSettings(settings: CrossDeviceCartSettings): Boolean
+  saveAppSettings(settings: SaveSettings): Boolean
 }

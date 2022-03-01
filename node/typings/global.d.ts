@@ -7,7 +7,6 @@ interface ReplaceCartVariables {
   strategy: Strategy
 }
 
-type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
 interface PartialOrderFormItems {
   orderForm: { items: PartialItem[] }
 }
@@ -62,6 +61,11 @@ interface SaveCurrentCartData extends CrossCartData {
   userId: string
 }
 
+type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
+
 interface AppSettings {
-  isAutomatic: boolean
+  settings: {
+    isAutomatic: boolean
+    strategy: Strategy
+  }
 }
