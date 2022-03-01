@@ -10,11 +10,6 @@ type Query {
   """
   getAppSettings: CrossDeviceCartSettings
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
-
-  """
-  Retrieve app settings
-  """
-  getAppSettings: CrossDeviceCartSettings
 }
 
 type Mutation {
