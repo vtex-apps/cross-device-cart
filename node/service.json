@@ -1,9 +1,9 @@
 {
   "memory": 256,
   "ttl": 60,
-  "timeout": 10,
-  "minReplicas": 3,
-  "maxReplicas": 10,
+  "timeout": 500,
+  "minReplicas": 2,
+  "maxReplicas": 6,
   "workers": 1,
   "events": {
     "updateOnCreatedOrder": {
