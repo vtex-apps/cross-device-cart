@@ -39,7 +39,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   const [saveCurrentCart] = useMutation<Success, NewCrossCart>(SAVE_ID_BY_USER)
 
   const [replaceCart, { error, loading: mutationLoading }] = useMutation<
-    NewOrderForm,
+    NewOrderForm | null,
     ReplaceCartVariables
   >(MUTATE_CART)
 

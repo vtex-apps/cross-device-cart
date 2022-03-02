@@ -12,10 +12,11 @@ export const replaceCart = async (
   _: any,
   { savedCart, currentCart, strategy }: ReplaceCartVariables,
   context: Context
-): Promise<PartialOrderForm> => {
+): Promise<PartialOrderForm | null> => {
   const {
     clients: { checkoutIO, requestHub },
     response,
+    vtex: { logger },
   } = context
 
   const host = context.get('x-forwarded-host')
@@ -28,28 +29,37 @@ export const replaceCart = async (
     })
   )
 
-  const orderForm = await checkoutIO.getOrderForm(savedCart)
+  try {
+    const orderForm = await checkoutIO.getOrderForm(savedCart)
 
-  if (strategy !== 'REPLACE') {
-    const currentItems = await checkoutIO.getItems(currentCart)
+    if (strategy !== 'REPLACE') {
+      const currentItems = await checkoutIO.getItems(currentCart)
 
-    const tally = strategy === 'COMBINE'
+      const tally = strategy === 'COMBINE'
 
-    const items = mergeItems(currentItems, orderForm.items, tally)
+      const items = mergeItems(currentItems, orderForm.items, tally)
 
-    if (!items.length) return orderForm
+      if (!items.length) return orderForm
 
-    await requestHub.clearCart(savedCart)
+      await requestHub.clearCart(savedCart)
 
-    items.forEach((element, index) => {
-      element.id = Number(element.id)
-      element.index = index
+      items.forEach((element, index) => {
+        element.id = Number(element.id)
+        element.index = index
+      })
+
+      const newOrderForm = await checkoutIO.addToCart(savedCart, items)
+
+      return newOrderForm
+    }
+
+    return orderForm
+  } catch (err) {
+    logger.warn({
+      message: 'A problem ocurred while replacing carts',
+      error: err,
     })
 
-    const newOrderForm = await checkoutIO.addToCart(savedCart, items)
-
-    return newOrderForm
+    return null
   }
-
-  return orderForm
 }
