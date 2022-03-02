@@ -1,7 +1,7 @@
 mutation replaceCart(
   $savedCart: String!
   $currentCart: String!
-  $strategy: Strategy
+  $strategy: Strategy!
 ) {
   newOrderForm: replaceCart(
     savedCart: $savedCart
