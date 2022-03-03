@@ -9,9 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.1] - 2022-03-03
 
+### Fixed
+
+- Incorrect INPUT type
+
 ## [1.4.0] - 2022-03-02
 
+### Fixed
+
+- Missing null assertion
+
 ## [1.3.1] - 2022-03-02
+
+### Added
+
+- Log errors
 
 ## [1.3.0] - 2022-03-01
 
