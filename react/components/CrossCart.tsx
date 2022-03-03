@@ -79,14 +79,6 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       return
     }
 
-    const { newOrderForm } = mutationResult.data
-
-    setOrderForm(newOrderForm)
-
-    showToast({
-      message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
-    })
-
     try {
       await axios.post(
         `/api/checkout/pub/orderForm/${data.id}`,
@@ -98,8 +90,24 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
         }
       )
     } catch (e) {
-      console.error('Error replacing OrderForm')
+      challengeActive && setChallenge(false)
+
+      showToast({
+        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
+      })
+
+      return
     }
+
+    const { newOrderForm } = mutationResult.data
+
+    setOrderForm(newOrderForm)
+
+    challengeActive && setChallenge(false)
+
+    showToast({
+      message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
+    })
 
     getSavedCart({
       variables: {
