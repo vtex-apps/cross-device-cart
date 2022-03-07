@@ -3,21 +3,17 @@ import { BUCKET, DEFAULT_SETTINGS, SETTINGS_PATH } from '../constants'
 export const getAppSettings = async (
   _: unknown,
   __: unknown,
-  { clients: { vbase }, vtex: { logger } }: Context
+  { clients: { vbase } }: Context
 ): Promise<AppSettings['settings']> => {
-  const { settings } = await vbase.getJSON<AppSettings>(
+  const appSettings = await vbase.getJSON<AppSettings | null>(
     BUCKET,
     SETTINGS_PATH,
     true
   )
 
-  if (!settings) {
-    logger.error({
-      message: 'There was a problem fetching the app settings',
-    })
-
+  if (!appSettings) {
     return DEFAULT_SETTINGS
   }
 
-  return settings
+  return appSettings.settings
 }
