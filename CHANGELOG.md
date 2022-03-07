@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Settings for new accounts
+
 ## [1.4.2] - 2022-03-03
+
+### Fixed
+
+- Action bar error handling for UX purposes
 
 ## [1.4.1] - 2022-03-03
 
