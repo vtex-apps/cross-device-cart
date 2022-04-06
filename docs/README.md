@@ -16,14 +16,14 @@ To do so, this app was created to enable `logged in` users to retrieve their car
 
 ## Configuration
 
-1. Import the app to your theme's dependencies in `manifest.json`, for example:
+1.  Install the app and then import it to your theme's peer dependencies in `manifest.json`,
 
-   ```json
-     "dependencies": {
-       // ...
-       "vtex.cross-device-cart": "1.x"
-     }
-   ```
+```json
+  "peerDependencies": {
+    // ...
+    "vtex.cross-device-cart": "1.x"
+  }
+```
 
 2. Add the `cross-device-cart` block as a children of your store header, desktop and mobile, for i.e:
 
@@ -46,7 +46,8 @@ To do so, this app was created to enable `logged in` users to retrieve their car
      },
    ```
 
-3. (Optional) You can tailor the default experience by accesing the admin app settings. By default, the app handles the replacement automatically. But it you set it to manual, a challenge block will be rendered as an action bar, for the user to interact with.
+3. (Optional) You can tailor the default experience by accesing the admin app settings.  
+   By default, the app handles the replacement automatically. But it you set it to manual, a challenge block will be rendered as an action bar, for the user to interact with.
 
 ## Customization
 

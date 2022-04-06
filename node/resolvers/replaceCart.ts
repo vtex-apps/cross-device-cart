@@ -1,5 +1,3 @@
-import { serialize } from 'cookie'
-
 import { mergeItems } from '../utils'
 
 /**
@@ -22,10 +20,7 @@ export const replaceCart = async (
 
   response.set(
     'set-cookie',
-    serialize('checkout.vtex.com', `__ofid=${savedCart}`, {
-      domain: host,
-      maxAge: 86400,
-    })
+    `checkout.vtex.com=__ofid=${savedCart}; Max-Age=86400; Domain=${host}`
   )
 
   const orderForm = await checkoutIO.getOrderForm(savedCart)
