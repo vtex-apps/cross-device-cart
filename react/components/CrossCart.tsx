@@ -16,11 +16,6 @@ interface Props {
   strategy: Strategy
 }
 
-/**
- * Fetches if the logged in user has an OrderForm registered; if so,
- * it will try to request a new Cookie with the saved OrderForm, and
- * if the session flag is false, it will try to combine the leftover items
- */
 const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
   const [hasMerged, setMergeStatus] = useState(false)
@@ -43,17 +38,25 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
     ReplaceCartVariables
   >(MUTATE_CART)
 
-  const handleSaveCurrent = async () => {
+  useEffect(() => {
+    getSavedCart({
+      variables: {
+        userId,
+        nullOnEmpty: !isAutomatic,
+      },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleDeclineMerge = async () => {
     challengeActive && setChallenge(false)
 
-    if (hasItems) {
-      await saveCurrentCart({
-        variables: {
-          userId,
-          orderFormId: orderForm.id,
-        },
-      })
-    }
+    await saveCurrentCart({
+      variables: {
+        userId,
+        orderFormId: hasItems ? orderForm.id : null,
+      },
+    })
   }
 
   const handleMerge = async () => {
@@ -118,16 +121,6 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   }
 
   useEffect(() => {
-    getSavedCart({
-      variables: {
-        userId,
-        nullOnEmpty: !isAutomatic,
-      },
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
     if (loading || !data) return
 
     const crossCart = data?.id
@@ -170,7 +163,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   return (
     <ChallengeBlock
       handleAccept={handleMerge}
-      handleDecline={handleSaveCurrent}
+      handleDecline={handleDeclineMerge}
       mutationLoading={mutationLoading}
     />
   )
