@@ -1,4 +1,4 @@
-import { APP_NAME } from '../constants'
+import { APP_NAME, DEFAULT_ORDER_FORM_ID } from '../constants'
 
 /**
  * Store an OrderForm ID reference for a specific user
@@ -11,6 +11,9 @@ export const saveCurrentCart = async (
   { userId, orderFormId }: { userId: string; orderFormId: string | null },
   { clients: { vbase } }: Context
 ): Promise<string> => {
+  if (orderFormId === DEFAULT_ORDER_FORM_ID) {
+    throw new Error(`Cannot save current cart with default-order-form for userId ${userId}`)
+  }
   await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
   return 'success'

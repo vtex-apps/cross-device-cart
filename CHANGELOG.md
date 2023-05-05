@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Prevent saving `orderformId` as `default-order-form` 
+
 ## [1.4.6] - 2022-07-22
 
 ## [1.4.5] - 2022-07-01
