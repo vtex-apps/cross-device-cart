@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
+import { useRuntime } from 'vtex.render-runtime'
 import { useOrderForm } from 'vtex.order-manager/OrderForm'
 import axios from 'axios'
 
@@ -8,6 +9,7 @@ import GET_ID_BY_USER from '../graphql/getSavedCart.gql'
 import SAVE_ID_BY_USER from '../graphql/saveCurrentCart.gql'
 import MUTATE_CART from '../graphql/replaceCart.gql'
 import ChallengeBlock from './ChallengeBlock'
+import insertRootPath from '../utils/insertRootPath'
 
 interface Props {
   userId: string
@@ -18,6 +20,8 @@ interface Props {
 
 const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
+  const { rootPath = '' } = useRuntime()
+
   const [hasMerged, setMergeStatus] = useState(false)
   const [challengeActive, setChallenge] = useState(false)
   const intl = useIntl()
@@ -83,8 +87,13 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
     }
 
     try {
+      const orderFormURLWithRootPath = insertRootPath(
+        rootPath,
+        `/api/checkout/pub/orderForm/${data.id}`
+      )
+
       await axios.post(
-        `/api/checkout/pub/orderForm/${data.id}`,
+        orderFormURLWithRootPath,
         {},
         {
           headers: {
