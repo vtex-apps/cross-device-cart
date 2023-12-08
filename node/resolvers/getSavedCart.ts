@@ -9,8 +9,18 @@ import { APP_NAME } from '../constants'
 export const getSavedCart = async (
   _: unknown,
   { userId, nullOnEmpty }: { userId: string; nullOnEmpty: boolean },
-  { clients: { vbase, checkoutIO } }: Context
+  { clients: { vbase, checkoutIO, requestHub }, vtex: { storeUserAuthToken } }: Context
 ): Promise<string | null> => {
+  try {
+    const authenticatedUser = requestHub.authenticatedUser(storeUserAuthToken)
+  } catch(e) {
+    throw new AuthenticationError()
+  }
+
+  if (authenticatedUser.userId != userId) {
+    throw new AuthenticationError()
+  }
+
   const orderFormId: string | null = await vbase.getJSON(APP_NAME, userId, true)
 
   if (nullOnEmpty && orderFormId) {

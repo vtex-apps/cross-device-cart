@@ -11,6 +11,16 @@ export const saveCurrentCart = async (
   { userId, orderFormId }: { userId: string; orderFormId: string | null },
   { clients: { vbase } }: Context
 ): Promise<string> => {
+  try {
+    const authenticatedUser = requestHub.authenticatedUser(storeUserAuthToken)
+  } catch(e) {
+    throw new AuthenticationError()
+  }
+
+  if (authenticatedUser.userId != userId) {
+    throw new AuthenticationError()
+  }
+
   await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
   return 'success'
