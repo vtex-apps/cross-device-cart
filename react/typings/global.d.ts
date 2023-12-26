@@ -1,6 +1,7 @@
 interface OrderFormContext {
   orderForm: PartialOrderForm
   setOrderForm: (orderForm: any) => void
+  initialFetchComplete: boolean
 }
 
 interface ToastParam {

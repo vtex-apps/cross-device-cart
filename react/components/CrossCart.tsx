@@ -19,7 +19,12 @@ interface Props {
 }
 
 const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
-  const { orderForm, setOrderForm } = useOrderForm() as OrderFormContext
+  const {
+    orderForm,
+    initialFetchComplete,
+    setOrderForm,
+  } = useOrderForm() as OrderFormContext
+
   const { rootPath = '' } = useRuntime()
 
   const [hasMerged, setMergeStatus] = useState(false)
@@ -130,9 +135,15 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
   }
 
   useEffect(() => {
-    if (loading || !data) return
+    if (
+      loading ||
+      !data ||
+      !initialFetchComplete ||
+      orderForm?.id === 'default-order-form'
+    )
+      return
 
-    const crossCart = data?.id
+    const crossCart = data?.id !== 'default-order-form' && data?.id
 
     if (!crossCart) {
       saveCurrentCart({
@@ -163,7 +174,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, data, hasItems])
+  }, [loading, data, hasItems, initialFetchComplete, orderForm.id])
 
   if (!challengeActive || isAutomatic) {
     return null

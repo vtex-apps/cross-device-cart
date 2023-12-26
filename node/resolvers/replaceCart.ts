@@ -20,7 +20,7 @@ export const replaceCart = async (
 
   response.set(
     'set-cookie',
-    `checkout.vtex.com=__ofid=${savedCart}; Max-Age=86400; Domain=${host}`
+    `checkout.vtex.com=__ofid=${savedCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
   )
 
   const orderForm = await checkoutIO.getOrderForm(savedCart)
