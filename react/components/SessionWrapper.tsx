@@ -9,9 +9,9 @@ import getAppSettings from '../graphql/getAppSettings.gql'
 
 const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
-  const { loading: orderLoading } = useOrderForm()
+  const { loading: orderLoading, orderForm: {userType} } = useOrderForm()
   const [settings, setAppSettings] = useState({} as AppSettings)
-
+  userType
   const { data } = useQuery<AppSettingsData>(getAppSettings, {
     ssr: false,
   })
@@ -49,6 +49,7 @@ const SessionWrapper: FC = () => {
           showToast={showToast}
           userId={userId}
           isAutomatic={isAutomatic}
+          userType={userType}
           strategy={strategy}
         />
       )}

@@ -8,18 +8,25 @@ import { APP_NAME } from '../constants'
  */
 export const getSavedCart = async (
   _: unknown,
-  { userId, nullOnEmpty }: { userId: string; nullOnEmpty: boolean },
+  { userId, nullOnEmpty, userType }: { userId: string; nullOnEmpty: boolean, userType: string },
   { clients: { vbase, checkoutIO } }: Context
 ): Promise<string | null> => {
   const orderFormId: string | null = await vbase.getJSON(APP_NAME, userId, true)
 
-  if (nullOnEmpty && orderFormId) {
-    const savedItems = await checkoutIO.getItems(orderFormId)
-
-    if (!savedItems.length) {
-      return null
+  if( userType != "CALL_CENTER_OPERATOR") {
+    if (nullOnEmpty && orderFormId) {
+      const savedItems = await checkoutIO.getItems(orderFormId)
+  
+      if (!savedItems.length) {
+        return null
+      }
     }
+  
+    return orderFormId
+
+  } else {
+    console.log('getSavedCart is Call center Operator')
+    return null
   }
 
-  return orderFormId
 }

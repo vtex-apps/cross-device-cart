@@ -35,6 +35,7 @@ declare global {
       lastState: string
       currentChangeDate: string
       lastChangeDate: string
+      userType: string
     }
   }
 }

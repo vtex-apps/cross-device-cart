@@ -18,7 +18,8 @@ interface PartialOrderForm {
 interface ReplaceCartVariables {
   savedCart: string
   currentCart: string
-  strategy: Strategy
+  strategy: Strategy,
+  userType?: string
 }
 
 interface CrossCartData {
@@ -28,11 +29,13 @@ interface CrossCartData {
 interface CrossCartVars {
   userId: string
   nullOnEmpty?: boolean
+  userType?: string
 }
 
 interface NewCrossCart {
   userId: string
-  orderFormId: string | null
+  orderFormId: string | null,
+  userType?: string
 }
 
 type NewOrderForm = { [key: string]: any }
