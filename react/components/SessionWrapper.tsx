@@ -11,7 +11,6 @@ const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
   const { loading: orderLoading, orderForm: {userType} } = useOrderForm()
   const [settings, setAppSettings] = useState({} as AppSettings)
-  userType
   const { data } = useQuery<AppSettingsData>(getAppSettings, {
     ssr: false,
   })
