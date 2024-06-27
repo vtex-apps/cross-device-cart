@@ -2,7 +2,7 @@ type Query {
   """
   Retrieves a cross cart OrderForm ID. Will return NULL if no reference was stored.
   """
-  getSavedCart(userId: String!, nullOnEmpty: Boolean): String
+  getSavedCart(userId: String!, salesChannel: String, nullOnEmpty: Boolean): String
     @cacheControl(scope: PUBLIC, maxAge: ZERO)
 
   """
@@ -16,7 +16,7 @@ type Mutation {
   """
   Stores an OrderForm ID for a specific user, as a cross cart reference.
   """
-  saveCurrentCart(userId: String!, orderFormId: String): String
+  saveCurrentCart(userId: String!, salesChannel: String, orderFormId: String): String
   """
   Replaces current cart with a saved cart. Optionally, you can request that both list of items be merged.
   """

@@ -13,12 +13,13 @@ import insertRootPath from '../utils/insertRootPath'
 
 interface Props {
   userId: string
+  salesChannel: string
   isAutomatic: boolean
   showToast: (toast: ToastParam) => void
   strategy: Strategy
 }
 
-const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
+const CrossCart: FC<Props> = ({ userId, salesChannel, isAutomatic, strategy, showToast }) => {
   const {
     orderForm,
     initialFetchComplete,
@@ -51,6 +52,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
     getSavedCart({
       variables: {
         userId,
+        salesChannel,
         nullOnEmpty: !isAutomatic,
       },
     })
@@ -63,6 +65,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
     await saveCurrentCart({
       variables: {
         userId,
+        salesChannel,
         orderFormId: hasItems ? orderForm.id : null,
       },
     })
@@ -129,6 +132,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
     getSavedCart({
       variables: {
         userId,
+        salesChannel,
         nullOnEmpty: !isAutomatic,
       },
     })
@@ -149,6 +153,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       saveCurrentCart({
         variables: {
           userId,
+          salesChannel,
           orderFormId: orderForm.id,
         },
       })
@@ -169,6 +174,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       saveCurrentCart({
         variables: {
           userId,
+          salesChannel,
           orderFormId: null,
         },
       })

@@ -27,11 +27,13 @@ interface CrossCartData {
 
 interface CrossCartVars {
   userId: string
+  salesChannel: string
   nullOnEmpty?: boolean
 }
 
 interface NewCrossCart {
   userId: string
+  salesChannel: string
   orderFormId: string | null
 }
 

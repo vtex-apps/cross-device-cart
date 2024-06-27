@@ -8,10 +8,10 @@ import { APP_NAME } from '../constants'
  */
 export const saveCurrentCart = async (
   _: any,
-  { userId, orderFormId }: { userId: string; orderFormId: string | null },
+  { userId, orderFormId, salesChannel }: { userId: string; orderFormId: string | null, salesChannel: string },
   { clients: { vbase } }: Context
 ): Promise<string> => {
-  await vbase.saveJSON(APP_NAME, userId, orderFormId)
+  await vbase.saveJSON(APP_NAME, `${userId}-sc:${salesChannel}`, orderFormId)
 
   return 'success'
 }

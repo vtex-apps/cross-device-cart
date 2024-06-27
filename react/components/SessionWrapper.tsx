@@ -29,12 +29,14 @@ const SessionWrapper: FC = () => {
   }
 
   const {
-    namespaces: { profile },
+    namespaces: { profile, store },
   } = session as SessionSuccess
 
   const { isAutomatic, strategy } = settings
 
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
+  const salesChannel = store?.channel.value
+
 
   if (!isAuthenticated) {
     return null
@@ -46,6 +48,7 @@ const SessionWrapper: FC = () => {
     <ToastConsumer>
       {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
         <CrossCart
+          salesChannel = {salesChannel || "1"}
           showToast={showToast}
           userId={userId}
           isAutomatic={isAutomatic}
