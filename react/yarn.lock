@@ -4958,13 +4958,13 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-"vtex.checkout-graphql@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.65.2/public/@types/vtex.checkout-graphql":
-  version "0.65.2"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.65.2/public/@types/vtex.checkout-graphql#8f1021aa381be9524ff3048f23767922da138b4f"
+"vtex.checkout-graphql@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql":
+  version "0.67.1"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql#28a28b8e5b1f39e45ac7fd57a06f05a2468e192e"
 
-"vtex.cross-device-cart@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@1.4.4/public/@types/vtex.cross-device-cart":
-  version "1.4.4"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@1.4.4/public/@types/vtex.cross-device-cart#7a366428f07738834ee689406cf815dbe6c2a7e0"
+"vtex.cross-device-cart@https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart":
+  version "1.4.9"
+  resolved "https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart#463557bfbedc738edc1ae73a3d57511361a8afba"
 
 "vtex.css-handles@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles":
   version "0.4.4"
@@ -4978,21 +4978,21 @@ verror@1.10.0:
   version "0.12.0"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.order-manager@0.12.0/public/@types/vtex.order-manager#2cf6a9d2a31bc503b783c257695b0d17c09b5696"
 
-"vtex.pixel-manager@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.8.0/public/@types/vtex.pixel-manager":
-  version "1.8.0"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.8.0/public/@types/vtex.pixel-manager#3ccfcb1927614984a5f7a3e5650c8c8d2bd3c0f4"
+"vtex.pixel-manager@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.9.0/public/@types/vtex.pixel-manager":
+  version "1.9.0"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.pixel-manager@1.9.0/public/@types/vtex.pixel-manager#eb61e263c4f8024430ef1a19d28bcf608db3d481"
 
-"vtex.render-runtime@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@8.132.4/public/@types/vtex.render-runtime":
-  version "8.132.4"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@8.132.4/public/@types/vtex.render-runtime#66bb41bd4d342e37c9d85172aad5f7eefebfb6dc"
+"vtex.render-runtime@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@8.134.2/public/@types/vtex.render-runtime":
+  version "8.134.2"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.render-runtime@8.134.2/public/@types/vtex.render-runtime#ae69e2b2a471291c6c6b155e17510150fbfc2d0e"
 
 "vtex.session-client@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.session-client@1.0.2/public/@types/vtex.session-client":
   version "1.0.2"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.session-client@1.0.2/public/@types/vtex.session-client#239ac9935a59699e62e1509f844de81544ed0877"
 
-"vtex.styleguide@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.1/public/@types/vtex.styleguide":
-  version "9.146.1"
-  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.1/public/@types/vtex.styleguide#66db40ca1b78ad77ce4beedabecee320e1ef2ead"
+"vtex.styleguide@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.9/public/@types/vtex.styleguide":
+  version "9.146.9"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.9/public/@types/vtex.styleguide#d1601fedfb665c6173334753171717da64e670bc"
 
 w3c-hr-time@^1.0.1:
   version "1.0.2"

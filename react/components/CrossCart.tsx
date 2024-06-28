@@ -16,9 +16,10 @@ interface Props {
   isAutomatic: boolean
   showToast: (toast: ToastParam) => void
   strategy: Strategy
+  userType: string
 }
 
-const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
+const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userType }) => {
   const {
     orderForm,
     initialFetchComplete,
@@ -52,6 +53,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       variables: {
         userId,
         nullOnEmpty: !isAutomatic,
+        userType
       },
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -64,6 +66,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
       variables: {
         userId,
         orderFormId: hasItems ? orderForm.id : null,
+        userType
       },
     })
   }
@@ -78,6 +81,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
         currentCart: orderForm.id,
         savedCart: data.id,
         strategy,
+        userType
       },
     })
 
@@ -150,6 +154,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
         variables: {
           userId,
           orderFormId: orderForm.id,
+          userType
         },
       })
 
@@ -170,6 +175,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast }) => {
         variables: {
           userId,
           orderFormId: null,
+          userType
         },
       })
     }

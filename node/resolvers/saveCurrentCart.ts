@@ -8,10 +8,15 @@ import { APP_NAME } from '../constants'
  */
 export const saveCurrentCart = async (
   _: any,
-  { userId, orderFormId }: { userId: string; orderFormId: string | null },
+  { userId, orderFormId, userType }: { userId: string; orderFormId: string | null, userType: string },
   { clients: { vbase } }: Context
 ): Promise<string> => {
-  await vbase.saveJSON(APP_NAME, userId, orderFormId)
 
-  return 'success'
+  if( userType != "CALL_CENTER_OPERATOR") {
+    await vbase.saveJSON(APP_NAME, userId, orderFormId)
+
+    return 'success'
+  } else {
+    return 'Not saved is call center operator'
+  }
 }
