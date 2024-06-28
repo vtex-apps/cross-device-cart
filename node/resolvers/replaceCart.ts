@@ -55,7 +55,6 @@ export const replaceCart = async (
     return orderForm
 
   } else {
-    console.log('replaceCart is call center operator')
     return null
 
   }

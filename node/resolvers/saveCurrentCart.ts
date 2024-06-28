@@ -17,7 +17,6 @@ export const saveCurrentCart = async (
 
     return 'success'
   } else {
-    console.log('saveCurrentCart es call center operator')
     return 'Not saved is call center operator'
   }
 }

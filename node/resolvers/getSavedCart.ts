@@ -25,7 +25,6 @@ export const getSavedCart = async (
     return orderFormId
 
   } else {
-    console.log('getSavedCart is Call center Operator')
     return null
   }
 
