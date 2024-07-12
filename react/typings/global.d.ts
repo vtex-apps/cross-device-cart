@@ -28,14 +28,16 @@ interface CrossCartData {
 
 interface CrossCartVars {
   userId: string
+  salesChannel: string
   nullOnEmpty?: boolean
   userType?: string
 }
 
 interface NewCrossCart {
   userId: string
-  orderFormId: string | null,
   userType?: string
+  salesChannel: string
+  orderFormId: string | null
 }
 
 type NewOrderForm = { [key: string]: any }

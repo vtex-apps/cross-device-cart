@@ -60,6 +60,7 @@ interface CrossCartData {
 
 interface SaveCurrentCartData extends CrossCartData {
   userId: string
+  salesChannel: string
 }
 
 type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'
