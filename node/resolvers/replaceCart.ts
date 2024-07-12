@@ -8,7 +8,7 @@ import { mergeItems } from '../utils'
  */
 export const replaceCart = async (
   _: any,
-  { savedCart, currentCart, strategy }: ReplaceCartVariables,
+  { savedCart, currentCart, strategy, userType }: ReplaceCartVariables,
   context: Context
 ): Promise<PartialOrderForm | null> => {
   const {
@@ -16,40 +16,48 @@ export const replaceCart = async (
     response,
   } = context
 
-  const host = context.get('x-forwarded-host')
+  if( userType != "CALL_CENTER_OPERATOR") {
+    const host = context.get('x-forwarded-host')
 
-  response.set(
-    'set-cookie',
-    `checkout.vtex.com=__ofid=${savedCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
-  )
+    response.set(
+      'set-cookie',
+      `checkout.vtex.com=__ofid=${savedCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
+    )
 
-  const orderForm = await checkoutIO.getOrderForm(savedCart)
+    const orderForm = await checkoutIO.getOrderForm(savedCart)
 
-  if (strategy !== 'REPLACE') {
-    /**
-     * Add to cart has a specific graphql INPUT type.
-     * These calls ensure handling correct types from start to finish.
-     */
-    const savedItems = await checkoutIO.getItems(savedCart)
-    const currentItems = await checkoutIO.getItems(currentCart)
+    if (strategy !== 'REPLACE') {
+      /**
+       * Add to cart has a specific graphql INPUT type.
+       * These calls ensure handling correct types from start to finish.
+       */
+      const savedItems = await checkoutIO.getItems(savedCart)
+      const currentItems = await checkoutIO.getItems(currentCart)
 
-    const tally = strategy === 'COMBINE'
+      const tally = strategy === 'COMBINE'
 
-    const items = mergeItems(currentItems, savedItems, tally)
+      const items = mergeItems(currentItems, savedItems, tally)
 
-    if (!items.length) return orderForm
+      if (!items.length) return orderForm
 
-    await requestHub.clearCart(savedCart)
+      await requestHub.clearCart(savedCart)
 
-    items.forEach((element, index) => {
-      element.id = Number(element.id)
-      element.index = index
-    })
+      items.forEach((element, index) => {
+        element.id = Number(element.id)
+        element.index = index
+      })
 
-    const newOrderForm = await checkoutIO.addToCart(savedCart, items)
+      const newOrderForm = await checkoutIO.addToCart(savedCart, items)
 
-    return newOrderForm
+      return newOrderForm
+    }
+
+    return orderForm
+
+  } else {
+    return null
+
   }
 
-  return orderForm
+  
 }

@@ -2,10 +2,12 @@ mutation replaceCart(
   $savedCart: String!
   $currentCart: String!
   $strategy: Strategy!
+  $userType: String
 ) {
   newOrderForm: replaceCart(
     savedCart: $savedCart
     currentCart: $currentCart
     strategy: $strategy
+    userType: $userType
   )
 }

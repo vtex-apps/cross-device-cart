@@ -5,6 +5,7 @@ interface ReplaceCartVariables {
   savedCart: Scalars['ID']
   currentCart: Scalars['ID']
   strategy: Strategy
+  userType: string
 }
 
 interface PartialOrderFormItems {
