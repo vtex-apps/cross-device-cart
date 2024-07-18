@@ -11,10 +11,8 @@ export const saveCurrentCart = async (
   { userId, userType, orderFormId, salesChannel }: { userId: string; userType: string; orderFormId: string | null, salesChannel: string },
   { clients: { vbase } }: Context
 ): Promise<string> => {
-  await vbase.saveJSON(APP_NAME, `${userId}-sc:${salesChannel}`, orderFormId)
-
   if( userType != "CALL_CENTER_OPERATOR") {
-    await vbase.saveJSON(APP_NAME, userId, orderFormId)
+    await vbase.saveJSON(APP_NAME, `${userId}-sc:${salesChannel}`, orderFormId)
 
     return 'success'
   } else {

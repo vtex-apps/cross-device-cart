@@ -11,25 +11,24 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
     vtex: { logger },
     clients: { oms, vbase },
   } = ctx
-
   if( userType != "CALL_CENTER_OPERATOR") {
-
     try {
       const customerOrder = await oms.order(orderId)
   
       const {
         orderFormId,
         clientProfileData: { userProfileId },
+        salesChannel
       } = customerOrder
   
       const crossCartReference: string | null = await vbase.getJSON(
         APP_NAME,
-        userProfileId,
+        `${userProfileId}-sc:${salesChannel}`,
         true
       )
   
       if (crossCartReference === orderFormId) {
-        await vbase.saveJSON(APP_NAME, userProfileId, null)
+        await vbase.saveJSON(APP_NAME, `${userProfileId}-sc:${salesChannel}`, null)
   
         logger.info({
           message: `Cross Device Cart reference removed for user ${userProfileId}`,

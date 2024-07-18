@@ -151,6 +151,21 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
     )
       return
 
+    if (
+      window.location.href.includes('orderPlaced')
+    ) {
+      saveCurrentCart({
+        variables: {
+          userId,
+          salesChannel,
+          orderFormId: null,
+          userType
+        },
+      })
+
+      return
+    }
+
     const crossCart = data?.id !== 'default-order-form' && data?.id
 
     if (!crossCart) {
