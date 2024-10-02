@@ -101,7 +101,7 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
     try {
       const orderFormURLWithRootPath = insertRootPath(
         rootPath,
-        `/api/checkout/pub/orderForm/${data.id}`
+        `/api/checkout/pub/orderForm/${orderForm.id}`
       )
 
       await axios.post(
@@ -109,7 +109,7 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
         {},
         {
           headers: {
-            'set-cookie': `checkout.vtex.com=__ofid=${data.id}`,
+            'set-cookie': `checkout.vtex.com=__ofid=${orderForm.id}`,
           },
         }
       )

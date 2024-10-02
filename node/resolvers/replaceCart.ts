@@ -40,14 +40,14 @@ export const replaceCart = async (
 
       if (!items.length) return orderForm
 
-      await requestHub.clearCart(savedCart)
+      await requestHub.clearCart(currentCart)
 
       items.forEach((element, index) => {
         element.id = Number(element.id)
         element.index = index
       })
 
-      const newOrderForm = await checkoutIO.addToCart(savedCart, items)
+      const newOrderForm = await checkoutIO.addToCart(currentCart, items)
 
       return newOrderForm
     }
@@ -58,6 +58,4 @@ export const replaceCart = async (
     return null
 
   }
-
-  
 }
