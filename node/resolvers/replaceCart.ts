@@ -12,7 +12,7 @@ export const replaceCart = async (
   context: Context
 ): Promise<PartialOrderForm | null> => {
   const {
-    clients: { checkoutIO, requestHub },
+    clients: { checkoutIO, checkoutRest, requestHub },
     response,
   } = context
 
@@ -21,8 +21,10 @@ export const replaceCart = async (
 
     response.set(
       'set-cookie',
-      `checkout.vtex.com=__ofid=${currentCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
+      `checkout.vtex.com=__ofid=${savedCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
     )
+
+    await checkoutRest.removePaymentData(savedCart)
 
     const savedOrderForm = await checkoutIO.getOrderForm(savedCart)
     const savedItems = await checkoutIO.getItems(savedCart)
@@ -32,12 +34,7 @@ export const replaceCart = async (
         return await checkoutIO.getOrderForm(currentCart)
       }
 
-      await requestHub.clearCart(currentCart)
-
-      const newOrderForm = await checkoutIO.addToCart(currentCart, savedItems)
-      newOrderForm.marketingData = savedOrderForm.marketingData
-
-      return newOrderForm
+      return savedOrderForm
     }
     else {
       /**
@@ -54,15 +51,14 @@ export const replaceCart = async (
         return await checkoutIO.getOrderForm(currentCart)
       }
 
-      await requestHub.clearCart(currentCart)
+      await requestHub.clearCart(savedCart)
 
       items.forEach((element, index) => {
         element.id = Number(element.id)
         element.index = index
       })
 
-      const newOrderForm = await checkoutIO.addToCart(currentCart, items)
-      newOrderForm.marketingData = savedOrderForm.marketingData
+      const newOrderForm = await checkoutIO.addToCart(savedCart, items)
 
       return newOrderForm
     }
