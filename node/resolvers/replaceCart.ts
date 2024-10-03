@@ -24,6 +24,7 @@ export const replaceCart = async (
       `checkout.vtex.com=__ofid=${currentCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
     )
 
+    const savedOrderForm = await checkoutIO.getOrderForm(savedCart)
     const savedItems = await checkoutIO.getItems(savedCart)
 
     if (strategy === 'REPLACE') {
@@ -33,8 +34,12 @@ export const replaceCart = async (
 
       await requestHub.clearCart(currentCart)
 
-      return await checkoutIO.addToCart(currentCart, savedItems)
-    } else {
+      const newOrderForm = await checkoutIO.addToCart(currentCart, savedItems)
+      newOrderForm.marketingData = savedOrderForm.marketingData
+
+      return newOrderForm
+    }
+    else {
       /**
        * Add to cart has a specific graphql INPUT type.
        * These calls ensure handling correct types from start to finish.
@@ -56,7 +61,10 @@ export const replaceCart = async (
         element.index = index
       })
 
-      return await checkoutIO.addToCart(currentCart, items)
+      const newOrderForm = await checkoutIO.addToCart(currentCart, items)
+      newOrderForm.marketingData = savedOrderForm.marketingData
+
+      return newOrderForm
     }
 
 

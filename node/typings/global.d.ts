@@ -20,6 +20,7 @@ interface PartialOrderForm {
     value: number
   }
   items: PartialItem[]
+  marketingData: any
 }
 
 interface PartialItem {
