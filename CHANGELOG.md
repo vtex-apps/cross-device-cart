@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2024-10-21
+
 ### Fixed
 - Replace cart logic: to return the current orderFormId instead of the previous one
 
