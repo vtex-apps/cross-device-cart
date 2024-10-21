@@ -1,7 +1,7 @@
 {
   "vendor": "vtex",
   "name": "cross-device-cart",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "title": "Cross device cart",
   "description": "Seamlessly allow a client to retrieve items left on a different device's cart",
   "builders": {
