@@ -1,6 +1,6 @@
 {
   "name": "cross-device-cart",
-  "version": "1.5.0",
+  "version": "2.0.2",
   "scripts": {
     "test": "vtex-test-tools test"
   },
