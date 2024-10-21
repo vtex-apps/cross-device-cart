@@ -20,6 +20,7 @@ interface PartialOrderForm {
     value: number
   }
   items: PartialItem[]
+  marketingData: any
 }
 
 interface PartialItem {
@@ -60,6 +61,7 @@ interface CrossCartData {
 
 interface SaveCurrentCartData extends CrossCartData {
   userId: string
+  salesChannel: string
 }
 
 type Strategy = 'ADD' | 'COMBINE' | 'REPLACE'

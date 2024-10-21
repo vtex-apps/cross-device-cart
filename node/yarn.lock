@@ -6150,10 +6150,6 @@ verror@1.10.0:
   version "0.67.1"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql#28a28b8e5b1f39e45ac7fd57a06f05a2468e192e"
 
-"vtex.cross-device-cart@https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart":
-  version "1.4.9"
-  resolved "https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart#463557bfbedc738edc1ae73a3d57511361a8afba"
-
 "vtex.css-handles@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles":
   version "0.4.4"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles#8c45c6decf9acd2b944e07261686decff93d6422"

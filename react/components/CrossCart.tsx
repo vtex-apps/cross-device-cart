@@ -13,13 +13,14 @@ import insertRootPath from '../utils/insertRootPath'
 
 interface Props {
   userId: string
+  salesChannel: string
   isAutomatic: boolean
   showToast: (toast: ToastParam) => void
   strategy: Strategy
   userType: string
 }
 
-const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userType }) => {
+const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, strategy, showToast }) => {
   const {
     orderForm,
     initialFetchComplete,
@@ -52,6 +53,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userTy
     getSavedCart({
       variables: {
         userId,
+        salesChannel,
         nullOnEmpty: !isAutomatic,
         userType
       },
@@ -65,6 +67,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userTy
     await saveCurrentCart({
       variables: {
         userId,
+        salesChannel,
         orderFormId: hasItems ? orderForm.id : null,
         userType
       },
@@ -133,6 +136,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userTy
     getSavedCart({
       variables: {
         userId,
+        salesChannel,
         nullOnEmpty: !isAutomatic,
       },
     })
@@ -147,12 +151,28 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userTy
     )
       return
 
+    if (
+      window.location.href.includes('orderPlaced')
+    ) {
+      saveCurrentCart({
+        variables: {
+          userId,
+          salesChannel,
+          orderFormId: null,
+          userType
+        },
+      })
+
+      return
+    }
+
     const crossCart = data?.id !== 'default-order-form' && data?.id
 
     if (!crossCart) {
       saveCurrentCart({
         variables: {
           userId,
+          salesChannel,
           orderFormId: orderForm.id,
           userType
         },
@@ -174,6 +194,7 @@ const CrossCart: FC<Props> = ({ userId, isAutomatic, strategy, showToast, userTy
       saveCurrentCart({
         variables: {
           userId,
+          salesChannel,
           orderFormId: null,
           userType
         },

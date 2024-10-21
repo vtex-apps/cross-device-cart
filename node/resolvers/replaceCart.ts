@@ -12,7 +12,7 @@ export const replaceCart = async (
   context: Context
 ): Promise<PartialOrderForm | null> => {
   const {
-    clients: { checkoutIO, requestHub },
+    clients: { checkoutIO, checkoutRest, requestHub },
     response,
   } = context
 
@@ -24,21 +24,32 @@ export const replaceCart = async (
       `checkout.vtex.com=__ofid=${savedCart}; Max-Age=15552000; Domain=${host}; path=/; secure; samesite=lax; httponly`
     )
 
-    const orderForm = await checkoutIO.getOrderForm(savedCart)
+    await checkoutRest.removePaymentData(savedCart)
 
-    if (strategy !== 'REPLACE') {
+    const savedOrderForm = await checkoutIO.getOrderForm(savedCart)
+    const savedItems = await checkoutIO.getItems(savedCart)
+
+    if (strategy === 'REPLACE') {
+      if (!savedItems.length) {
+        return await checkoutIO.getOrderForm(currentCart)
+      }
+
+      return savedOrderForm
+    }
+    else {
       /**
        * Add to cart has a specific graphql INPUT type.
        * These calls ensure handling correct types from start to finish.
        */
-      const savedItems = await checkoutIO.getItems(savedCart)
       const currentItems = await checkoutIO.getItems(currentCart)
 
       const tally = strategy === 'COMBINE'
 
       const items = mergeItems(currentItems, savedItems, tally)
 
-      if (!items.length) return orderForm
+      if (!items.length) {
+        return await checkoutIO.getOrderForm(currentCart)
+      }
 
       await requestHub.clearCart(savedCart)
 
@@ -52,12 +63,9 @@ export const replaceCart = async (
       return newOrderForm
     }
 
-    return orderForm
 
   } else {
     return null
 
   }
-
-  
 }
