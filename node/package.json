@@ -10,6 +10,7 @@
     "@vtex/test-tools": "vtex/test-tools",
     "@vtex/tsconfig": "^0.5.6",
     "typescript": "3.9.7",
+    "vtex.checkout-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql",
     "vtex.cross-device-cart": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@2.0.2/public/@types/vtex.cross-device-cart",
     "vtex.css-handles": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles",
     "vtex.device-detector": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.device-detector@0.2.6/public/@types/vtex.device-detector",
@@ -24,4 +25,3 @@
   },
   "version": "2.0.2"
 }
-

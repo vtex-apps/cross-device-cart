@@ -6146,6 +6146,10 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
+"vtex.checkout-graphql@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql":
+  version "0.67.1"
+  resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql#28a28b8e5b1f39e45ac7fd57a06f05a2468e192e"
+
 "vtex.cross-device-cart@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@2.0.2/public/@types/vtex.cross-device-cart":
   version "2.0.2"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@2.0.2/public/@types/vtex.cross-device-cart#f8492d80560a1432f49835462bab14ad41466ae4"
