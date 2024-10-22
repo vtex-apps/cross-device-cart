@@ -26,7 +26,7 @@ To do so, this app was created to enable `logged in` users to retrieve their car
 ```json
   "peerDependencies": {
     // ...
-    "vtex.cross-device-cart": "1.x"
+    "vtex.cross-device-cart": "2.x"
   }
 ```
 
