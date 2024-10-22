@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Save logic using SC.
+- Logic not to recover paymentData to the new cart.
+
 ## [2.0.2] - 2024-10-21
 
 ## [2.0.1] - 2024-10-21
