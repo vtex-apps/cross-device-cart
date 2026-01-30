@@ -2,10 +2,7 @@
 
 # CROSS DEVICE CART
 
-##  ⚠️ Maintenance ⚠️
-*Starting June 1st 2023, this application will no longer be maintained by VTEX.*
-
----
+[<i class="fa-brands fa-github"></i> Source code](https://github.com/vtex-apps/cross-device-cart)
 
 <!-- DOCS-IGNORE:start -->
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
@@ -14,6 +11,8 @@
 
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- DOCS-IGNORE:end -->
+
+> ⚠️ This app is no longer maintained by VTEX. This means support and maintenance are no longer provided.
 
 The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
 
