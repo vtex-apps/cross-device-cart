@@ -4,14 +4,6 @@
 
 [<i class="fa-brands fa-github"></i> Source code](https://github.com/vtex-apps/cross-device-cart)
 
-<!-- DOCS-IGNORE:start -->
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
-
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-<!-- DOCS-IGNORE:end -->
-
 > ⚠️ This app is no longer maintained by VTEX. This means support and maintenance are no longer provided.
 
 The Cross Device Cart app keeps a user’s shopping cart synchronized across devices, allowing logged-in users to restore their cart from their most recent session.
