@@ -1,23 +1,12 @@
 📢 Use this project, [contribute](https://github.com/vtex-apps/cross-device-cart) to it or open issues to help evolve it using [Store Discussion](https://github.com/vtex-apps/store-discussion).
 
-# CROSS DEVICE CART
+# Cross Device Cart
 
-##  ⚠️ Maintenance ⚠️
-*Starting June 1st 2023, this application will no longer be maintained by VTEX.*
+[<i class="fa-brands fa-github"></i> Source code](https://github.com/vtex-apps/cross-device-cart)
 
----
+> ⚠️ This app is no longer maintained by VTEX. This means support and maintenance are no longer provided.
 
-<!-- DOCS-IGNORE:start -->
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-
-[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
-
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
-<!-- DOCS-IGNORE:end -->
-
-The main feature users are looking for is to keep an up-to-date shopping cart through different devices; one of the most important experiences of a truly unified commerce.
-
-To do so, this app was created to enable `logged in` users to retrieve their cart from their last session.
+The Cross Device Cart app keeps a user’s shopping cart synchronized across devices, allowing logged-in users to restore their cart from their most recent session.
 
 ## Configuration
 
@@ -30,7 +19,7 @@ To do so, this app was created to enable `logged in` users to retrieve their car
   }
 ```
 
-2. Add the `cross-device-cart` block as a children of your store header, desktop and mobile, for i.e:
+2. Add the `cross-device-cart` block as `children` of your store header, desktop and mobile, for example:
 
    ```diff
    "header-layout.desktop": {
@@ -51,8 +40,8 @@ To do so, this app was created to enable `logged in` users to retrieve their car
      },
    ```
 
-3. (Optional) You can tailor the default experience by accesing the admin app settings.  
-   By default, the app handles the replacement automatically. But it you set it to manual, a challenge block will be rendered as an action bar, for the user to interact with.
+3. (Optional) You can tailor the default experience by accessing the admin app settings.  
+   By default, the app handles the replacement automatically. But if you set it to manual, a challenge block will be rendered as an action bar for the user to interact with.
 
 ## Customization
 
