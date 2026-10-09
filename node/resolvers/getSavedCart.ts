@@ -3,6 +3,7 @@ import {
   resolveSalesChannel,
   resolveShopper,
   savedCartKey,
+  warnOnIdentityArgMismatch,
 } from '../utils/identity'
 import {
   fetchOwnership,
@@ -21,7 +22,7 @@ const OPERATION = 'getSavedCart'
  */
 export const getSavedCart = async (
   _: unknown,
-  { nullOnEmpty }: GetSavedCartArgs,
+  { nullOnEmpty, userId }: GetSavedCartArgs,
   ctx: Context
 ): Promise<string | null> => {
   const {
@@ -35,6 +36,8 @@ export const getSavedCart = async (
 
     return null
   }
+
+  warnOnIdentityArgMismatch(ctx, OPERATION, userId, shopper)
 
   const key = savedCartKey(shopper.userId, await resolveSalesChannel(ctx))
   const orderFormId = await vbase.getJSON<string | null>(APP_NAME, key, true)

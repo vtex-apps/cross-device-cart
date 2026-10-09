@@ -134,3 +134,29 @@ export function matchesCheckoutCookie(
 
   return true
 }
+
+/**
+ * Legacy bundles still send a `userId` argument, which is ignored. A value that
+ * differs from the authenticated shopper is a forged or stale client, so it is
+ * reported (no ids, no PII) but never changes the result.
+ */
+export function warnOnIdentityArgMismatch(
+  ctx: Context,
+  operation: string,
+  argUserId: string | null | undefined,
+  shopper: ShopperIdentity
+) {
+  const claimed = typeof argUserId === 'string' ? argUserId.trim() : ''
+
+  if (
+    !claimed ||
+    claimed.toLowerCase() === shopper.userId.trim().toLowerCase()
+  ) {
+    return
+  }
+
+  ctx.vtex.logger.warn({
+    message: 'cross-device-cart.identity_arg_mismatch',
+    operation,
+  })
+}

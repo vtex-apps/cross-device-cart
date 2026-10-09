@@ -1,5 +1,5 @@
 import type { InstanceOptions, IOContext } from '@vtex/api'
-import { ExternalClient } from '@vtex/api'
+import { CacheType, ExternalClient } from '@vtex/api'
 
 import { httpStatus } from '../utils/httpStatus'
 
@@ -48,6 +48,7 @@ export default class VtexId extends ExternalClient {
         {
           params: { an: this.context.account },
           metric: 'vtexid-credential-validate',
+          cacheable: CacheType.None,
         }
       )
     } catch (error) {

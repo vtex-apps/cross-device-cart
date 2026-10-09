@@ -6,12 +6,14 @@ import {
   resolveSalesChannel,
   resolveShopper,
   savedCartKey,
+  warnOnIdentityArgMismatch,
 } from '../utils/identity'
 import {
   ACCOUNT,
   EMAIL_A,
   OF_A,
   SHOPPER_A,
+  SHOPPER_B,
   TOKEN_A,
   createContext,
   credential,
@@ -149,5 +151,41 @@ describe('isValidOrderFormId', () => {
     [42, false],
   ])('%p -> %p', (value, expected) => {
     expect(isValidOrderFormId(value)).toBe(expected)
+  })
+})
+
+describe('warnOnIdentityArgMismatch', () => {
+  const shopper = { userId: SHOPPER_A }
+  const warnings = (logger: { warn: jest.Mock }) => logger.warn.mock.calls
+
+  it('warns once, with only the message and the operation, when the client userId differs', () => {
+    const { ctx, logger } = createContext()
+
+    expect(() =>
+      warnOnIdentityArgMismatch(ctx, 'getSavedCart', SHOPPER_B, shopper)
+    ).not.toThrow()
+    expect(warnings(logger)).toEqual([
+      [
+        {
+          message: 'cross-device-cart.identity_arg_mismatch',
+          operation: 'getSavedCart',
+        },
+      ],
+    ])
+    expectNoPiiInLogs(logger)
+  })
+
+  it.each([
+    ['the same id', SHOPPER_A],
+    ['a case-only and padded difference', ` ${SHOPPER_A.toUpperCase()} `],
+    ['an absent argument', undefined],
+    ['a null argument', null],
+    ['an empty argument', ''],
+    ['a blank argument', '   '],
+  ])('does not warn for %s', (_name, arg) => {
+    const { ctx, logger } = createContext()
+
+    warnOnIdentityArgMismatch(ctx, 'saveCurrentCart', arg, shopper)
+    expect(warnings(logger)).toEqual([])
   })
 })

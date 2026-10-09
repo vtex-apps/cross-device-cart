@@ -1,4 +1,9 @@
-import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
+import {
+  CacheType,
+  ExternalClient,
+  InstanceOptions,
+  IOContext,
+} from '@vtex/api'
 
 import { httpStatus } from '../utils/httpStatus'
 
@@ -58,7 +63,7 @@ export default class CheckoutRestClient extends ExternalClient {
     try {
       const raw = await this.http.get<RawOrderFormOwnerFields>(
         `pub/orderForm/${encodeURIComponent(orderFormId)}`,
-        { metric: 'checkout-orderform-owner' }
+        { metric: 'checkout-orderform-owner', cacheable: CacheType.None }
       )
 
       // A response for another orderForm cannot be trusted as the owner of this one.

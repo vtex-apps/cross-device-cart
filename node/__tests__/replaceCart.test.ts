@@ -349,3 +349,130 @@ describe('replaceCart: refusals', () => {
     expect(response.set).not.toHaveBeenCalled()
   })
 })
+
+describe('replaceCart: a failed owner lookup on either cart is a no-op', () => {
+  it.each([
+    ['current', 'REPLACE'],
+    ['current', 'ADD'],
+    ['current', 'COMBINE'],
+    ['saved', 'REPLACE'],
+    ['saved', 'ADD'],
+    ['saved', 'COMBINE'],
+  ] as const)(
+    'only the %s lookup fails, strategy %s: null, no write, no cookie, key kept',
+    async (which, strategy) => {
+      const {
+        ctx,
+        store,
+        response,
+        logger,
+        checkoutIO,
+        checkoutRest,
+        requestHub,
+      } = setup({
+        ownerLookupFailIds: [which === 'saved' ? OF_A : OF_CURRENT_A],
+      })
+
+      await expect(run(ctx, { strategy })).resolves.toBeNull()
+
+      expect(checkoutRest.removePaymentData).not.toHaveBeenCalled()
+      expect(requestHub.clearCart).not.toHaveBeenCalled()
+      expect(checkoutIO.addToCart).not.toHaveBeenCalled()
+      expect(checkoutIO.getOrderForm).not.toHaveBeenCalled()
+      expect(response.set).not.toHaveBeenCalled()
+      expect(store.get(key(SHOPPER_A))).toBe(OF_A)
+      expectNoPiiInLogs(logger)
+    }
+  )
+})
+
+describe('replaceCart: Checkout failures after the checks are logged, not thrown', () => {
+  const failGetOrderForm = (checkoutIO: { getOrderForm: jest.Mock }) =>
+    checkoutIO.getOrderForm.mockImplementation(async () => {
+      throw Object.assign(new Error('checkout down'), {
+        response: { status: 503 },
+      })
+    })
+
+  it.each([
+    [
+      'saved cart equals current cart',
+      { savedCart: OF_A, currentCart: OF_A },
+      {},
+    ],
+    [
+      'saved cart is empty',
+      {},
+      { items: { [OF_A]: [], [OF_CURRENT_A]: [item(1)] } },
+    ],
+  ])('%s: getOrderForm rejects with 503', async (_name, vars, extra) => {
+    const {
+      ctx,
+      logger,
+      checkoutIO,
+      response,
+      requestHub,
+      checkoutRest,
+    } = setup(extra)
+
+    failGetOrderForm(checkoutIO)
+
+    await expect(run(ctx, vars)).resolves.toBeNull()
+
+    const checkoutErrors = logger.warn.mock.calls.filter(
+      ([entry]) => entry.message === 'cross-device-cart.checkout_error'
+    )
+
+    expect(checkoutErrors).toEqual([
+      [
+        {
+          message: 'cross-device-cart.checkout_error',
+          operation: 'replaceCart',
+          status: 503,
+        },
+      ],
+    ])
+    expect(response.set).not.toHaveBeenCalled()
+    expect(requestHub.clearCart).not.toHaveBeenCalled()
+    expect(checkoutIO.addToCart).not.toHaveBeenCalled()
+    expect(checkoutRest.removePaymentData).not.toHaveBeenCalled()
+    expectNoPiiInLogs(logger)
+  })
+})
+
+describe('replaceCart: the current cart does not exist (404)', () => {
+  // A cart that does not exist cannot be foreign or a call-center session.
+  it.each(['REPLACE', 'ADD', 'COMBINE'] as const)(
+    '%s: adopts the OWNED saved cart as is, never reading the current items',
+    async (strategy) => {
+      const {
+        ctx,
+        response,
+        checkoutIO,
+        checkoutRest,
+        requestHub,
+        store,
+      } = setup()
+
+      const result: any = await run(ctx, {
+        strategy,
+        currentCart: OF_MISSING,
+      })
+
+      expect(result.id).toBe(OF_A)
+      expect(quantities(result)).toEqual([
+        [1, 2],
+        [2, 1],
+      ])
+      expect(checkoutIO.getItems).not.toHaveBeenCalledWith(OF_MISSING)
+      expect(checkoutIO.addToCart).not.toHaveBeenCalled()
+      expect(requestHub.clearCart).not.toHaveBeenCalled()
+      expect(checkoutRest.removePaymentData).toHaveBeenCalledWith(OF_A)
+      expect(response.set).toHaveBeenCalledWith(
+        'set-cookie',
+        adoptionCookie(OF_A)
+      )
+      expect(store.get(key(SHOPPER_A))).toBe(OF_A)
+    }
+  )
+})

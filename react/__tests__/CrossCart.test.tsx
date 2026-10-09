@@ -1,5 +1,5 @@
 /* eslint-disable global-require, @typescript-eslint/no-var-requires, react/display-name */
-import React from 'react'
+import React, { useState } from 'react'
 import { MockedProvider } from '@apollo/react-testing'
 import { fireEvent, render, waitFor } from '@vtex/test-tools/react'
 import axios from 'axios'
@@ -305,5 +305,168 @@ describe('CrossCart', () => {
 
     expect(queryByText('accept')).toBeNull()
     expect(saveResult).not.toHaveBeenCalled()
+  })
+
+  describe('a merge in flight when the instance goes away', () => {
+    const adopted = { id: SAVED, items: [{ id: '3' }, { id: '1' }] }
+    const wait = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms))
+
+    const delayedReplace = (delay: number) => ({
+      ...replaceCartMock('COMBINE', adopted),
+      delay,
+    })
+
+    const followUp = jest.fn(() => ({ data: { id: SAVED } }))
+
+    beforeEach(() => followUp.mockClear())
+
+    it('(a) unmount while replaceCart is pending: no POST, no order form, no toast, no follow-up query', async () => {
+      const showToast = jest.fn()
+      const savedResult = jest.fn(() => ({ data: { id: SAVED } }))
+      const { unmount } = renderCart(
+        [
+          { ...savedCartMock(false, SAVED), result: savedResult },
+          delayedReplace(150),
+          { ...savedCartMock(false, SAVED), result: followUp },
+        ],
+        { isAutomatic: true, showToast }
+      )
+
+      await waitFor(() => expect(savedResult).toHaveBeenCalled())
+      await wait(30)
+      unmount()
+      await wait(300)
+
+      expect(axios.post).not.toHaveBeenCalled()
+      expect(mockSetOrderForm).not.toHaveBeenCalled()
+      expect(showToast).not.toHaveBeenCalled()
+      expect(followUp).not.toHaveBeenCalled()
+    })
+
+    it('(b) unmount while the POST is pending: no order form, no toast, no follow-up query', async () => {
+      const showToast = jest.fn()
+      let finishPost: () => void = () => undefined
+
+      ;(axios.post as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            finishPost = resolve
+          })
+      )
+
+      const { unmount } = renderCart(
+        [
+          savedCartMock(false, SAVED),
+          replaceCartMock('COMBINE', adopted),
+          { ...savedCartMock(false, SAVED), result: followUp },
+        ],
+        { isAutomatic: true, showToast }
+      )
+
+      await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1))
+      unmount()
+      finishPost()
+      await wait(100)
+
+      expect(mockSetOrderForm).not.toHaveBeenCalled()
+      expect(showToast).not.toHaveBeenCalled()
+      expect(followUp).not.toHaveBeenCalled()
+    })
+
+    it('(b2) unmount while the POST is pending and then fails: no error toast', async () => {
+      const showToast = jest.fn()
+      let failPost: (e: Error) => void = () => undefined
+
+      ;(axios.post as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise<void>((_, reject) => {
+            failPost = reject
+          })
+      )
+
+      // manual mode needs the shopper to accept first
+      const { findByText, unmount } = renderCart(
+        [savedCartMock(true, SAVED), replaceCartMock('COMBINE', adopted)],
+        { isAutomatic: false, showToast }
+      )
+
+      fireEvent.click(await findByText('accept'))
+      await waitFor(() => expect(axios.post).toHaveBeenCalledTimes(1))
+      unmount()
+      failPost(new Error('network'))
+      await wait(100)
+
+      expect(showToast).not.toHaveBeenCalled()
+    })
+
+    it('(c) the normal path still adopts and toasts', async () => {
+      const showToast = jest.fn()
+
+      renderCart(
+        [
+          savedCartMock(false, SAVED),
+          replaceCartMock('COMBINE', adopted),
+          { ...savedCartMock(false, SAVED), result: followUp },
+        ],
+        { isAutomatic: true, showToast }
+      )
+
+      await waitFor(() => expect(showToast).toHaveBeenCalledTimes(1))
+      expect(mockSetOrderForm).toHaveBeenCalledWith(adopted)
+      expect(axios.post).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect(followUp).toHaveBeenCalledTimes(1))
+    })
+
+    it('(d) a session key change remounts the block while a merge is in flight: the old result is dropped', async () => {
+      const showToast = jest.fn()
+      const savedResult = jest.fn(() => ({ data: { id: SAVED } }))
+      let switchSession: () => void = () => undefined
+
+      const Harness = () => {
+        const [sessionKey, setSessionKey] = useState('shopper-a')
+
+        switchSession = () => setSessionKey('shopper-b')
+
+        return (
+          <MockedProvider
+            addTypename={false}
+            mocks={[
+              { ...savedCartMock(false, SAVED), result: savedResult },
+              delayedReplace(150),
+              // the new session finds nothing stored and only saves its own cart
+              savedCartMock(false, null),
+              {
+                request: {
+                  query: SAVE_ID_BY_USER,
+                  variables: { orderFormId: CURRENT },
+                },
+                result: { data: { saveCurrentCart: 'success' } },
+              },
+              { ...savedCartMock(false, SAVED), result: followUp },
+            ]}
+          >
+            <CrossCart
+              key={sessionKey}
+              isAutomatic
+              strategy="COMBINE"
+              showToast={showToast}
+            />
+          </MockedProvider>
+        )
+      }
+
+      render(<Harness />)
+
+      await waitFor(() => expect(savedResult).toHaveBeenCalled())
+      await wait(30)
+      switchSession()
+      await wait(350)
+
+      expect(axios.post).not.toHaveBeenCalled()
+      expect(mockSetOrderForm).not.toHaveBeenCalled()
+      expect(showToast).not.toHaveBeenCalled()
+      expect(followUp).not.toHaveBeenCalled()
+    })
   })
 })

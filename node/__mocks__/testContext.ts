@@ -111,7 +111,10 @@ interface Options {
   token?: string
   vbase?: Record<string, string | null>
   owners?: Record<string, OrderFormOwner | null>
+  /** status of failing owner lookups; defaults to 503 when ownerLookupFailIds is used */
   ownerLookupStatus?: number
+  /** when set, only these orderForm ids fail the owner lookup (every id otherwise) */
+  ownerLookupFailIds?: string[]
   items?: Record<string, PartialItem[]>
   channel?: number
   /** __ofid held by the request's checkout.vtex.com cookie (FR-D2); absent by default */
@@ -177,9 +180,13 @@ export function createContext(options: Options = {}) {
 
   const checkoutRest = {
     getOrderFormOwner: jest.fn(async (id: string) => {
-      if (options.ownerLookupStatus) {
+      const failing = options.ownerLookupFailIds
+        ? options.ownerLookupFailIds.includes(id)
+        : Boolean(options.ownerLookupStatus)
+
+      if (failing) {
         throw Object.assign(new Error('owner lookup failed'), {
-          response: { status: options.ownerLookupStatus },
+          response: { status: options.ownerLookupStatus ?? 503 },
         })
       }
 

@@ -116,6 +116,11 @@ export const replaceCart = async (
   const savedVerdict = savedResult.verdict
   const currentVerdict = currentResult.verdict
 
+  if (savedVerdict === 'LOOKUP_FAILED' || currentVerdict === 'LOOKUP_FAILED') {
+    // Transient (already logged without ids): no write, no data, no cookie; keep the reference.
+    return null
+  }
+
   if (currentVerdict === 'CALL_CENTER') {
     logger.info({
       message: 'cross-device-cart.call_center_skipped',
@@ -126,9 +131,7 @@ export const replaceCart = async (
   }
 
   if (!isAcceptable(savedVerdict)) {
-    if (savedVerdict !== 'LOOKUP_FAILED') {
-      await vbase.saveJSON(APP_NAME, key, null)
-    }
+    await vbase.saveJSON(APP_NAME, key, null)
 
     logOwnershipRejection(ctx, OPERATION, savedVerdict, savedResult.reason)
 
@@ -144,7 +147,7 @@ export const replaceCart = async (
 
   try {
     if (savedCart === currentCart) {
-      return checkoutIO.getOrderForm(currentCart)
+      return await checkoutIO.getOrderForm(currentCart)
     }
 
     const savedItems = await checkoutIO.getItems(savedCart)
@@ -174,7 +177,7 @@ export const replaceCart = async (
 
       await vbase.saveJSON(APP_NAME, key, currentCart)
 
-      return checkoutIO.getOrderForm(currentCart)
+      return await checkoutIO.getOrderForm(currentCart)
     }
 
     await checkoutRest.removePaymentData(savedCart)

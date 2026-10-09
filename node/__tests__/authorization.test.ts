@@ -10,14 +10,22 @@ import {
   SHOPPER_B,
   TOKEN_A,
   createContext,
+  expectNoPiiInLogs,
   item,
   key,
 } from '../__mocks__/testContext'
 
 // Caller = shopper A (holds TOKEN_A). Other shopper = shopper B.
 describe('authorization regressions', () => {
-  it("getSavedCart cannot read another shopper's reference", async () => {
-    const { ctx } = createContext({
+  const mismatchWarnings = (logger: { warn: jest.Mock }, operation: string) =>
+    logger.warn.mock.calls.filter(
+      ([entry]) =>
+        entry.message === 'cross-device-cart.identity_arg_mismatch' &&
+        entry.operation === operation
+    )
+
+  it("getSavedCart ignores a forged userId: it cannot read another shopper's reference and warns once", async () => {
+    const { ctx, logger } = createContext({
       token: TOKEN_A,
       vbase: { [key(SHOPPER_B)]: OF_B },
     })
@@ -35,10 +43,13 @@ describe('authorization regressions', () => {
 
     expect(result).not.toBe(OF_B)
     expect(result).toBeNull()
+    expect(mismatchWarnings(logger, 'getSavedCart')).toHaveLength(1)
+    expect(logger.warn).toHaveBeenCalledTimes(1)
+    expectNoPiiInLogs(logger)
   })
 
-  it("saveCurrentCart cannot write another shopper's key", async () => {
-    const { ctx, store } = createContext({
+  it("saveCurrentCart ignores a forged userId: it cannot write another shopper's key and warns once", async () => {
+    const { ctx, store, logger } = createContext({
       token: TOKEN_A,
       vbase: { [key(SHOPPER_B)]: OF_B },
     })
@@ -55,6 +66,32 @@ describe('authorization regressions', () => {
     )
 
     expect(store.get(key(SHOPPER_B))).toBe(OF_B)
+    expect(mismatchWarnings(logger, 'saveCurrentCart')).toHaveLength(1)
+    expectNoPiiInLogs(logger)
+  })
+
+  it('a userId matching the authenticated shopper logs no warning', async () => {
+    const { ctx, logger } = createContext({
+      token: TOKEN_A,
+      vbase: { [key(SHOPPER_A)]: OF_A },
+    })
+
+    await getSavedCart(undefined, { userId: SHOPPER_A }, ctx)
+    await saveCurrentCart(
+      undefined,
+      { userId: SHOPPER_A, orderFormId: null },
+      ctx
+    )
+    expect(logger.warn).not.toHaveBeenCalled()
+  })
+
+  it('no warning when unauthenticated (it is logged as unauthenticated instead)', async () => {
+    const { ctx, logger } = createContext()
+
+    await getSavedCart(undefined, { userId: SHOPPER_B }, ctx)
+    await saveCurrentCart(undefined, { userId: SHOPPER_B }, ctx)
+    expect(mismatchWarnings(logger, 'getSavedCart')).toHaveLength(0)
+    expect(mismatchWarnings(logger, 'saveCurrentCart')).toHaveLength(0)
   })
 
   it('saveCurrentCart never stores a foreign orderForm under the caller key', async () => {

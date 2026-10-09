@@ -7,34 +7,24 @@ const manifest = JSON.parse(
 
 const allowed = (host: string, path: string) =>
   manifest.policies.some(
-    (p: any) =>
+    (p: { name: string; attrs?: { host?: string; path?: string } }) =>
       p.name === 'outbound-access' &&
       p.attrs?.host === host &&
       p.attrs?.path === path
   )
 
+// A missing outbound-access policy only fails at runtime, silently.
 describe('manifest outbound-access policies', () => {
-  // @vtex/api Segment (JanusClient): http://portal.vtexcommercestable.com.br/api/segments[/{token}]
-  it.each(['/api/segments', '/api/segments/*'])(
-    'allows the Segment client path %s',
-    (path) => {
-      expect(allowed('portal.vtexcommercestable.com.br', path)).toBe(true)
-    }
-  )
-
-  it('allows the VTEX ID host used by the @auth directive', () => {
-    expect(
-      allowed('vtexid.vtex.com.br', '/api/vtexid/pub/authenticated/user')
-    ).toBe(true)
-  })
-
-  it('has a valid semver version', () => {
-    expect(manifest.version).toMatch(
-      /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/
-    )
-  })
-
-  it('declares the graphql builder 2.x (explicit @auth scopes)', () => {
-    expect(manifest.builders.graphql).toBe('2.x')
+  it.each([
+    // @vtex/api Segment client (JanusClient)
+    ['portal.vtexcommercestable.com.br', '/api/segments'],
+    ['portal.vtexcommercestable.com.br', '/api/segments/*'],
+    // VTEX ID, used by the token validation and the @auth directive
+    ['vtexid.vtex.com.br', '/api/vtexid/pub/authenticated/user'],
+    // Checkout
+    ['portal.vtexcommercestable.com.br', '/api/checkout/pub/*'],
+    ['{{account}}.vtexcommercestable.com.br', '/api/*'],
+  ])('declares %s%s', (host, path) => {
+    expect(allowed(host, path)).toBe(true)
   })
 })

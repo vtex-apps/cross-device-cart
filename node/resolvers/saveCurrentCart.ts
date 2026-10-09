@@ -4,6 +4,7 @@ import {
   resolveSalesChannel,
   resolveShopper,
   savedCartKey,
+  warnOnIdentityArgMismatch,
 } from '../utils/identity'
 import {
   fetchOwnership,
@@ -21,7 +22,7 @@ const OPERATION = 'saveCurrentCart'
  */
 export const saveCurrentCart = async (
   _: unknown,
-  { orderFormId }: SaveCurrentCartArgs,
+  { orderFormId, userId }: SaveCurrentCartArgs,
   ctx: Context
 ): Promise<SaveCurrentCartResult> => {
   const {
@@ -36,6 +37,8 @@ export const saveCurrentCart = async (
 
     return 'unauthenticated'
   }
+
+  warnOnIdentityArgMismatch(ctx, OPERATION, userId, shopper)
 
   const key = savedCartKey(shopper.userId, await resolveSalesChannel(ctx))
 

@@ -1,4 +1,6 @@
 /* eslint-disable jest/no-expect-resolves */
+import { CacheType } from '@vtex/api'
+
 import VtexId from '../clients/vtexId'
 import CheckoutRestClient from '../clients/chekoutREST'
 
@@ -18,7 +20,10 @@ describe('VtexId.validateToken', () => {
     expect(post).toHaveBeenCalledWith(
       '/api/vtexid/credential/validate',
       { token: 'tkn' },
-      expect.objectContaining({ params: { an: 'teststore' } })
+      expect.objectContaining({
+        params: { an: 'teststore' },
+        cacheable: CacheType.None,
+      })
     )
   })
 
@@ -94,7 +99,11 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
       email: 'x@example.test',
       salesChannel: '1',
     })
-    expect(get).toHaveBeenCalledWith(`pub/orderForm/${ID}`, expect.any(Object))
+    // an owner lookup must never be answered from a cache
+    expect(get).toHaveBeenCalledWith(
+      `pub/orderForm/${ID}`,
+      expect.objectContaining({ cacheable: CacheType.None })
+    )
   })
 
   it('returns null on 404', async () => {

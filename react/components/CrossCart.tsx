@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useRuntime } from 'vtex.render-runtime'
@@ -47,6 +47,18 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
     ReplaceCartVariables
   >(MUTATE_CART)
 
+  // False once this instance is gone (unmounted, or remounted by SessionWrapper's
+  // session key). In-flight handlers must not apply results to another session.
+  const isCurrent = useRef(true)
+
+  useEffect(() => {
+    isCurrent.current = true
+
+    return () => {
+      isCurrent.current = false
+    }
+  }, [])
+
   useEffect(() => {
     getSavedCart({ variables: savedCartVariables })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,6 +103,8 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
       console.error(e)
     }
 
+    if (!isCurrent.current) return
+
     if (!newOrderForm) {
       notifyFailure()
 
@@ -109,10 +123,14 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
           {}
         )
       } catch (e) {
+        if (!isCurrent.current) return
+
         notifyFailure()
 
         return
       }
+
+      if (!isCurrent.current) return
     }
 
     // Only report a recovery when something actually changed for the shopper:
