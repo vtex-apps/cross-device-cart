@@ -1680,9 +1680,10 @@
   dependencies:
     is-stream "^2.0.0"
 
-"@vtex/test-tools@vtex/test-tools":
+"@vtex/test-tools@^3.4.3":
   version "3.4.3"
-  resolved "https://codeload.github.com/vtex/test-tools/tar.gz/2a336fa98c2cd9a41d64c856edf8d9fe411e27ee"
+  resolved "https://registry.yarnpkg.com/@vtex/test-tools/-/test-tools-3.4.3.tgz#d0cc34c445410050b9b56f804236c7c07a242489"
+  integrity sha512-sBGnr9lIv2dFiZnkUWBdiuiE/GRcu7jSKYqcYQ7fD1o0VlacMIMxHQmz8Gv1NIic37QRgntbSBDrvUUNo94Iwg==
   dependencies:
     "@babel/core" "^7.11.1"
     "@babel/plugin-proposal-class-properties" "^7.10.4"
@@ -6149,10 +6150,6 @@ verror@1.10.0:
 "vtex.checkout-graphql@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql":
   version "0.67.1"
   resolved "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql#28a28b8e5b1f39e45ac7fd57a06f05a2468e192e"
-
-"vtex.cross-device-cart@https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart":
-  version "1.4.9"
-  resolved "https://vtexcrossdevice--cristianc.myvtex.com/_v/private/typings/linked/v1/vtex.cross-device-cart@1.4.9+build1719434975/public/@types/vtex.cross-device-cart#463557bfbedc738edc1ae73a3d57511361a8afba"
 
 "vtex.css-handles@http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles":
   version "0.4.4"

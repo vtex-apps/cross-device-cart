@@ -12,27 +12,26 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
     clients: { oms, vbase },
   } = ctx
 
-  if( userType != "CALL_CENTER_OPERATOR") {
-
+  if (userType !== 'CALL_CENTER_OPERATOR') {
     try {
       const customerOrder = await oms.order(orderId)
-  
+
       const {
         orderFormId,
         clientProfileData: { userProfileId },
       } = customerOrder
-  
+
       const crossCartReference: string | null = await vbase.getJSON(
         APP_NAME,
         userProfileId,
         true
       )
-  
+
       if (crossCartReference === orderFormId) {
         await vbase.saveJSON(APP_NAME, userProfileId, null)
-  
+
         logger.info({
-          message: `Cross Device Cart reference removed for user ${userProfileId}`,
+          message: 'cross-device-cart.reference_removed_on_order',
         })
       }
     } catch (error) {
@@ -47,5 +46,4 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       message: `Is Call center Operator`,
     })
   }
-
 }

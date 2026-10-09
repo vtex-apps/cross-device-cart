@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Shopper identity is now derived server-side from the store-user token (VTEX ID); `userId`/`userType` arguments are ignored.
+- Saved references are only stored, returned or merged when the orderForm is owned by the shopper or anonymous; foreign references are cleared on read.
+- `replaceCart` adopts the saved cart (`checkout.vtex.com` cookie) only when it belongs to the logged-in shopper, and only after the merge succeeded; foreign carts are never read, cleared, written or adopted.
+- Adoption also requires the cart's (unmasked) profile email to match the logged-in shopper.
+- Saved and current carts must match the browser's own `checkout.vtex.com` cookie.
+- `saveAppSettings` requires admin access.
+
+### Changed
+- An anonymous saved cart is no longer adopted; its missing items are added to the current cart.
+- An empty saved cart is no longer adopted.
+- A refused merge is silent in automatic mode; the error toast is shown only in manual mode.
+
 ## [1.5.1] - 2026-02-04
 
 ### Fixed
