@@ -1,5 +1,5 @@
 import { APP_NAME } from '../constants'
-import { resolveShopper } from '../utils/identity'
+import { resolveShopper, warnOnIdentityArgMismatch } from '../utils/identity'
 import {
   fetchOwnership,
   isAcceptable,
@@ -20,6 +20,7 @@ export const getSavedCart = async (
   _: unknown,
   {
     nullOnEmpty,
+    userId,
   }: { userId?: string; nullOnEmpty?: boolean; userType?: string },
   ctx: Context
 ): Promise<string | null> => {
@@ -30,6 +31,8 @@ export const getSavedCart = async (
 
     return null
   }
+
+  warnOnIdentityArgMismatch(ctx, 'getSavedCart', userId, shopper)
 
   const {
     clients: { vbase, checkoutIO },

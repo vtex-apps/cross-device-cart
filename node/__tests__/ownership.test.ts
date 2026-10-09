@@ -34,6 +34,21 @@ describe('classifyOwnership', () => {
     expect(classifyOwnership(owners[id], shopper)).toBe(verdict)
   })
 
+  it('compares userProfileId case-insensitively', () => {
+    expect(
+      classifyOwnership(
+        { ...owners[OF_A], userProfileId: SHOPPER_A.toUpperCase() },
+        shopper
+      )
+    ).toBe('OWNED')
+    expect(
+      classifyOwnership(owners[OF_A], {
+        ...shopper,
+        userId: SHOPPER_A.toUpperCase(),
+      })
+    ).toBe('OWNED')
+  })
+
   it('NOT_FOUND when the owner lookup returned null', () => {
     expect(classifyOwnership(null, shopper)).toBe('NOT_FOUND')
   })

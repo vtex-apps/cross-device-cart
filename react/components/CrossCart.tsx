@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { useLazyQuery, useMutation } from 'react-apollo'
 import { useIntl } from 'react-intl'
 import { useRuntime } from 'vtex.render-runtime'
@@ -35,6 +35,18 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
   const [hasMerged, setMergeStatus] = useState(false)
   const [challengeActive, setChallenge] = useState(false)
   const intl = useIntl()
+
+  // False once this instance is gone (unmounted or remounted by key when the
+  // session user changes): an in-flight merge must then apply nothing.
+  const isCurrent = useRef(true)
+
+  useEffect(() => {
+    isCurrent.current = true
+
+    return () => {
+      isCurrent.current = false
+    }
+  }, [])
 
   const hasItems = orderForm.items.length
 
@@ -104,6 +116,8 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
       console.error(e)
     }
 
+    if (!isCurrent.current) return
+
     challengeActive && setChallenge(false)
 
     if (!newOrderForm) {
@@ -120,6 +134,8 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
 
     if (adopted) {
       try {
+        // Checked right before the POST: it must never go out with another
+        // session's cookies.
         await axios.post(
           insertRootPath(
             rootPath,
@@ -128,10 +144,12 @@ const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
           {}
         )
       } catch (e) {
-        notifyFailure()
+        if (isCurrent.current) notifyFailure()
 
         return
       }
+
+      if (!isCurrent.current) return
     }
 
     setOrderForm(newOrderForm)

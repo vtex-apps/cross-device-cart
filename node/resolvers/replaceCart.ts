@@ -147,7 +147,7 @@ export const replaceCart = async (
   // middleware would log the query variables (orderForm ids).
   try {
     if (savedCart === currentCart) {
-      return checkoutIO.getOrderForm(currentCart)
+      return await checkoutIO.getOrderForm(currentCart)
     }
 
     const [savedItems, currentItems] = await Promise.all([
@@ -166,7 +166,7 @@ export const replaceCart = async (
 
       await vbase.saveJSON(APP_NAME, shopper.userId, currentCart)
 
-      return checkoutIO.getOrderForm(currentCart)
+      return await checkoutIO.getOrderForm(currentCart)
     }
 
     if (savedVerdict === 'OWNED') {

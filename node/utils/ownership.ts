@@ -29,7 +29,10 @@ export function classifyOwnership(
   }
 
   if (owner.userProfileId) {
-    return owner.userProfileId === shopper.userId ? 'OWNED' : 'FOREIGN'
+    // Case-insensitive: Checkout and VTEX ID may return the same GUID in different case.
+    return owner.userProfileId.toLowerCase() === shopper.userId.toLowerCase()
+      ? 'OWNED'
+      : 'FOREIGN'
   }
 
   if (owner.hasClientProfile) {

@@ -3,6 +3,7 @@ import {
   isValidOrderFormId,
   matchesCheckoutCookie,
   resolveShopper,
+  warnOnIdentityArgMismatch,
 } from '../utils/identity'
 import {
   fetchOwnership,
@@ -27,6 +28,7 @@ export const saveCurrentCart = async (
   _: unknown,
   {
     orderFormId,
+    userId,
   }: { userId?: string; orderFormId?: string | null; userType?: string },
   ctx: Context
 ): Promise<string> => {
@@ -37,6 +39,8 @@ export const saveCurrentCart = async (
 
     return SAVE_RESULT.unauthenticated
   }
+
+  warnOnIdentityArgMismatch(ctx, 'saveCurrentCart', userId, shopper)
 
   const {
     clients: { vbase },

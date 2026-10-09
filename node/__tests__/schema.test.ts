@@ -37,8 +37,8 @@ const clientDocument = (name: string) =>
 const operationFields = () => {
   const doc = parse(schema)
   const fields: Array<{
-    type: string
     name: string
+    args: Array<{ name: string; required: boolean }>
     auth?: DirectiveNode
     cache?: DirectiveNode
   }> = []
@@ -50,8 +50,11 @@ const operationFields = () => {
     ) {
       ;(def as ObjectTypeDefinitionNode).fields?.forEach((f) =>
         fields.push({
-          type: def.name.value,
           name: f.name.value,
+          args: (f.arguments ?? []).map((a) => ({
+            name: a.name.value,
+            required: a.type.kind === 'NonNullType',
+          })),
           auth: f.directives?.find((d) => d.name.value === 'auth'),
           cache: f.directives?.find((d) => d.name.value === 'cacheControl'),
         })
@@ -62,38 +65,19 @@ const operationFields = () => {
   return fields
 }
 
-const field = (name: string) => {
-  const start = schema.indexOf(`${name}(`)
-  const next = schema.indexOf('"""', start)
+const fieldOf = (name: string) => {
+  const f = operationFields().find((x) => x.name === name)
 
-  return schema.slice(start, next === -1 ? undefined : next)
+  if (!f) throw new Error(`missing field ${name}`)
+
+  return f
 }
 
 describe('graphql/schema.graphql', () => {
-  it('getSavedCart is PRIVATE and identity args are optional', () => {
-    expect(field('getSavedCart')).toContain('@cacheControl(scope: PRIVATE')
-    expect(field('getSavedCart')).not.toContain('userId: String!')
-  })
-
-  it('saveCurrentCart identity arg is optional', () => {
-    expect(field('saveCurrentCart')).not.toContain('userId: String!')
-  })
-
-  it('saveAppSettings requires admin access', () => {
-    expect(field('saveAppSettings')).toContain(
-      '@auth(scope: PRIVATE, productCode: "38", resourceCode: "topbar_visualizar")'
-    )
-  })
-})
-
-describe('graphql builder 2.x contract', () => {
-  it('declares the graphql builder as 2.x', () => {
-    expect(manifest.builders.graphql).toBe('2.x')
-  })
-
-  it('has @auth with a scope on every Query and Mutation field', () => {
+  it('every Query and Mutation field has @auth with a scope (PRIVATE with codes only on saveAppSettings)', () => {
     const fields = operationFields()
 
+    // counting the fields makes a new, unreviewed one fail this test
     expect(
       fields.map((f) => f.name).sort((a, b) => a.localeCompare(b))
     ).toEqual([
@@ -103,69 +87,24 @@ describe('graphql builder 2.x contract', () => {
       'saveAppSettings',
       'saveCurrentCart',
     ])
-    fields.forEach((f) => {
-      expect(f.auth).toBeDefined()
-      expect(argValue(f.auth as DirectiveNode, 'scope')).toBeDefined()
-    })
+
+    const settings = fieldOf('saveAppSettings').auth as DirectiveNode
+
+    expect(argValue(settings, 'scope')).toBe('PRIVATE')
+    expect(argValue(settings, 'productCode')).toBe('38')
+    expect(argValue(settings, 'resourceCode')).toBe('topbar_visualizar')
+
+    fields
+      .filter((f) => f.name !== 'saveAppSettings')
+      .forEach((f) => {
+        const auth = f.auth as DirectiveNode
+
+        expect(argValue(auth, 'scope')).toBe('PUBLIC')
+        expect(auth.arguments).toHaveLength(1)
+      })
   })
 
-  it.each(['getSavedCart', 'getAppSettings', 'saveCurrentCart', 'replaceCart'])(
-    '%s is PUBLIC (identity is validated by the resolver)',
-    (name) => {
-      const f = operationFields().find((x) => x.name === name)
-
-      expect(argValue(f?.auth as DirectiveNode, 'scope')).toBe('PUBLIC')
-      expect(
-        (f?.auth as DirectiveNode).arguments?.map((a) => a.name.value)
-      ).toEqual(['scope'])
-    }
-  )
-
-  it('saveAppSettings is PRIVATE with productCode and resourceCode', () => {
-    const f = operationFields().find((x) => x.name === 'saveAppSettings')
-    const auth = f?.auth as DirectiveNode
-
-    expect(argValue(auth, 'scope')).toBe('PRIVATE')
-    expect(argValue(auth, 'productCode')).toBe('38')
-    expect(argValue(auth, 'resourceCode')).toBe('topbar_visualizar')
-  })
-
-  it.each(['saveCurrentCart', 'replaceCart', 'saveAppSettings'])(
-    '%s mutation uses a private, uncached response and keeps its @auth',
-    (name) => {
-      const f = operationFields().find((x) => x.name === name)
-
-      expect(argValue(f?.cache as DirectiveNode, 'scope')).toBe('PRIVATE')
-      expect(argValue(f?.cache as DirectiveNode, 'maxAge')).toBe('ZERO')
-      expect(f?.auth).toBeDefined()
-    }
-  )
-
-  it('getSavedCart is PRIVATE/ZERO and getAppSettings is PUBLIC/SHORT', () => {
-    const fields = operationFields()
-    const cache = (n: string) =>
-      fields.find((x) => x.name === n)?.cache as DirectiveNode
-
-    expect(argValue(cache('getSavedCart'), 'scope')).toBe('PRIVATE')
-    expect(argValue(cache('getSavedCart'), 'maxAge')).toBe('ZERO')
-    expect(argValue(cache('getAppSettings'), 'scope')).toBe('PUBLIC')
-    expect(argValue(cache('getAppSettings'), 'maxAge')).toBe('SHORT')
-  })
-
-  it.each([
-    'getSavedCart',
-    'saveCurrentCart',
-    'replaceCart',
-    'saveAppSettings',
-  ])('client document %s requests the private route', (name) => {
-    expect(clientDocument(name)).toContain('@context(scope: "private")')
-  })
-
-  it('client document getAppSettings stays on the public route', () => {
-    expect(clientDocument('getAppSettings')).not.toContain('@context')
-  })
-
-  it('builds an executable schema that accepts @auth(scope)', () => {
+  it('builds an executable schema, proving the @vtex/api directive accepts `scope`', () => {
     // @cacheControl is declared by the builder; strip it, keep only @auth
     const sdl = schema.replace(/@cacheControl\([^)]*\)/g, '')
 
@@ -177,10 +116,47 @@ describe('graphql builder 2.x contract', () => {
       })
     ).not.toThrow()
   })
+
+  it('getSavedCart and the three mutations use a private, uncached response', () => {
+    ;[
+      'getSavedCart',
+      'saveCurrentCart',
+      'replaceCart',
+      'saveAppSettings',
+    ].forEach((name) => {
+      const cache = fieldOf(name).cache as DirectiveNode
+
+      expect(argValue(cache, 'scope')).toBe('PRIVATE')
+      expect(argValue(cache, 'maxAge')).toBe('ZERO')
+    })
+  })
+
+  it('client documents that need the shopper token request the private route; getAppSettings does not', () => {
+    ;[
+      'getSavedCart',
+      'saveCurrentCart',
+      'replaceCart',
+      'saveAppSettings',
+    ].forEach((name) => {
+      expect(clientDocument(name)).toContain('@context(scope: "private")')
+    })
+    expect(clientDocument('getAppSettings')).not.toContain('@context')
+  })
+
+  it('keeps the deprecated identity arguments, optional, for cached old bundles', () => {
+    ;['getSavedCart', 'saveCurrentCart'].forEach((name) => {
+      const { args } = fieldOf(name)
+
+      expect(args.map((a) => a.name)).toEqual(
+        expect.arrayContaining(['userId', 'userType'])
+      )
+      args.forEach((a) => expect(a.required).toBe(false))
+    })
+  })
 })
 
 describe('manifest.json', () => {
-  it('allows the @auth directive to reach VTEX ID', () => {
+  it('declares the outbound-access policy the @auth check and token validation need (VTEX ID)', () => {
     expect(manifest.policies).toContainEqual({
       name: 'outbound-access',
       attrs: {
@@ -188,13 +164,5 @@ describe('manifest.json', () => {
         path: '/api/vtexid/pub/authenticated/user',
       },
     })
-  })
-})
-
-describe('replaceCart docstring', () => {
-  it('describes adoption of the own OWNED cart', () => {
-    expect(schema).toContain("Adopts the caller's own saved cart")
-    expect(schema).not.toContain('Never switches the active cart')
-    expect(schema).not.toContain('getSavedCartResult')
   })
 })

@@ -1,10 +1,15 @@
 /* eslint-disable jest/no-expect-resolves */
-import { isValidOrderFormId, resolveShopper } from '../utils/identity'
+import {
+  isValidOrderFormId,
+  resolveShopper,
+  warnOnIdentityArgMismatch,
+} from '../utils/identity'
 import {
   ACCOUNT,
   EMAIL_A,
   mockContext,
   SHOPPER_A,
+  SHOPPER_B,
 } from '../testUtils/mockContext'
 
 describe('isValidOrderFormId', () => {
@@ -89,5 +94,36 @@ describe('resolveShopper', () => {
       message: 'cross-device-cart.vtexid_unavailable',
       status: 503,
     })
+  })
+})
+
+describe('warnOnIdentityArgMismatch', () => {
+  const shopper = { userId: SHOPPER_A, email: EMAIL_A }
+
+  it('warns exactly once, with only message and operation, when the argument is another id', () => {
+    const { ctx, logger } = mockContext({ shopper: SHOPPER_A })
+
+    expect(() =>
+      warnOnIdentityArgMismatch(ctx, 'getSavedCart', SHOPPER_B, shopper)
+    ).not.toThrow()
+    expect(logger.warn).toHaveBeenCalledTimes(1)
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.identity_arg_mismatch',
+      operation: 'getSavedCart',
+    })
+  })
+
+  it.each([
+    ['matching', SHOPPER_A],
+    ['matching with another case and spaces', ` ${SHOPPER_A.toUpperCase()} `],
+    ['empty', ''],
+    ['blank', '   '],
+    ['absent', undefined],
+    ['null', null],
+  ])('does not warn when the argument is %s', (_name, arg) => {
+    const { ctx, logger } = mockContext({ shopper: SHOPPER_A })
+
+    warnOnIdentityArgMismatch(ctx, 'saveCurrentCart', arg, shopper)
+    expect(logger.warn).not.toHaveBeenCalled()
   })
 })

@@ -50,6 +50,29 @@ export async function resolveShopper(
   }
 }
 
+/**
+ * Old storefront bundles still send a `userId` argument, which is ignored.
+ * When it is present and is not the authenticated shopper, log a PII-free
+ * warning (no ids). Never throws and never changes the result.
+ */
+export function warnOnIdentityArgMismatch(
+  ctx: Context,
+  operation: CrossCartOperation,
+  argUserId: string | null | undefined,
+  shopper: ShopperIdentity
+): void {
+  if (typeof argUserId !== 'string') return
+
+  const sent = argUserId.trim().toLowerCase()
+
+  if (sent && sent !== shopper.userId.trim().toLowerCase()) {
+    ctx.vtex.logger.warn({
+      message: 'cross-device-cart.identity_arg_mismatch',
+      operation,
+    })
+  }
+}
+
 const CHECKOUT_COOKIE = 'checkout.vtex.com'
 const OFID_PATTERN = /(?:^|&)__ofid=([a-f0-9]{32})(?:&|$)/
 

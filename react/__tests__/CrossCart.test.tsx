@@ -252,3 +252,139 @@ describe('a refetch that errors keeps the previous data (Apollo 3.1.5) and must 
     expect(mockSaveCurrentCart).not.toHaveBeenCalled()
   })
 })
+
+describe('a session change while a merge is in flight', () => {
+  const deferred = <T,>() => {
+    let resolve!: (value: T) => void
+    const promise = new Promise<T>((res) => {
+      resolve = res
+    })
+
+    return { promise, resolve }
+  }
+
+  const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+
+  const expectNothingApplied = () => {
+    expect(mockSetOrderForm).not.toHaveBeenCalled()
+    expect(mockShowToast).not.toHaveBeenCalled()
+    expect(mockGetSavedCart).toHaveBeenCalledTimes(1) // only the initial lookup
+  }
+
+  const adoptedResult = {
+    data: { newOrderForm: { id: SAVED, items: [{ id: '1' }] } },
+  }
+
+  it('unmounted while replaceCart is pending: no POST, no setOrderForm, no toast, no follow-up query', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    const pending = deferred<typeof adoptedResult>()
+
+    mockReplaceCart.mockReturnValue(pending.promise)
+    const { unmount } = renderBlock(true)
+
+    await waitFor(() => expect(mockReplaceCart).toHaveBeenCalled())
+    unmount()
+    pending.resolve(adoptedResult)
+    await flush()
+
+    expect(axios.post).not.toHaveBeenCalled()
+    expectNothingApplied()
+  })
+
+  it('unmounted while the Checkout POST is pending: no setOrderForm, no toast, no follow-up query', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    const pending = deferred<Record<string, never>>()
+
+    ;(axios.post as jest.Mock).mockReturnValue(pending.promise)
+    const { unmount } = renderBlock(true)
+
+    await waitFor(() => expect(axios.post).toHaveBeenCalled())
+    unmount()
+    pending.resolve({})
+    await flush()
+
+    expectNothingApplied()
+  })
+
+  it('unmounted while the Checkout POST is pending and then fails: no error toast (manual mode)', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    let rejectPost!: (reason: Error) => void
+    ;(axios.post as jest.Mock).mockReturnValue(
+      new Promise((_, reject) => {
+        rejectPost = reject
+      })
+    )
+    const { getByText, unmount } = renderBlock(false)
+
+    fireEvent.click(getByText('accept'))
+    await waitFor(() => expect(axios.post).toHaveBeenCalled())
+    unmount()
+    rejectPost(new Error('checkout down'))
+    await flush()
+
+    expect(mockShowToast).not.toHaveBeenCalled()
+  })
+
+  it('unmounted while a refused replaceCart is pending: no error toast (manual mode)', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    const pending = deferred<{ data: { newOrderForm: null } }>()
+
+    mockReplaceCart.mockReturnValue(pending.promise)
+    const { getByText, unmount } = renderBlock(false)
+
+    fireEvent.click(getByText('accept'))
+    await waitFor(() => expect(mockReplaceCart).toHaveBeenCalled())
+    unmount()
+    pending.resolve({ data: { newOrderForm: null } })
+    await flush()
+
+    expect(mockShowToast).not.toHaveBeenCalled()
+  })
+
+  it('normal path: adopts, POSTs, sets the orderForm, toasts and refreshes the saved cart', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    renderBlock(true)
+
+    await waitFor(() =>
+      expect(mockShowToast).toHaveBeenCalledWith({
+        message: 'store/crossCart.toast.success',
+      })
+    )
+    expect(axios.post).toHaveBeenCalledTimes(1)
+    expect(mockSetOrderForm).toHaveBeenCalledWith({
+      id: SAVED,
+      items: [{ id: '1' }],
+    })
+    expect(mockGetSavedCart).toHaveBeenCalledTimes(2)
+  })
+
+  it('a key change that remounts the component while replaceCart is pending behaves like an unmount', async () => {
+    mockLazyState = { loading: false, data: { id: SAVED } }
+    const pending = deferred<typeof adoptedResult>()
+
+    mockReplaceCart.mockReturnValueOnce(pending.promise)
+    // the new session instance has nothing to merge
+    const element = (key: string) => (
+      <CrossCart
+        key={key}
+        isAutomatic
+        strategy="REPLACE"
+        showToast={mockShowToast}
+      />
+    )
+
+    const { rerender } = render(element('profile-1'))
+
+    await waitFor(() => expect(mockReplaceCart).toHaveBeenCalledTimes(1))
+    mockLazyState = { loading: false }
+    rerender(element('profile-2'))
+    pending.resolve(adoptedResult)
+    await flush()
+
+    expect(axios.post).not.toHaveBeenCalled()
+    expect(mockSetOrderForm).not.toHaveBeenCalled()
+    expect(mockShowToast).not.toHaveBeenCalled()
+    // initial lookups of the two instances only, no follow-up from the old one
+    expect(mockGetSavedCart).toHaveBeenCalledTimes(2)
+  })
+})

@@ -448,3 +448,143 @@ describe('FR-D2 duplicate checkout cookies in replaceCart', () => {
     })
   })
 })
+
+describe('replaceCart: un-awaited Checkout reads inside the try', () => {
+  const rejection = { response: { status: 503 }, message: 'checkout down' }
+
+  const expectOneCheckoutError = (logger: any) => {
+    const errors = logger.warn.mock.calls.filter(
+      ([entry]: any) => entry?.message === 'cross-device-cart.checkout_error'
+    )
+
+    expect(errors).toEqual([
+      [
+        {
+          message: 'cross-device-cart.checkout_error',
+          operation: 'replaceCart',
+          status: 503,
+        },
+      ],
+    ])
+    expectNoIdentifiersLogged(logger)
+  }
+
+  it('savedCart == currentCart and getOrderForm rejects: null, one checkout_error, nothing written', async () => {
+    const {
+      ctx,
+      checkoutIO,
+      requestHub,
+      response,
+      logger,
+      vbaseData,
+    } = mockContext({
+      cookie: SAVED,
+      store: { [SHOPPER_A]: SAVED },
+    })
+
+    checkoutIO.getOrderForm.mockRejectedValue(rejection)
+
+    await expect(run(ctx, 'COMBINE', SAVED)).resolves.toBeNull()
+    expectOneCheckoutError(logger)
+    expect(response.set).not.toHaveBeenCalled()
+    expect(requestHub.clearCart).not.toHaveBeenCalled()
+    expect(checkoutIO.addToCart).not.toHaveBeenCalled()
+    expect(vbaseData[SHOPPER_A]).toBe(SAVED)
+  })
+
+  it('empty saved cart and getOrderForm rejects: null, one checkout_error, no cookie, no cart writes', async () => {
+    const { ctx, checkoutIO, requestHub, response, logger } = mockContext({
+      store: { [SHOPPER_A]: SAVED },
+      items: { [OF_A]: [item(1, 1)] },
+    })
+
+    checkoutIO.getOrderForm.mockRejectedValue(rejection)
+
+    await expect(run(ctx, 'REPLACE')).resolves.toBeNull()
+    expectOneCheckoutError(logger)
+    expect(response.set).not.toHaveBeenCalled()
+    expect(requestHub.clearCart).not.toHaveBeenCalled()
+    expect(checkoutIO.addToCart).not.toHaveBeenCalled()
+  })
+})
+
+describe('replaceCart: a failed ownership lookup of either cart never permits adoption', () => {
+  const failOnly = (checkoutRest: any, failingId: string) => {
+    const original = checkoutRest.getOrderFormOwner.getMockImplementation()
+
+    checkoutRest.getOrderFormOwner.mockImplementation(async (id: string) => {
+      if (id === failingId) {
+        throw { response: { status: 503 }, message: 'lookup down' }
+      }
+
+      return original(id)
+    })
+  }
+
+  const expectNothingHappened = (m: any) => {
+    expect(m.response.set).not.toHaveBeenCalled()
+    expect(m.requestHub.clearCart).not.toHaveBeenCalled()
+    expect(m.checkoutIO.addToCart).not.toHaveBeenCalled()
+    expect(m.vbaseData[SHOPPER_A]).toBe(SAVED)
+    expectNoIdentifiersLogged(m.logger)
+  }
+
+  it.each(['REPLACE', 'ADD', 'COMBINE'])(
+    '%s: only the CURRENT cart lookup fails: null, no writes, no cookie, key unchanged',
+    async (strategy) => {
+      const m = mockContext({
+        store: { [SHOPPER_A]: SAVED },
+        items: { [SAVED]: [item(5, 2)], [OF_A]: [item(1, 1)] },
+      })
+
+      failOnly(m.checkoutRest, OF_A)
+
+      await expect(run(m.ctx, strategy as Strategy)).resolves.toBeNull()
+      expectNothingHappened(m)
+    }
+  )
+
+  it('only the SAVED cart lookup fails: null, no writes, no cookie, key unchanged', async () => {
+    const m = mockContext({
+      store: { [SHOPPER_A]: SAVED },
+      items: { [SAVED]: [item(5, 2)], [OF_A]: [item(1, 1)] },
+    })
+
+    failOnly(m.checkoutRest, SAVED)
+
+    await expect(run(m.ctx, 'COMBINE')).resolves.toBeNull()
+    expectNothingHappened(m)
+  })
+})
+
+describe('replaceCart when the CURRENT cart does not exist (owner lookup 404)', () => {
+  // A cart that does not exist cannot be a foreign cart or a call-center
+  // session, so the OWNED saved cart is adopted as is (REPLACE semantics).
+  it.each(['REPLACE', 'ADD', 'COMBINE'])(
+    '%s: adopts the OWNED saved cart as is, never reads the current cart items, sets the cookie',
+    async (strategy) => {
+      const m = mockContext({
+        store: { [SHOPPER_A]: SAVED },
+        items: { [SAVED]: [item(5, 2)], [OF_A]: [item(1, 1)] },
+      })
+
+      const rest: any = m.checkoutRest
+      const original = rest.getOrderFormOwner.getMockImplementation()
+
+      rest.getOrderFormOwner.mockImplementation(async (id: string) =>
+        id === OF_A ? null : original(id)
+      )
+
+      const result = await run(m.ctx, strategy as Strategy)
+
+      expect(result).toMatchObject({ id: SAVED })
+      expect(m.checkoutIO.getItems).not.toHaveBeenCalledWith(OF_A)
+      expect(m.checkoutIO.getOrderForm).toHaveBeenCalledWith(SAVED)
+      expect(m.requestHub.clearCart).not.toHaveBeenCalled()
+      expect(m.checkoutIO.addToCart).not.toHaveBeenCalled()
+      expect(m.response.set).toHaveBeenCalledWith('set-cookie', COOKIE)
+      expect(m.vbaseData[SHOPPER_A]).toBe(SAVED)
+      expectNoIdentifiersLogged(m.logger)
+    }
+  )
+})
