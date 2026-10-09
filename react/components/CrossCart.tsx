@@ -12,15 +12,12 @@ import ChallengeBlock from './ChallengeBlock'
 import insertRootPath from '../utils/insertRootPath'
 
 interface Props {
-  userId: string
-  salesChannel: string
   isAutomatic: boolean
   showToast: (toast: ToastParam) => void
   strategy: Strategy
-  userType: string
 }
 
-const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, strategy, showToast }) => {
+const CrossCart: FC<Props> = ({ isAutomatic, strategy, showToast }) => {
   const {
     orderForm,
     initialFetchComplete,
@@ -34,8 +31,9 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
   const intl = useIntl()
 
   const hasItems = orderForm.items.length
+  const savedCartVariables: CrossCartVars = { nullOnEmpty: !isAutomatic }
 
-  const [getSavedCart, { data, loading }] = useLazyQuery<
+  const [getSavedCart, { data, loading, error: queryError }] = useLazyQuery<
     CrossCartData,
     CrossCartVars
   >(GET_ID_BY_USER, {
@@ -44,33 +42,31 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
 
   const [saveCurrentCart] = useMutation<Success, NewCrossCart>(SAVE_ID_BY_USER)
 
-  const [replaceCart, { error, loading: mutationLoading }] = useMutation<
-    NewOrderForm | null,
+  const [replaceCart, { loading: mutationLoading }] = useMutation<
+    ReplaceCartData,
     ReplaceCartVariables
   >(MUTATE_CART)
 
   useEffect(() => {
-    getSavedCart({
-      variables: {
-        userId,
-        salesChannel,
-        nullOnEmpty: !isAutomatic,
-        userType
-      },
-    })
+    getSavedCart({ variables: savedCartVariables })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  /** Refusals are silent in automatic mode, and toast only when the shopper asked (FR-C9). */
+  const notifyFailure = () => {
+    challengeActive && setChallenge(false)
+
+    !isAutomatic &&
+      showToast({
+        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
+      })
+  }
 
   const handleDeclineMerge = async () => {
     challengeActive && setChallenge(false)
 
     await saveCurrentCart({
-      variables: {
-        userId,
-        salesChannel,
-        orderFormId: hasItems ? orderForm.id : null,
-        userType
-      },
+      variables: { orderFormId: hasItems ? orderForm.id : null },
     })
   }
 
@@ -79,71 +75,68 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
 
     setMergeStatus(true)
 
-    const mutationResult = await replaceCart({
-      variables: {
-        currentCart: orderForm.id,
-        savedCart: data.id,
-        strategy,
-        userType
-      },
-    })
-
-    if (error || !mutationResult.data || !mutationResult.data.newOrderForm) {
-      error && console.error(error)
-
-      showToast({
-        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
-      })
-
-      return
-    }
+    let newOrderForm: NewOrderForm | null | undefined
 
     try {
-      const orderFormURLWithRootPath = insertRootPath(
-        rootPath,
-        `/api/checkout/pub/orderForm/${data.id}`
-      )
-
-      await axios.post(
-        orderFormURLWithRootPath,
-        {},
-        {
-          headers: {
-            'set-cookie': `checkout.vtex.com=__ofid=${data.id}`,
-          },
-        }
-      )
-    } catch (e) {
-      challengeActive && setChallenge(false)
-
-      showToast({
-        message: intl.formatMessage({ id: 'store/crossCart.toast.error' }),
+      const result = await replaceCart({
+        variables: {
+          currentCart: orderForm.id,
+          savedCart: data.id,
+          strategy,
+        },
       })
+
+      newOrderForm = result.data?.newOrderForm
+    } catch (e) {
+      console.error(e)
+    }
+
+    if (!newOrderForm) {
+      notifyFailure()
 
       return
     }
 
-    const { newOrderForm } = mutationResult.data
+    if (newOrderForm.id === data.id) {
+      // The server adopted the shopper's own saved cart after verifying ownership.
+      // Let Checkout set its own cookie with the shopper's credentials (FR-C8).
+      try {
+        await axios.post(
+          insertRootPath(
+            rootPath,
+            `/api/checkout/pub/orderForm/${newOrderForm.id}`
+          ),
+          {}
+        )
+      } catch (e) {
+        notifyFailure()
+
+        return
+      }
+    }
+
+    // Only report a recovery when something actually changed for the shopper:
+    // the saved cart was adopted, or the current cart gained items.
+    const changed =
+      newOrderForm.id === data.id ||
+      (newOrderForm.items?.length ?? 0) > orderForm.items.length
 
     setOrderForm(newOrderForm)
 
     challengeActive && setChallenge(false)
 
-    showToast({
-      message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
-    })
+    changed &&
+      showToast({
+        message: intl.formatMessage({ id: 'store/crossCart.toast.success' }),
+      })
 
-    getSavedCart({
-      variables: {
-        userId,
-        salesChannel,
-        nullOnEmpty: !isAutomatic,
-      },
-    })
+    getSavedCart({ variables: savedCartVariables })
   }
 
   useEffect(() => {
+    // Apollo may keep the previous data when a refetch fails; never act on it.
     if (
+      queryError ||
       loading ||
       !data ||
       !initialFetchComplete ||
@@ -151,17 +144,8 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
     )
       return
 
-    if (
-      window.location.href.includes('orderPlaced')
-    ) {
-      saveCurrentCart({
-        variables: {
-          userId,
-          salesChannel,
-          orderFormId: null,
-          userType
-        },
-      })
+    if (window.location.href.includes('orderPlaced')) {
+      saveCurrentCart({ variables: { orderFormId: null } })
 
       return
     }
@@ -169,14 +153,7 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
     const crossCart = data?.id !== 'default-order-form' && data?.id
 
     if (!crossCart) {
-      saveCurrentCart({
-        variables: {
-          userId,
-          salesChannel,
-          orderFormId: orderForm.id,
-          userType
-        },
-      })
+      saveCurrentCart({ variables: { orderFormId: orderForm.id } })
 
       return
     }
@@ -191,17 +168,10 @@ const CrossCart: FC<Props> = ({ userId, userType, salesChannel, isAutomatic, str
     }
 
     if (!hasItems && !isAutomatic) {
-      saveCurrentCart({
-        variables: {
-          userId,
-          salesChannel,
-          orderFormId: null,
-          userType
-        },
-      })
+      saveCurrentCart({ variables: { orderFormId: null } })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, data, hasItems, initialFetchComplete, orderForm.id])
+  }, [loading, data, queryError, hasItems, initialFetchComplete, orderForm.id])
 
   if (!challengeActive || isAutomatic) {
     return null

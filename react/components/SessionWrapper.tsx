@@ -9,7 +9,7 @@ import getAppSettings from '../graphql/getAppSettings.gql'
 
 const SessionWrapper: FC = () => {
   const { loading, session, error } = useRenderSession()
-  const { loading: orderLoading, orderForm: {userType} } = useOrderForm()
+  const { loading: orderLoading } = useOrderForm()
   const [settings, setAppSettings] = useState({} as AppSettings)
   const { data } = useQuery<AppSettingsData>(getAppSettings, {
     ssr: false,
@@ -28,30 +28,28 @@ const SessionWrapper: FC = () => {
   }
 
   const {
-    namespaces: { profile, store },
+    namespaces: { profile },
   } = session as SessionSuccess
 
-  const { isAutomatic, strategy } = settings
-
   const isAuthenticated = profile?.isAuthenticated.value === 'true'
-  const salesChannel = store?.channel.value
-
 
   if (!isAuthenticated) {
     return null
   }
 
-  const userId = profile?.id.value
+  const { isAutomatic, strategy } = settings
+
+  // The profile id is only used as a React key, so that a change of session
+  // user remounts the block. Identity is never sent to the server.
+  const sessionKey = profile?.id?.value ?? 'anonymous'
 
   return (
     <ToastConsumer>
       {({ showToast }: { showToast: (toast: ToastParam) => void }) => (
         <CrossCart
-          salesChannel = {salesChannel || "1"}
+          key={sessionKey}
           showToast={showToast}
-          userId={userId}
           isAutomatic={isAutomatic}
-          userType={userType}
           strategy={strategy}
         />
       )}
