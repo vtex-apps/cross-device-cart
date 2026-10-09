@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `saveAppSettings` requires admin access.
 
 ### Changed
+- Moved to the `graphql` builder 2.x (explicit `@auth` scopes) and `@vtex/api` 6.51.0; local TypeScript tooling updated.
+- The cart mutations and the settings mutation now use a private cache scope, and their client documents request the private route.
 - An anonymous saved cart is no longer adopted; its missing items are added to the current cart.
 - An empty saved cart is no longer adopted.
 - A refused merge is silent in automatic mode; the error toast is shown only in manual mode.

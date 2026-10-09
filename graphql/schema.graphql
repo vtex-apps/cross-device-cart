@@ -7,12 +7,14 @@ type Query {
   """
   getSavedCart(userId: String, nullOnEmpty: Boolean, userType: String): String
     @cacheControl(scope: PRIVATE, maxAge: ZERO)
+    @auth(scope: PUBLIC)
 
   """
   Retrieve app settings
   """
   getAppSettings: CrossDeviceCartSettings
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
+    @auth(scope: PUBLIC)
 }
 
 type Mutation {
@@ -21,7 +23,12 @@ type Mutation {
   orderForm is anonymous or owned by the caller. `userId` and `userType` are
   deprecated and ignored.
   """
-  saveCurrentCart(userId: String, orderFormId: String, userType: String): String
+  saveCurrentCart(
+    userId: String
+    orderFormId: String
+    userType: String
+  ): String @cacheControl(scope: PRIVATE, maxAge: ZERO) @auth(scope: PUBLIC)
+
   """
   Adopts the caller's own saved cart (OWNED by the token identity and with
   items), merging the current cart into it according to the strategy. A saved
@@ -35,11 +42,12 @@ type Mutation {
     currentCart: String!
     strategy: Strategy!
     userType: String
-  ): OrderForm
+  ): OrderForm @cacheControl(scope: PRIVATE, maxAge: ZERO) @auth(scope: PUBLIC)
 
   """
   Save app settings (admin only)
   """
   saveAppSettings(settings: SaveSettings): Boolean
-    @auth(productCode: "38", resourceCode: "topbar_visualizar")
+    @cacheControl(scope: PRIVATE, maxAge: ZERO)
+    @auth(scope: PRIVATE, productCode: "38", resourceCode: "topbar_visualizar")
 }

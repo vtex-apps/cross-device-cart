@@ -16,3 +16,4 @@
 **/*.test.*
 react/testUtils/**
 node/testUtils/**
+node/jest.setup.js
