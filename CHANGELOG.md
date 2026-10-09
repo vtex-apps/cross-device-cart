@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Shopper identity and sales channel are now derived server-side (VTEX ID token and segment); client `userId`, `salesChannel` and `userType` arguments are ignored.
+- Saved cart references are validated against the orderForm owner on save, on read and on merge; foreign references are deleted on read.
+- `saveAppSettings` now requires an authorized admin.
+- `getSavedCart` is now `PRIVATE` cache scope.
+
+### Changed
+- `replaceCart` adopts a saved cart (the `checkout.vtex.com` cookie and the strategy applied on the saved cart, as before) only when it is the shopper's stored reference and owned by the shopper. Anonymous saved carts only add their missing items to the current cart. Any other saved cart is refused and its reference removed.
+- The items of a current cart that belongs to another profile are never merged.
+- Refused merges no longer show an error toast in automatic mode.
+
+### Deprecated
+- GraphQL arguments `userId`, `salesChannel` and `userType` (removed in the next major).
+
 ## [2.0.3] - 2024-10-22
 
 ### Added

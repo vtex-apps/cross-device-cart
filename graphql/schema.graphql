@@ -1,9 +1,15 @@
 type Query {
   """
-  Retrieves a cross cart OrderForm ID. Will return NULL if no reference was stored.
+  Retrieves the authenticated shopper's cross cart OrderForm ID, or NULL.
+  The shopper and sales channel are derived from the request; `userId`, `userType`
+  and `salesChannel` are ignored and will be removed in the next major version.
   """
-  getSavedCart(userId: String!, userType: String, salesChannel: String, nullOnEmpty: Boolean): String
-    @cacheControl(scope: PUBLIC, maxAge: ZERO)
+  getSavedCart(
+    userId: String
+    userType: String
+    salesChannel: String
+    nullOnEmpty: Boolean
+  ): String @cacheControl(scope: PRIVATE, maxAge: ZERO)
 
   """
   Retrieve app settings
@@ -14,11 +20,22 @@ type Query {
 
 type Mutation {
   """
-  Stores an OrderForm ID for a specific user, as a cross cart reference.
+  Stores the authenticated shopper's current OrderForm ID as their cross cart reference.
+  Only orderForms owned by the shopper (or anonymous) are stored. `userId`, `userType`
+  and `salesChannel` are ignored and will be removed in the next major version.
   """
-  saveCurrentCart(userId: String!, userType: String, salesChannel: String, orderFormId: String): String
+  saveCurrentCart(
+    userId: String
+    userType: String
+    salesChannel: String
+    orderFormId: String
+  ): String
   """
-  Replaces current cart with a saved cart. Optionally, you can request that both list of items be merged.
+  Makes the browser use the authenticated shopper's own saved cart (merging the
+  current cart's items into it for ADD/COMBINE). Only a saved cart owned by the
+  shopper is adopted; an anonymous saved cart only contributes missing items to
+  the current cart. Returns NULL when the request is refused.
+  `userType` is ignored and will be removed in the next major version.
   """
   replaceCart(
     savedCart: String!
@@ -28,7 +45,8 @@ type Mutation {
   ): OrderForm
 
   """
-  Save app settings
+  Save app settings. Admin only.
   """
   saveAppSettings(settings: SaveSettings): Boolean
+    @auth(productCode: "38", resourceCode: "topbar_visualizar")
 }

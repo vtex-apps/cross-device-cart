@@ -6,8 +6,9 @@
   },
   "devDependencies": {
     "@types/cookie": "^0.3.2",
+    "@types/jest": "^25.1.4",
     "@vtex/api": "6.47.0",
-    "@vtex/test-tools": "vtex/test-tools",
+    "@vtex/test-tools": "^3.4.3",
     "@vtex/tsconfig": "^0.5.6",
     "typescript": "3.9.7",
     "vtex.checkout-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql",
@@ -21,7 +22,9 @@
     "vtex.styleguide": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.13/public/@types/vtex.styleguide"
   },
   "scripts": {
-    "lint": "tsc --noEmit --pretty && tslint -c tslint.json --fix './**/*.ts'"
+    "lint": "tsc --noEmit --pretty && tslint -c tslint.json --fix './**/*.ts'",
+    "test": "vtex-test-tools test",
+    "typecheck": "tsc --noEmit --pretty"
   },
   "version": "2.0.3"
 }
