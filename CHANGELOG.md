@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `getSavedCart` is now `PRIVATE` cache scope.
 
 ### Changed
+- Moved to the `graphql` builder 2.x (explicit `@auth` scopes) and `@vtex/api` 6.51.0; local TypeScript tooling updated.
+- The cart mutations and the settings mutation now use a private cache scope, and their client documents request the private route.
 - `replaceCart` adopts a saved cart (the `checkout.vtex.com` cookie and the strategy applied on the saved cart, as before) only when it is the shopper's stored reference and owned by the shopper. Anonymous saved carts only add their missing items to the current cart. Any other saved cart is refused and its reference removed.
 - The items of a current cart that belongs to another profile are never merged.
 - Refused merges no longer show an error toast in automatic mode.

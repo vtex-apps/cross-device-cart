@@ -1,5 +1,7 @@
 import { ExternalClient, InstanceOptions, IOContext } from '@vtex/api'
 
+import { httpStatus } from '../utils/httpStatus'
+
 export interface RawOrderFormOwnerFields {
   orderFormId?: string
   userProfileId?: string | null
@@ -66,7 +68,7 @@ export default class CheckoutRestClient extends ExternalClient {
 
       return toOrderFormOwner(orderFormId, raw ?? {})
     } catch (error) {
-      if (error?.response?.status === 404) {
+      if (httpStatus(error) === 404) {
         return null
       }
 

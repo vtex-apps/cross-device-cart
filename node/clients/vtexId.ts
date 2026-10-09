@@ -1,6 +1,8 @@
 import type { InstanceOptions, IOContext } from '@vtex/api'
 import { ExternalClient } from '@vtex/api'
 
+import { httpStatus } from '../utils/httpStatus'
+
 /**
  * Response of POST /api/vtexid/credential/validate.
  * Documented in the VTEX ID API reference ("Check authenticated user").
@@ -49,9 +51,9 @@ export default class VtexId extends ExternalClient {
         }
       )
     } catch (error) {
-      const status = error?.response?.status
+      const status = httpStatus(error)
 
-      if (NOT_AUTHENTICATED_STATUSES.includes(status)) {
+      if (status !== undefined && NOT_AUTHENTICATED_STATUSES.includes(status)) {
         return null
       }
 

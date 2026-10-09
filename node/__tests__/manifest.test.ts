@@ -33,4 +33,8 @@ describe('manifest outbound-access policies', () => {
       /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$/
     )
   })
+
+  it('declares the graphql builder 2.x (explicit @auth scopes)', () => {
+    expect(manifest.builders.graphql).toBe('2.x')
+  })
 })

@@ -1,3 +1,3 @@
-query getSavedCart($nullOnEmpty: Boolean) {
-  id: getSavedCart(nullOnEmpty: $nullOnEmpty) @context(scope: "private")
+query getSavedCart($nullOnEmpty: Boolean) @context(scope: "private") {
+  id: getSavedCart(nullOnEmpty: $nullOnEmpty)
 }

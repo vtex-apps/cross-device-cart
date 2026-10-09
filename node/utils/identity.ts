@@ -1,4 +1,5 @@
 import { DEFAULT_SALES_CHANNEL, ORDER_FORM_ID_PATTERN } from '../constants'
+import { httpStatus } from './httpStatus'
 
 export const STORE_AUDIENCE = 'webstore'
 
@@ -24,7 +25,7 @@ export async function resolveShopper(
   } catch (error) {
     ctx.vtex.logger.warn({
       message: 'cross-device-cart.vtexid_unavailable',
-      status: error?.response?.status ?? null,
+      status: httpStatus(error) ?? null,
     })
 
     return null
@@ -56,7 +57,7 @@ export async function resolveSalesChannel(ctx: Context): Promise<string> {
   } catch (error) {
     ctx.vtex.logger.warn({
       message: 'cross-device-cart.segment_unavailable',
-      status: error?.response?.status ?? null,
+      status: httpStatus(error) ?? null,
     })
 
     return DEFAULT_SALES_CHANNEL

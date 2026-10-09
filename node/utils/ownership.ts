@@ -1,3 +1,4 @@
+import { httpStatus } from './httpStatus'
 import { isValidOrderFormId } from './identity'
 
 const ACCEPTABLE: VerdictOrFailure[] = ['OWNED', 'ANONYMOUS']
@@ -79,7 +80,7 @@ export async function fetchOwnership(
     ctx.vtex.logger.warn({
       message: 'cross-device-cart.owner_lookup_failed',
       operation,
-      status: error?.response?.status ?? null,
+      status: httpStatus(error) ?? null,
     })
 
     return { verdict: 'LOOKUP_FAILED' }

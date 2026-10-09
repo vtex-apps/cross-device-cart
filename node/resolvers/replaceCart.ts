@@ -1,5 +1,6 @@
 import { APP_NAME } from '../constants'
 import { mergeItems } from '../utils'
+import { httpStatus } from '../utils/httpStatus'
 import {
   isValidOrderFormId,
   matchesCheckoutCookie,
@@ -210,7 +211,7 @@ export const replaceCart = async (
     logger.warn({
       message: 'cross-device-cart.checkout_error',
       operation: OPERATION,
-      status: error?.response?.status ?? null,
+      status: httpStatus(error) ?? null,
     })
 
     return null
