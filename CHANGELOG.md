@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Authentication for `getSavedCart`, `saveCurrentCart` and `replaceCart` is enforced in the resolvers (fail-closed: `null`, or `unauthenticated` for `saveCurrentCart`, for callers without a valid store-user token). The `@auth(scope: PUBLIC)` directive on these operations is not an access control.
+- An orderForm without `userProfileId` that has a shipping address (`shippingData.address` or `selectedAddresses`) is now treated as `UNVERIFIED_PROFILE` and refused, even without a client email, instead of being treated as anonymous.
+- A failed Checkout read of the current or saved cart in `replaceCart` is now caught and logged without identifiers instead of escaping as a GraphQL error.
+- Shopper identity is now derived server-side from the store-user token (VTEX ID); `userId`/`userType` arguments are ignored.
+- Saved references are only stored, returned or merged when the orderForm is owned by the shopper or anonymous; foreign references are cleared on read.
+- `replaceCart` adopts the saved cart (`checkout.vtex.com` cookie) only when it belongs to the logged-in shopper, and only after the merge succeeded; foreign carts are never read, cleared, written or adopted.
+- Adoption also requires the cart's (unmasked) profile email to match the logged-in shopper.
+- Saved and current carts must match the browser's own `checkout.vtex.com` cookie.
+- `saveAppSettings` requires admin access.
+
+### Changed
+- A `userId` argument that does not match the authenticated shopper is still ignored, and now logs a warning without any identifiers.
+- Moved to the `graphql` builder 2.x (explicit `@auth` scopes). The runtime dependency `@vtex/api` is now 6.51.0 (the `scope` argument of `@auth` needs 6.50 or later) and the local TypeScript tooling 4.9.5.
+- The cart mutations and the settings mutation now use a private cache scope, and their client documents request the private route.
+- An in-flight cart merge no longer applies its result (or sends the Checkout request) after the session user changed or the component unmounted.
+- An anonymous saved cart is no longer adopted; its missing items are added to the current cart.
+- An empty saved cart is no longer adopted.
+- A refused merge is silent in automatic mode; the error toast is shown only in manual mode.
+
 ## [1.5.1] - 2026-02-04
 
 ### Fixed

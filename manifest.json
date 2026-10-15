@@ -10,7 +10,7 @@
     "docs": "0.x",
     "store": "0.x",
     "node": "6.x",
-    "graphql": "1.x",
+    "graphql": "2.x",
     "messages": "1.x"
   },
   "dependencies": {
@@ -23,9 +23,7 @@
     "vtex.order-manager": "0.x",
     "vtex.pixel-manager": "1.x"
   },
-  "registries": [
-    "smartcheckout"
-  ],
+  "registries": ["smartcheckout"],
   "credentialType": "absolute",
   "policies": [
     {
@@ -57,6 +55,13 @@
         "host": "portal.vtexcommercestable.com.br",
         "path": "/api/checkout/pub/*"
       }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "vtexid.vtex.com.br",
+        "path": "/api/vtexid/pub/authenticated/user"
+      }
     }
   ],
   "billingOptions": {
@@ -64,9 +69,7 @@
       "url": "https://support.vtex.com/hc/requests"
     },
     "type": "free",
-    "availableCountries": [
-      "*"
-    ]
+    "availableCountries": ["*"]
   },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
 }

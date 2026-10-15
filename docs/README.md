@@ -43,6 +43,14 @@ The Cross Device Cart app keeps a user’s shopping cart synchronized across dev
 3. (Optional) You can tailor the default experience by accessing the admin app settings.  
    By default, the app handles the replacement automatically. But if you set it to manual, a challenge block will be rendered as an action bar for the user to interact with.
 
+## Behavior
+
+- The shopper's own saved cart is restored on the other device, as before.
+- An anonymous saved cart is never adopted as is: only its missing items are added to the current cart.
+- Call-center sessions and carts that belong to another profile are ignored.
+- Refused merges are silent in automatic mode; in manual mode an error message is shown.
+- The settings page (`saveAppSettings`) requires admin access.
+
 ## Customization
 
 | CSS Handles     |

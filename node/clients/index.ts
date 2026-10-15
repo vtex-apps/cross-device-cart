@@ -9,6 +9,8 @@ import { OMS } from '@vtex/clients'
 
 import RequestHub from './hub'
 import CheckoutIO from './checkout'
+import VtexId from './vtexId'
+import CheckoutRestClient from './checkoutRest'
 
 export class Clients extends IOClients {
   public get checkoutIO() {
@@ -17,6 +19,14 @@ export class Clients extends IOClients {
 
   public get requestHub() {
     return this.getOrSet('requestHub', RequestHub)
+  }
+
+  public get vtexId() {
+    return this.getOrSet('vtexId', VtexId)
+  }
+
+  public get checkoutRest() {
+    return this.getOrSet('checkoutRest', CheckoutRestClient)
   }
 
   public get oms() {
