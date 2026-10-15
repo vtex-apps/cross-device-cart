@@ -13,13 +13,25 @@ export interface RawOrderFormOwnerFields {
   userType?: string | null
   loggedIn?: boolean
   clientProfileData?: { email?: string | null } | null
+  shippingData?: {
+    address?: Record<string, unknown> | null
+    selectedAddresses?: unknown[] | null
+  } | null
   salesChannel?: string | null
 }
+
+const hasShippingAddress = (raw: RawOrderFormOwnerFields): boolean =>
+  (typeof raw.shippingData?.address === 'object' &&
+    raw.shippingData.address !== null) ||
+  (Array.isArray(raw.shippingData?.selectedAddresses) &&
+    raw.shippingData.selectedAddresses.length > 0)
 
 /**
  * Keeps only the fields needed for ownership decisions. The email is kept only
  * to compare it with the VTEX ID login email (FR-D1). It is never logged or
  * returned to the client, and it may be masked ("***") on Data Protection Plus accounts.
+ * `hasClientProfile` is also true for a cart with a shipping address but no
+ * email: the address holds PII (receiver name, street, postal code).
  */
 export const toOrderFormOwner = (
   orderFormId: string,
@@ -29,7 +41,8 @@ export const toOrderFormOwner = (
   userProfileId: raw.userProfileId || null,
   userType: raw.userType || null,
   loggedIn: raw.loggedIn === true,
-  hasClientProfile: Boolean(raw.clientProfileData?.email),
+  hasClientProfile:
+    Boolean(raw.clientProfileData?.email) || hasShippingAddress(raw),
   email: raw.clientProfileData?.email || null,
   salesChannel: raw.salesChannel ?? null,
 })

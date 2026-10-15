@@ -9,7 +9,11 @@ export const isCallCenterUserType = (userType?: string | null): boolean =>
 
 const isMaskedEmail = (email: string) => email.includes('*')
 
-/** Ownership by userProfileId alone (FR-B2). */
+/**
+ * Ownership by userProfileId alone (FR-B2). A cart without userProfileId that
+ * has a client email or a shipping address (`hasClientProfile`) is
+ * UNVERIFIED_PROFILE and is refused; only a cart with neither is ANONYMOUS.
+ */
 export function classifyOwnership(
   owner: OrderFormOwner | null,
   shopper: ShopperIdentity

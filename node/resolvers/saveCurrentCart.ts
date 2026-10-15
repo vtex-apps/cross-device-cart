@@ -30,6 +30,9 @@ export const saveCurrentCart = async (
     vtex: { logger },
   } = ctx
 
+  // Authentication control: no valid store-user token -> 'unauthenticated' before any
+  // VBase, Checkout or cookie access. The `@auth(scope: PUBLIC)` directive in
+  // the schema allows everyone and enforces nothing.
   const shopper = await resolveShopper(ctx)
 
   if (!shopper) {

@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Saved cart references are validated against the orderForm owner on save, on read and on merge; foreign references are deleted on read.
 - `saveAppSettings` now requires an authorized admin.
 - `getSavedCart` is now `PRIVATE` cache scope.
+- Authentication for `getSavedCart`, `saveCurrentCart` and `replaceCart` is enforced in the resolvers (fail-closed: `null` or `unauthenticated` for callers without a valid store-user token). The `@auth(scope: PUBLIC)` directive in the schema is not an access control.
+- An orderForm with a shipping address but no client email and no `userProfileId` is now classified `UNVERIFIED_PROFILE` (refused) instead of `ANONYMOUS`, because the address holds personal data.
 
 ### Changed
 - Moved to the `graphql` builder 2.x (explicit `@auth` scopes). The runtime dependency `@vtex/api` is now 6.51.0 (the `scope` argument of `@auth` needs 6.50 or later) and the local TypeScript tooling 4.9.5.

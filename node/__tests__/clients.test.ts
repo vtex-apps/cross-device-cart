@@ -106,6 +106,39 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
     )
   })
 
+  it.each([
+    ['shippingData.address', { address: { street: 'Rua Teste' } }],
+    [
+      'shippingData.selectedAddresses',
+      { selectedAddresses: [{ street: 'Rua Teste' }] },
+    ],
+  ])(
+    'treats a cart with %s and no email as having a client profile',
+    async (_label, shippingData) => {
+      const get = jest.fn().mockResolvedValue({
+        orderFormId: ID,
+        userProfileId: null,
+        clientProfileData: { email: null },
+        shippingData,
+      })
+
+      await expect(make({ get }).getOrderFormOwner(ID)).resolves.toEqual(
+        expect.objectContaining({ hasClientProfile: true, email: null })
+      )
+    }
+  )
+
+  it.each([
+    ['null address', { address: null, selectedAddresses: [] }],
+    ['no shippingData', undefined],
+  ])('keeps an empty cart anonymous (%s)', async (_label, shippingData) => {
+    const get = jest.fn().mockResolvedValue({ orderFormId: ID, shippingData })
+
+    await expect(make({ get }).getOrderFormOwner(ID)).resolves.toEqual(
+      expect.objectContaining({ hasClientProfile: false })
+    )
+  })
+
   it('returns null on 404', async () => {
     const get = jest.fn().mockRejectedValue({ response: { status: 404 } })
 

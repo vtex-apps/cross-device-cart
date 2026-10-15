@@ -3,6 +3,8 @@ type Query {
   Retrieves the authenticated shopper's cross cart OrderForm ID, or NULL.
   The shopper and sales channel are derived from the request; `userId`, `userType`
   and `salesChannel` are ignored and will be removed in the next major version.
+  `@auth(scope: PUBLIC)` does not restrict callers: authentication is enforced inside
+  the resolver, which returns NULL when the request carries no valid store-user token.
   """
   getSavedCart(
     userId: String
@@ -24,6 +26,9 @@ type Mutation {
   Stores the authenticated shopper's current OrderForm ID as their cross cart reference.
   Only orderForms owned by the shopper (or anonymous) are stored. `userId`, `userType`
   and `salesChannel` are ignored and will be removed in the next major version.
+  `@auth(scope: PUBLIC)` does not restrict callers: authentication is enforced inside
+  the resolver, which returns "unauthenticated" when the request carries no valid
+  store-user token.
   """
   saveCurrentCart(
     userId: String
@@ -36,6 +41,8 @@ type Mutation {
   current cart's items into it for ADD/COMBINE). Only a saved cart owned by the
   shopper is adopted; an anonymous saved cart only contributes missing items to
   the current cart. Returns NULL when the request is refused.
+  `@auth(scope: PUBLIC)` does not restrict callers: authentication is enforced inside
+  the resolver, which returns NULL when the request carries no valid store-user token.
   `userType` is ignored and will be removed in the next major version.
   """
   replaceCart(

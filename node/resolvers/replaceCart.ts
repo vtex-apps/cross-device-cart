@@ -78,6 +78,9 @@ export const replaceCart = async (
     vtex: { logger },
   } = ctx
 
+  // Authentication control: no valid store-user token -> null before any
+  // VBase, Checkout or cookie access. The `@auth(scope: PUBLIC)` directive in
+  // the schema allows everyone and enforces nothing.
   const shopper = await resolveShopper(ctx)
 
   if (!shopper) {

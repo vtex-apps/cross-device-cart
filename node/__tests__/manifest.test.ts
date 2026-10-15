@@ -19,9 +19,8 @@ describe('manifest outbound-access policies', () => {
     // @vtex/api Segment client (JanusClient)
     ['portal.vtexcommercestable.com.br', '/api/segments'],
     ['portal.vtexcommercestable.com.br', '/api/segments/*'],
-    // VTEX ID, used by the token validation and the @auth directive
-    ['vtexid.vtex.com.br', '/api/vtexid/pub/authenticated/user'],
-    // Checkout
+    // Checkout, and VTEX ID credential/validate (POST on
+    // {account}.vtexcommercestable.com.br, covered by the /api/* policy)
     ['portal.vtexcommercestable.com.br', '/api/checkout/pub/*'],
     ['{{account}}.vtexcommercestable.com.br', '/api/*'],
   ])('declares %s%s', (host, path) => {

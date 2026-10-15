@@ -2,6 +2,7 @@
 import { saveCurrentCart } from '../resolvers/saveCurrentCart'
 import {
   OF_A,
+  OF_ADDRESS_ONLY,
   OF_ANON,
   OF_B,
   OF_CALL_CENTER,
@@ -78,6 +79,21 @@ describe('saveCurrentCart', () => {
       'rejected'
     )
     expect(store.has(key(SHOPPER_A))).toBe(false)
+  })
+
+  it('rejects an anonymous cart that holds a shipping address (PII)', async () => {
+    const { ctx, store, logger } = createContext({ token: TOKEN_A })
+
+    await expect(save({ orderFormId: OF_ADDRESS_ONLY }, ctx)).resolves.toBe(
+      'rejected'
+    )
+    expect(store.has(key(SHOPPER_A))).toBe(false)
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.ownership_rejected',
+      operation: 'saveCurrentCart',
+      verdict: 'UNVERIFIED_PROFILE',
+    })
+    expectNoPiiInLogs(logger)
   })
 
   it('call center: decides from server data, ignoring client userType', async () => {

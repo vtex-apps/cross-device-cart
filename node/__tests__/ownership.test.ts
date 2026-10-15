@@ -43,6 +43,17 @@ describe('toOrderFormOwner', () => {
     })
   })
 
+  it('classifies a cart with a shipping address but no email as UNVERIFIED_PROFILE', () => {
+    const addressOnly = toOrderFormOwner(OF_B, {
+      clientProfileData: { email: null },
+      shippingData: { address: null, selectedAddresses: [{ street: 'x' }] },
+    })
+
+    expect(addressOnly.hasClientProfile).toBe(true)
+    expect(addressOnly.email).toBeNull()
+    expect(classifyOwnership(addressOnly, shopperA)).toBe('UNVERIFIED_PROFILE')
+  })
+
   it('normalizes missing and empty fields', () => {
     expect(
       toOrderFormOwner(OF_A, { userProfileId: '', clientProfileData: null })

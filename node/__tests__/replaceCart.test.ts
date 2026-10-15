@@ -2,6 +2,7 @@
 import { replaceCart } from '../resolvers/replaceCart'
 import {
   OF_A,
+  OF_ADDRESS_ONLY,
   OF_ANON,
   OF_B,
   OF_CALL_CENTER,
@@ -295,6 +296,7 @@ describe('replaceCart: refusals', () => {
   it.each([
     ['FOREIGN', OF_B],
     ['UNVERIFIED_PROFILE', OF_IDENTIFIED],
+    ['UNVERIFIED_PROFILE (shipping address, no email)', OF_ADDRESS_ONLY],
   ])(
     'referenced %s saved cart: refused, key cleared, no cookie, no mutation',
     async (verdict, savedCart) => {
@@ -310,7 +312,7 @@ describe('replaceCart: refusals', () => {
       expect(logger.warn).toHaveBeenCalledWith({
         message: 'cross-device-cart.ownership_rejected',
         operation: 'replaceCart',
-        verdict,
+        verdict: verdict.split(' ')[0],
       })
       expectNoPiiInLogs(logger)
     }
