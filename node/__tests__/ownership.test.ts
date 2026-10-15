@@ -17,6 +17,7 @@ import {
   OF_ANON,
   OF_B,
   OF_CALL_CENTER,
+  OF_ADDRESS_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
 } from '../testUtils/mockContext'
@@ -29,6 +30,7 @@ describe('classifyOwnership', () => {
     [OF_B, 'FOREIGN'],
     [OF_ANON, 'ANONYMOUS'],
     [OF_IDENTIFIED, 'UNVERIFIED_PROFILE'],
+    [OF_ADDRESS_ONLY, 'UNVERIFIED_PROFILE'],
     [OF_CALL_CENTER, 'CALL_CENTER'],
   ])('%s -> %s', (id, verdict) => {
     expect(classifyOwnership(owners[id], shopper)).toBe(verdict)

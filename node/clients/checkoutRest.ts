@@ -9,6 +9,24 @@ interface RawOrderFormOwnerFields {
   userType?: string | null
   loggedIn?: boolean
   clientProfileData?: { email?: string | null } | null
+  shippingData?: {
+    address?: Record<string, unknown> | null
+    selectedAddresses?: unknown[] | null
+  } | null
+}
+
+/**
+ * True when the orderForm carries client PII: a client email, or a shipping
+ * address (receiverName, street, postalCode), even without an email.
+ */
+function hasClientPii(orderForm: RawOrderFormOwnerFields): boolean {
+  const { address, selectedAddresses } = orderForm.shippingData ?? {}
+
+  return (
+    Boolean(orderForm.clientProfileData?.email) ||
+    (typeof address === 'object' && address !== null) ||
+    (Array.isArray(selectedAddresses) && selectedAddresses.length > 0)
+  )
 }
 
 /**
@@ -52,7 +70,7 @@ export default class CheckoutRestClient extends JanusClient {
         userProfileId: orderForm.userProfileId || null,
         userType: orderForm.userType ?? null,
         loggedIn: Boolean(orderForm.loggedIn),
-        hasClientProfile: Boolean(orderForm.clientProfileData?.email),
+        hasClientProfile: hasClientPii(orderForm),
         email: orderForm.clientProfileData?.email ?? null,
       }
     } catch (error) {

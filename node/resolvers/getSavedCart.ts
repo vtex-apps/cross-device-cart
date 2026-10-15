@@ -24,6 +24,8 @@ export const getSavedCart = async (
   }: { userId?: string; nullOnEmpty?: boolean; userType?: string },
   ctx: Context
 ): Promise<string | null> => {
+  // Authentication control: this early return is the gate. The `@auth(scope: PUBLIC)`
+  // directive in the schema allows anyone and enforces nothing.
   const shopper = await resolveShopper(ctx)
 
   if (!shopper) {

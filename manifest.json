@@ -55,13 +55,6 @@
         "host": "portal.vtexcommercestable.com.br",
         "path": "/api/checkout/pub/*"
       }
-    },
-    {
-      "name": "outbound-access",
-      "attrs": {
-        "host": "vtexid.vtex.com.br",
-        "path": "/api/vtexid/pub/authenticated/user"
-      }
     }
   ],
   "billingOptions": {

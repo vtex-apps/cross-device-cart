@@ -8,6 +8,8 @@ export const OF_B = 'b'.repeat(32)
 export const OF_ANON = 'c'.repeat(32)
 export const OF_CALL_CENTER = 'd'.repeat(32)
 export const OF_IDENTIFIED = 'e'.repeat(32)
+/** No userProfileId and no email, but shippingData has an address (PII) */
+export const OF_ADDRESS_ONLY = '7'.repeat(32)
 /** R1 gap: carries A's userProfileId but a guest later typed B's email */
 export const OF_A_GUEST_B = '9'.repeat(32)
 /** A's cart on a PII-masked account */
@@ -63,6 +65,14 @@ export const owners: Record<string, OrderFormOwner> = {
     loggedIn: false,
     hasClientProfile: true,
     email: EMAIL_B,
+  },
+  [OF_ADDRESS_ONLY]: {
+    orderFormId: OF_ADDRESS_ONLY,
+    userProfileId: null,
+    userType: null,
+    loggedIn: false,
+    hasClientProfile: true,
+    email: null,
   },
   [OF_A_GUEST_B]: {
     orderFormId: OF_A_GUEST_B,

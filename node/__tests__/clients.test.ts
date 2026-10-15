@@ -74,6 +74,51 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
     )
   })
 
+  it.each([
+    ['shippingData.address', { address: { street: 'should not leak' } }],
+    [
+      'shippingData.selectedAddresses',
+      { selectedAddresses: [{ street: 'x' }] },
+    ],
+  ])(
+    'hasClientProfile is true without email when %s is filled',
+    async (_n, shippingData) => {
+      const client = new CheckoutRestClient(ioContext)
+
+      ;(client as any).http = {
+        get: jest.fn().mockResolvedValue({
+          userProfileId: null,
+          clientProfileData: null,
+          shippingData,
+        }),
+      }
+
+      await expect(client.getOrderFormOwner(ID)).resolves.toEqual({
+        orderFormId: ID,
+        userProfileId: null,
+        userType: null,
+        loggedIn: false,
+        hasClientProfile: true,
+        email: null,
+      })
+    }
+  )
+
+  it('hasClientProfile stays false for an empty anonymous orderForm', async () => {
+    const client = new CheckoutRestClient(ioContext)
+
+    ;(client as any).http = {
+      get: jest.fn().mockResolvedValue({
+        clientProfileData: null,
+        shippingData: { address: null, selectedAddresses: [] },
+      }),
+    }
+
+    await expect(client.getOrderFormOwner(ID)).resolves.toMatchObject({
+      hasClientProfile: false,
+    })
+  })
+
   it('returns null for invalid ids without calling Checkout', async () => {
     const client = new CheckoutRestClient(ioContext)
     const get = jest.fn()

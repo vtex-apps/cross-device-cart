@@ -63,6 +63,8 @@ export const replaceCart = async (
   { savedCart, currentCart, strategy }: ReplaceCartVariables,
   ctx: Context
 ): Promise<PartialOrderForm | null> => {
+  // Authentication control: this early return is the gate. The `@auth(scope: PUBLIC)`
+  // directive in the schema allows anyone and enforces nothing.
   const shopper = await resolveShopper(ctx)
 
   if (!shopper) {

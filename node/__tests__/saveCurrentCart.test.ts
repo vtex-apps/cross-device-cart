@@ -7,6 +7,7 @@ import {
   OF_ANON,
   OF_B,
   OF_CALL_CENTER,
+  OF_ADDRESS_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
   SHOPPER_B,
@@ -63,6 +64,15 @@ describe('saveCurrentCart', () => {
 
     await expect(
       saveCurrentCart({}, { orderFormId: OF_IDENTIFIED }, ctx)
+    ).resolves.toBe('rejected')
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+  })
+
+  it('refuses an anonymous orderForm that only has a shipping address', async () => {
+    const { ctx, vbase } = mockContext({ cookie: OF_ADDRESS_ONLY })
+
+    await expect(
+      saveCurrentCart({}, { orderFormId: OF_ADDRESS_ONLY }, ctx)
     ).resolves.toBe('rejected')
     expect(vbase.saveJSON).not.toHaveBeenCalled()
   })

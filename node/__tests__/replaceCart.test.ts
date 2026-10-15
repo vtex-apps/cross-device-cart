@@ -11,6 +11,7 @@ import {
   OF_ANON,
   OF_B,
   OF_CALL_CENTER,
+  OF_ADDRESS_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
 } from '../testUtils/mockContext'
@@ -361,6 +362,7 @@ describe('replaceCart rejections', () => {
   it.each([
     [OF_B, 'FOREIGN'],
     [OF_IDENTIFIED, 'UNVERIFIED_PROFILE'],
+    [OF_ADDRESS_ONLY, 'UNVERIFIED_PROFILE'],
     [OF_CALL_CENTER, 'CALL_CENTER'],
     ['f'.repeat(32), 'NOT_FOUND'],
   ])(
