@@ -2,12 +2,10 @@ mutation replaceCart(
   $savedCart: String!
   $currentCart: String!
   $strategy: Strategy!
-  $userType: String
-) {
+) @context(scope: "private") {
   newOrderForm: replaceCart(
     savedCart: $savedCart
     currentCart: $currentCart
     strategy: $strategy
-    userType: $userType
   )
 }

@@ -1,15 +1,16 @@
 {
   "dependencies": {
-    "@vtex/api": "6.47.0",
+    "@vtex/api": "6.51.0",
     "@vtex/clients": "^2.17.0",
     "cookie": "^0.4.2"
   },
   "devDependencies": {
     "@types/cookie": "^0.3.2",
-    "@vtex/api": "6.47.0",
-    "@vtex/test-tools": "vtex/test-tools",
+    "@types/jest": "^25.1.4",
+    "@vtex/api": "6.51.0",
+    "@vtex/test-tools": "^3.4.3",
     "@vtex/tsconfig": "^0.5.6",
-    "typescript": "3.9.7",
+    "typescript": "4.9.5",
     "vtex.checkout-graphql": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.checkout-graphql@0.67.1/public/@types/vtex.checkout-graphql",
     "vtex.cross-device-cart": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.cross-device-cart@2.0.2/public/@types/vtex.cross-device-cart",
     "vtex.css-handles": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.css-handles@0.4.4/public/@types/vtex.css-handles",
@@ -21,7 +22,14 @@
     "vtex.styleguide": "http://vtex.vtexassets.com/_v/public/typings/v1/vtex.styleguide@9.146.13/public/@types/vtex.styleguide"
   },
   "scripts": {
-    "lint": "tsc --noEmit --pretty && tslint -c tslint.json --fix './**/*.ts'"
+    "lint": "tsc --noEmit --pretty && tslint -c tslint.json --fix './**/*.ts'",
+    "test": "vtex-test-tools test",
+    "typecheck": "tsc --noEmit --pretty"
+  },
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ]
   },
   "version": "2.0.3"
 }

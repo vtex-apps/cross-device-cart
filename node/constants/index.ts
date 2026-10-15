@@ -5,3 +5,5 @@ export const DEFAULT_SETTINGS = {
   isAutomatic: true,
   strategy: 'REPLACE',
 } as const
+export const DEFAULT_SALES_CHANNEL = '1'
+export const ORDER_FORM_ID_PATTERN = /^[a-f0-9]{32}$/

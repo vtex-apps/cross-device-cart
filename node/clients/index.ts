@@ -10,6 +10,7 @@ import { OMS } from '@vtex/clients'
 import RequestHub from './hub'
 import CheckoutIO from './checkout'
 import CheckoutRestClient from './chekoutREST'
+import VtexId from './vtexId'
 
 export class Clients extends IOClients {
   public get checkoutIO() {
@@ -26,6 +27,10 @@ export class Clients extends IOClients {
 
   public get oms() {
     return this.getOrSet('oms', OMS)
+  }
+
+  public get vtexId() {
+    return this.getOrSet('vtexId', VtexId)
   }
 }
 
