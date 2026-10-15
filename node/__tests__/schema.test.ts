@@ -156,19 +156,13 @@ describe('graphql/schema.graphql', () => {
 })
 
 describe('manifest.json', () => {
-  it('covers the VTEX ID credential/validate call with the existing {{account}}.vtexcommercestable.com.br /api/* policy', () => {
+  it('declares the outbound-access policy the @vtex/api @auth directive needs (VTEX ID authenticated/user, used by saveAppSettings)', () => {
     expect(manifest.policies).toContainEqual({
       name: 'outbound-access',
       attrs: {
-        host: '{{account}}.vtexcommercestable.com.br',
-        path: '/api/*',
+        host: 'vtexid.vtex.com.br',
+        path: '/api/vtexid/pub/authenticated/user',
       },
     })
-  })
-
-  it('does not declare an unused vtexid.vtex.com.br policy', () => {
-    expect(
-      manifest.policies.some((p: any) => p.attrs?.host === 'vtexid.vtex.com.br')
-    ).toBe(false)
   })
 })

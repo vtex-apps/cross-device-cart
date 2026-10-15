@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - Authentication for `getSavedCart`, `saveCurrentCart` and `replaceCart` is enforced in the resolvers (fail-closed: `null`, or `unauthenticated` for `saveCurrentCart`, for callers without a valid store-user token). The `@auth(scope: PUBLIC)` directive on these operations is not an access control.
 - An orderForm without `userProfileId` that has a shipping address (`shippingData.address` or `selectedAddresses`) is now treated as `UNVERIFIED_PROFILE` and refused, even without a client email, instead of being treated as anonymous.
-- Token validation calls `credential/validate` on `{account}.vtexcommercestable.com.br`, covered by the existing `/api/*` outbound-access policy; no extra `vtexid.vtex.com.br` policy is declared.
 - A failed Checkout read of the current or saved cart in `replaceCart` is now caught and logged without identifiers instead of escaping as a GraphQL error.
 - Shopper identity is now derived server-side from the store-user token (VTEX ID); `userId`/`userType` arguments are ignored.
 - Saved references are only stored, returned or merged when the orderForm is owned by the shopper or anonymous; foreign references are cleared on read.
