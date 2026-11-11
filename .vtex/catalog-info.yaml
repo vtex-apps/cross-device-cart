@@ -2,9 +2,11 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: cross-device-cart
+  description: Keeps a logged-in shopper's cart synchronized across devices, restoring items from their most recent session.
   annotations:
     github.com/project-slug: vtex-apps/cross-device-cart
+    vtex.com/platform-flow-id: Shopper#2
 spec:
-  type: other
-  lifecycle: unknown
+  type: service
+  lifecycle: deprecated
   owner: te-0013
