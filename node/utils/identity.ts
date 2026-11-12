@@ -6,16 +6,20 @@ export const STORE_AUDIENCE = 'webstore'
 /**
  * Derives the shopper identity from the request's store-user token
  * (cookie VtexIdclientAutCookie_{account}), validated by VTEX ID
- * POST credential/validate. Returns null when there is no valid store-user
- * token for this account. Never reads GraphQL arguments.
+ * POST credential/validate. Returns `{ authResult: 'ok', shopper }` for a valid
+ * store-user token of this account, or `{ authResult: <AuthFailure> }`.
+ * `unavailable` (VTEX ID 5xx, network error or timeout) is kept apart from
+ * `invalid` so that an outage is never mistaken for "not logged in".
+ * Logs the result (no ids, no PII). Never reads GraphQL arguments.
  */
 export async function resolveShopper(
-  ctx: Context
-): Promise<ShopperIdentity | null> {
+  ctx: Context,
+  operation: string
+): Promise<AuthOutcome> {
   const token = ctx.vtex.storeUserAuthToken
 
   if (!token) {
-    return null
+    return failAuth(ctx, operation, 'no_token')
   }
 
   let credential
@@ -23,28 +27,64 @@ export async function resolveShopper(
   try {
     credential = await ctx.clients.vtexId.validateToken(token)
   } catch (error) {
-    ctx.vtex.logger.warn({
-      message: 'cross-device-cart.vtexid_unavailable',
-      status: httpStatus(error) ?? null,
-    })
-
-    return null
+    return failAuth(ctx, operation, 'unavailable', httpStatus(error) ?? null)
   }
 
-  if (
-    !credential ||
-    credential.authStatus !== 'Success' ||
-    !credential.id ||
-    credential.account !== ctx.vtex.account ||
-    credential.audience !== STORE_AUDIENCE
-  ) {
-    return null
+  if (!credential || credential.authStatus !== 'Success' || !credential.id) {
+    return failAuth(ctx, operation, 'invalid')
   }
+
+  if (credential.account !== ctx.vtex.account) {
+    return failAuth(ctx, operation, 'account_mismatch')
+  }
+
+  if (credential.audience !== STORE_AUDIENCE) {
+    return failAuth(ctx, operation, 'audience_mismatch')
+  }
+
+  ctx.vtex.logger.info({
+    message: 'cross-device-cart.authenticated',
+    operation,
+    auth_result: 'ok',
+  })
 
   return {
-    userId: credential.id,
-    ...(credential.user ? { email: credential.user.trim().toLowerCase() } : {}),
+    authResult: 'ok',
+    shopper: {
+      userId: credential.id,
+      ...(credential.user
+        ? { email: credential.user.trim().toLowerCase() }
+        : {}),
+    },
   }
+}
+
+/**
+ * Logs a failed authentication (no ids, no PII) and returns it. An outage of
+ * VTEX ID is a warning of its own; every other failure is `unauthenticated`.
+ */
+function failAuth(
+  ctx: Context,
+  operation: string,
+  authResult: AuthFailure,
+  status?: number | null
+): { authResult: AuthFailure } {
+  if (authResult === 'unavailable') {
+    ctx.vtex.logger.warn({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation,
+      auth_result: authResult,
+      status: status ?? null,
+    })
+  } else {
+    ctx.vtex.logger.info({
+      message: 'cross-device-cart.unauthenticated',
+      operation,
+      auth_result: authResult,
+    })
+  }
+
+  return { authResult }
 }
 
 export async function resolveSalesChannel(ctx: Context): Promise<string> {

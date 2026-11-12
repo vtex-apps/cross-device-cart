@@ -10,7 +10,7 @@ import {
   fetchOwnership,
   isAcceptable,
   logOwnershipRejection,
-  logUnauthenticated,
+  logVbaseError,
 } from '../utils/ownership'
 
 const OPERATION = 'saveCurrentCart'
@@ -32,23 +32,38 @@ export const saveCurrentCart = async (
 
   // Authentication control: no valid store-user token -> 'unauthenticated' before any
   // VBase, Checkout or cookie access. The `@auth(scope: PUBLIC)` directive in
-  // the schema allows everyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  // the schema allows everyone and enforces nothing. A VTEX ID outage is
+  // 'rejected' (nothing written), not 'unauthenticated'.
+  const auth = await resolveShopper(ctx, OPERATION)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, OPERATION)
+  if (auth.authResult === 'unavailable') {
+    return 'rejected'
+  }
 
+  if (auth.authResult !== 'ok') {
     return 'unauthenticated'
   }
+
+  const { shopper } = auth
 
   warnOnIdentityArgMismatch(ctx, OPERATION, userId, shopper)
 
   const key = savedCartKey(shopper.userId, await resolveSalesChannel(ctx))
 
-  if (!orderFormId) {
-    await vbase.saveJSON(APP_NAME, key, null)
+  const write = async (value: string | null): Promise<boolean> => {
+    try {
+      await vbase.saveJSON(APP_NAME, key, value)
 
-    return 'success'
+      return true
+    } catch (error) {
+      logVbaseError(ctx, OPERATION, error)
+
+      return false
+    }
+  }
+
+  if (!orderFormId) {
+    return (await write(null)) ? 'success' : 'rejected'
   }
 
   if (!matchesCheckoutCookie(ctx, orderFormId, OPERATION)) {
@@ -81,7 +96,5 @@ export const saveCurrentCart = async (
     return 'rejected'
   }
 
-  await vbase.saveJSON(APP_NAME, key, orderFormId)
-
-  return 'success'
+  return (await write(orderFormId)) ? 'success' : 'rejected'
 }

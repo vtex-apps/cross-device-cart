@@ -1,4 +1,5 @@
 import { APP_NAME } from '../constants'
+import { httpStatus } from '../utils/httpStatus'
 import {
   resolveSalesChannel,
   resolveShopper,
@@ -9,10 +10,11 @@ import {
   fetchOwnership,
   isAcceptable,
   logOwnershipRejection,
-  logUnauthenticated,
+  logVbaseError,
 } from '../utils/ownership'
 
 const OPERATION = 'getSavedCart'
+const LOOKUP_UNAVAILABLE = 'saved cart lookup unavailable'
 
 /**
  * Returns the caller's saved orderForm id, or null.
@@ -31,19 +33,35 @@ export const getSavedCart = async (
 
   // Authentication control: no valid store-user token -> null before any
   // VBase, Checkout or cookie access. The `@auth(scope: PUBLIC)` directive in
-  // the schema allows everyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  // the schema allows everyone and enforces nothing. A VTEX ID outage throws
+  // like a failed owner lookup, so the storefront does not overwrite the
+  // reference with the current cart.
+  const auth = await resolveShopper(ctx, OPERATION)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, OPERATION)
+  if (auth.authResult === 'unavailable') {
+    throw new Error(LOOKUP_UNAVAILABLE)
+  }
 
+  if (auth.authResult !== 'ok') {
     return null
   }
+
+  const { shopper } = auth
 
   warnOnIdentityArgMismatch(ctx, OPERATION, userId, shopper)
 
   const key = savedCartKey(shopper.userId, await resolveSalesChannel(ctx))
-  const orderFormId = await vbase.getJSON<string | null>(APP_NAME, key, true)
+  let orderFormId: string | null
+
+  try {
+    orderFormId = await vbase.getJSON<string | null>(APP_NAME, key, true)
+  } catch (error) {
+    // The platform logs the query variables of a throwing resolver, so the
+    // VBase failure is logged here without ids. Never null: it would make the
+    // storefront overwrite the reference.
+    logVbaseError(ctx, OPERATION, error)
+    throw new Error(LOOKUP_UNAVAILABLE)
+  }
 
   if (!orderFormId) {
     return null
@@ -60,18 +78,35 @@ export const getSavedCart = async (
     // Transient failure: the key is kept (FR-B4). A GraphQL error, unlike null,
     // makes every storefront bundle (old or new) skip saveCurrentCart, so the
     // preserved reference is not overwritten by the current cart.
-    throw new Error('saved cart lookup unavailable')
+    throw new Error(LOOKUP_UNAVAILABLE)
   }
 
   if (!isAcceptable(verdict)) {
-    await vbase.saveJSON(APP_NAME, key, null)
+    try {
+      await vbase.saveJSON(APP_NAME, key, null)
+    } catch (error) {
+      logVbaseError(ctx, OPERATION, error)
+      throw new Error(LOOKUP_UNAVAILABLE)
+    }
+
     logOwnershipRejection(ctx, OPERATION, verdict, reason)
 
     return null
   }
 
   if (nullOnEmpty) {
-    const savedItems = await checkoutIO.getItems(orderFormId)
+    let savedItems: PartialItem[]
+
+    try {
+      savedItems = await checkoutIO.getItems(orderFormId)
+    } catch (error) {
+      ctx.vtex.logger.warn({
+        message: 'cross-device-cart.checkout_error',
+        operation: OPERATION,
+        status: httpStatus(error) ?? null,
+      })
+      throw new Error(LOOKUP_UNAVAILABLE)
+    }
 
     if (!savedItems.length) {
       return null

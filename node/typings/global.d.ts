@@ -80,6 +80,17 @@ interface ShopperIdentity {
   email?: string
 }
 
+type AuthFailure =
+  | 'no_token'
+  | 'invalid'
+  | 'account_mismatch'
+  | 'audience_mismatch'
+  | 'unavailable'
+
+type AuthOutcome =
+  | { authResult: 'ok'; shopper: ShopperIdentity }
+  | { authResult: AuthFailure }
+
 interface OrderFormOwner {
   orderFormId: string
   userProfileId: string | null

@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - An orderForm with a shipping address but no client email and no `userProfileId` is now classified `UNVERIFIED_PROFILE` (refused) instead of `ANONYMOUS`, because the address holds personal data.
 
 ### Changed
+- A VTEX ID outage (5xx, network error, timeout) is no longer treated as "not logged in": `getSavedCart` throws like a failed owner lookup (the saved reference is kept), `saveCurrentCart` returns `rejected` and `replaceCart` returns `null`, all without writing. Logs carry an `auth_result` field (`ok`, `no_token`, `invalid`, `account_mismatch`, `audience_mismatch`, `unavailable`).
+- The owner lookup fails closed on a response that is not an object echoing the orderForm id (empty body, 204, HTML, array), and a `loggedIn` cart without `userProfileId` is `UNVERIFIED_PROFILE`, never `ANONYMOUS`.
+- The client PII check is now: a non-empty `email`, `document`, `phone`, `firstName` or `lastName`, or an identifying address (`receiverName`, `street` or `number` in `shippingData.address`, `selectedAddresses` or `availableAddresses`). A cart with only a postal code or other shipping simulator fields stays `ANONYMOUS`; this refines the address rule listed under Security.
+- The order event no longer logs the error object, only the message, the order id and the HTTP status. VBase failures in the resolvers are caught and logged as `vbase_error` (`getSavedCart` throws, `saveCurrentCart` returns `rejected`, `replaceCart` returns `null` without cookie), and a failing `getItems` in `getSavedCart` is logged and thrown the same way.
+- `vtexId` and `checkoutRest` have their own timeouts (2s and 3s, one retry); Checkout reads (`getItems`, `getOrderForm`) are never memory-cached.
+- `replaceCart` logs `current_cart_ignored` (info) instead of `ownership_rejected` when an unusable current cart is skipped and the saved cart is still adopted.
 - Moved to the `graphql` builder 2.x (explicit `@auth` scopes). The runtime dependency `@vtex/api` is now 6.51.0 (the `scope` argument of `@auth` needs 6.50 or later) and the local TypeScript tooling 4.9.5.
 - The log of the order event that removes a saved cart reference no longer contains any identifier, and owner and token lookups are never served from a cache.
 - The cart mutations and the settings mutation now use a private cache scope, and their client documents request the private route.

@@ -11,9 +11,10 @@ import {
 import {
   fetchOwnership,
   isAcceptable,
+  logCurrentCartIgnored,
   logOwnershipRejection,
   logResidualRisk,
-  logUnauthenticated,
+  logVbaseError,
 } from '../utils/ownership'
 
 const OPERATION = 'replaceCart'
@@ -80,14 +81,15 @@ export const replaceCart = async (
 
   // Authentication control: no valid store-user token -> null before any
   // VBase, Checkout or cookie access. The `@auth(scope: PUBLIC)` directive in
-  // the schema allows everyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  // the schema allows everyone and enforces nothing. Every failure (including
+  // a VTEX ID outage) is a no-op: no write, no cookie.
+  const auth = await resolveShopper(ctx, OPERATION)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, OPERATION)
-
+  if (auth.authResult !== 'ok') {
     return null
   }
+
+  const { shopper } = auth
 
   if (!isValidOrderFormId(savedCart) || !isValidOrderFormId(currentCart)) {
     logOwnershipRejection(ctx, OPERATION, 'INVALID_ID')
@@ -102,7 +104,15 @@ export const replaceCart = async (
   }
 
   const key = savedCartKey(shopper.userId, await resolveSalesChannel(ctx))
-  const reference = await vbase.getJSON<string | null>(APP_NAME, key, true)
+  let reference: string | null
+
+  try {
+    reference = await vbase.getJSON<string | null>(APP_NAME, key, true)
+  } catch (error) {
+    logVbaseError(ctx, OPERATION, error)
+
+    return null
+  }
 
   if (reference !== savedCart) {
     logOwnershipRejection(ctx, OPERATION, 'NOT_REFERENCED')
@@ -134,7 +144,13 @@ export const replaceCart = async (
   }
 
   if (!isAcceptable(savedVerdict)) {
-    await vbase.saveJSON(APP_NAME, key, null)
+    try {
+      await vbase.saveJSON(APP_NAME, key, null)
+    } catch (error) {
+      logVbaseError(ctx, OPERATION, error)
+
+      return null
+    }
 
     logOwnershipRejection(ctx, OPERATION, savedVerdict, savedResult.reason)
 
@@ -143,10 +159,22 @@ export const replaceCart = async (
 
   const currentUsable = isAcceptable(currentVerdict)
 
-  if (!currentUsable) {
-    // Current cart is not the shopper's: its items are never read (FR-C4).
-    logOwnershipRejection(ctx, OPERATION, currentVerdict, currentResult.reason)
+  // A VBase failure inside the try block below is logged as vbase_error, not
+  // checkout_error, and ends the operation without a cookie.
+  let vbaseFailed = false
+  const saveReference = async (value: string) => {
+    try {
+      await vbase.saveJSON(APP_NAME, key, value)
+    } catch (error) {
+      vbaseFailed = true
+      logVbaseError(ctx, OPERATION, error)
+
+      throw error
+    }
   }
+
+  const rejectCurrent = () =>
+    logOwnershipRejection(ctx, OPERATION, currentVerdict, currentResult.reason)
 
   try {
     if (savedCart === currentCart) {
@@ -157,6 +185,8 @@ export const replaceCart = async (
 
     if (savedVerdict === 'ANONYMOUS') {
       if (!currentUsable) {
+        rejectCurrent()
+
         return null
       }
 
@@ -166,7 +196,7 @@ export const replaceCart = async (
         savedItems
       )
 
-      await vbase.saveJSON(APP_NAME, key, currentCart)
+      await saveReference(currentCart)
 
       return newOrderForm
     }
@@ -175,12 +205,25 @@ export const replaceCart = async (
     if (!savedItems.length) {
       // FR-C10: never return a current cart that is not OWNED or ANONYMOUS.
       if (!currentUsable) {
+        rejectCurrent()
+
         return null
       }
 
-      await vbase.saveJSON(APP_NAME, key, currentCart)
+      await saveReference(currentCart)
 
       return await checkoutIO.getOrderForm(currentCart)
+    }
+
+    if (!currentUsable) {
+      // Current cart is not the shopper's: its items are never read (FR-C4);
+      // the saved cart is still adopted.
+      logCurrentCartIgnored(
+        ctx,
+        OPERATION,
+        currentVerdict,
+        currentResult.reason
+      )
     }
 
     await checkoutRest.removePaymentData(savedCart)
@@ -212,6 +255,10 @@ export const replaceCart = async (
 
     return adopted
   } catch (error) {
+    if (vbaseFailed) {
+      return null
+    }
+
     // The platform logs the query variables (orderForm ids) of a throwing resolver,
     // so Checkout failures are logged here without ids and mapped to null.
     logger.warn({

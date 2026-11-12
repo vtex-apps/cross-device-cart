@@ -11,8 +11,9 @@ const isMaskedEmail = (email: string) => email.includes('*')
 
 /**
  * Ownership by userProfileId alone (FR-B2). A cart without userProfileId that
- * has a client email or a shipping address (`hasClientProfile`) is
- * UNVERIFIED_PROFILE and is refused; only a cart with neither is ANONYMOUS.
+ * has client PII (`hasClientProfile`, see `toOrderFormOwner`) or that is
+ * `loggedIn` is UNVERIFIED_PROFILE and is refused; only a cart with neither is
+ * ANONYMOUS.
  */
 export function classifyOwnership(
   owner: OrderFormOwner | null,
@@ -32,7 +33,9 @@ export function classifyOwnership(
       : 'FOREIGN'
   }
 
-  return owner.hasClientProfile ? 'UNVERIFIED_PROFILE' : 'ANONYMOUS'
+  return owner.hasClientProfile || owner.loggedIn
+    ? 'UNVERIFIED_PROFILE'
+    : 'ANONYMOUS'
 }
 
 /**
@@ -105,6 +108,32 @@ export function logOwnershipRejection(
   })
 }
 
+/**
+ * The current cart is not usable but the operation continues with the saved
+ * cart. Not a rejection of the operation; no ids, no PII.
+ */
+export function logCurrentCartIgnored(
+  ctx: Context,
+  operation: string,
+  verdict: RejectionReason,
+  reason?: OwnershipReason
+) {
+  ctx.vtex.logger.info({
+    message: 'cross-device-cart.current_cart_ignored',
+    operation,
+    verdict,
+    ...(reason ? { reason } : {}),
+  })
+}
+
+export function logVbaseError(ctx: Context, operation: string, error: unknown) {
+  ctx.vtex.logger.warn({
+    message: 'cross-device-cart.vbase_error',
+    operation,
+    status: httpStatus(error) ?? null,
+  })
+}
+
 export function logResidualRisk(
   ctx: Context,
   operation: string,
@@ -114,12 +143,5 @@ export function logResidualRisk(
     message: 'cross-device-cart.adoption_residual_risk',
     operation,
     reason,
-  })
-}
-
-export function logUnauthenticated(ctx: Context, operation: string) {
-  ctx.vtex.logger.info({
-    message: 'cross-device-cart.unauthenticated',
-    operation,
   })
 }

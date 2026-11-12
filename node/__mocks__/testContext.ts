@@ -16,6 +16,7 @@ export const OF_CURRENT_A = 'd'.repeat(32) // A's current cart
 export const OF_CALL_CENTER = 'e'.repeat(32) // call-center cart
 export const OF_IDENTIFIED = 'f'.repeat(32) // email present, no profile
 export const OF_ADDRESS_ONLY = '3'.repeat(32) // shipping address (PII), no email, no profile
+export const OF_CEP_ONLY = '4'.repeat(32) // shipping simulator: only postalCode and country (not PII)
 export const OF_MISSING = '0'.repeat(32) // Checkout returns 404
 export const OF_A_GUEST_B = '1'.repeat(32) // A's profile kept after logout; guest B typed B's email (FR-D1)
 export const OF_A_MASKED = '2'.repeat(32) // A's profile; email masked by Data Protection Plus (FR-D1)
@@ -90,6 +91,13 @@ export const DEFAULT_OWNERS: Record<string, OrderFormOwner | null> = {
     orderFormId: OF_ADDRESS_ONLY,
     clientProfileData: { email: null },
     shippingData: { address: { receiverName: 'Synthetic Receiver' } },
+    salesChannel: SC,
+  }),
+  // Shipping simulator cart: postal code and country only, no PII.
+  [OF_CEP_ONLY]: toOrderFormOwner(OF_CEP_ONLY, {
+    orderFormId: OF_CEP_ONLY,
+    clientProfileData: { email: null },
+    shippingData: { address: { postalCode: '00000-000', country: 'BRA' } },
     salesChannel: SC,
   }),
   [OF_MISSING]: null,
@@ -303,6 +311,7 @@ export function expectNoPiiInLogs(logger: {
     OF_CALL_CENTER,
     OF_IDENTIFIED,
     OF_ADDRESS_ONLY,
+    OF_CEP_ONLY,
     OF_A_GUEST_B,
     OF_A_MASKED,
   ].forEach((secret) => expect(serialized).not.toContain(secret))

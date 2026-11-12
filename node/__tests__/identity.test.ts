@@ -21,33 +21,55 @@ import {
 } from '../__mocks__/testContext'
 
 describe('resolveShopper', () => {
-  it('returns null without calling VTEX ID when there is no store token', async () => {
-    const { ctx, vtexId } = createContext()
+  it('returns no_token without calling VTEX ID when there is no store token', async () => {
+    const { ctx, vtexId, logger } = createContext()
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
+    await expect(resolveShopper(ctx, 'getSavedCart')).resolves.toEqual({
+      authResult: 'no_token',
+    })
     expect(vtexId.validateToken).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'getSavedCart',
+      auth_result: 'no_token',
+    })
   })
 
-  it('returns the VTEX ID id for a valid store token of this account', async () => {
-    const { ctx, vtexId } = createContext({ token: TOKEN_A })
+  it('returns the VTEX ID id for a valid store token of this account and logs auth_result ok', async () => {
+    const { ctx, vtexId, logger } = createContext({ token: TOKEN_A })
 
-    await expect(resolveShopper(ctx)).resolves.toEqual({
-      userId: SHOPPER_A,
-      email: EMAIL_A,
+    await expect(resolveShopper(ctx, 'getSavedCart')).resolves.toEqual({
+      authResult: 'ok',
+      shopper: { userId: SHOPPER_A, email: EMAIL_A },
     })
     expect(vtexId.validateToken).toHaveBeenCalledWith(TOKEN_A)
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.authenticated',
+      operation: 'getSavedCart',
+      auth_result: 'ok',
+    })
+    expectNoPiiInLogs(logger)
   })
 
-  it.each<[string, ValidatedCredential | null]>([
-    ['an invalid token (401 -> null)', null],
-    ['another account', credential(SHOPPER_A, { account: 'otheraccount' })],
-    ['an admin token', credential(SHOPPER_A, { audience: 'admin' })],
+  it.each<[string, ValidatedCredential | null, AuthFailure]>([
+    ['an invalid token (401 -> null)', null, 'invalid'],
+    [
+      'another account',
+      credential(SHOPPER_A, { account: 'otheraccount' }),
+      'account_mismatch',
+    ],
+    [
+      'an admin token',
+      credential(SHOPPER_A, { audience: 'admin' }),
+      'audience_mismatch',
+    ],
     [
       'authStatus other than Success',
       credential(SHOPPER_A, { authStatus: 'WrongCredentials' }),
+      'invalid',
     ],
-    ['a missing id', credential(SHOPPER_A, { id: undefined })],
-    ['an empty id', credential(SHOPPER_A, { id: '' })],
+    ['a missing id', credential(SHOPPER_A, { id: undefined }), 'invalid'],
+    ['an empty id', credential(SHOPPER_A, { id: '' }), 'invalid'],
     [
       'a response with only the deprecated userId field',
       {
@@ -56,26 +78,53 @@ describe('resolveShopper', () => {
         audience: 'webstore',
         userId: SHOPPER_A,
       } as any,
+      'invalid',
     ],
-  ])('returns null for %s', async (_label, response) => {
-    const { ctx, vtexId } = createContext({ token: TOKEN_A })
+  ])('returns the failure for %s', async (_label, response, authResult) => {
+    const { ctx, vtexId, logger } = createContext({ token: TOKEN_A })
 
     vtexId.validateToken.mockResolvedValueOnce(response)
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
+    await expect(resolveShopper(ctx, 'replaceCart')).resolves.toEqual({
+      authResult,
+    })
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'replaceCart',
+      auth_result: authResult,
+    })
+    expectNoPiiInLogs(logger)
   })
 
-  it('fails closed and logs only the status when VTEX ID is unavailable', async () => {
+  it('reports unavailable (not invalid) and logs only operation and status when VTEX ID fails', async () => {
     const { ctx, vtexId, logger } = createContext({ token: TOKEN_A })
 
     vtexId.validateToken.mockRejectedValueOnce({ response: { status: 503 } })
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
+    await expect(resolveShopper(ctx, 'saveCurrentCart')).resolves.toEqual({
+      authResult: 'unavailable',
+    })
     expect(logger.warn).toHaveBeenCalledWith({
       message: 'cross-device-cart.vtexid_unavailable',
+      operation: 'saveCurrentCart',
+      auth_result: 'unavailable',
       status: 503,
     })
+    expect(logger.info).not.toHaveBeenCalled()
     expectNoPiiInLogs(logger)
+  })
+
+  it('logs a null status when the VTEX ID failure has no HTTP response', async () => {
+    const { ctx, vtexId, logger } = createContext({ token: TOKEN_A })
+
+    vtexId.validateToken.mockRejectedValueOnce(new Error('ETIMEDOUT'))
+
+    await expect(resolveShopper(ctx, 'getSavedCart')).resolves.toEqual({
+      authResult: 'unavailable',
+    })
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.objectContaining({ status: null })
+    )
   })
 })
 

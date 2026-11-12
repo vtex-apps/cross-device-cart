@@ -4,6 +4,7 @@ import {
   OF_A,
   OF_ADDRESS_ONLY,
   OF_ANON,
+  OF_CEP_ONLY,
   OF_B,
   OF_CALL_CENTER,
   OF_CURRENT_A,
@@ -134,12 +135,39 @@ describe('replaceCart: adopting an OWNED saved cart', () => {
       'set-cookie',
       adoptionCookie(OF_A)
     )
-    expect(logger.warn).toHaveBeenCalledWith({
-      message: 'cross-device-cart.ownership_rejected',
+    // the operation continues with the saved cart: not a rejection
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.current_cart_ignored',
       operation: 'replaceCart',
       verdict: 'FOREIGN',
     })
+    expect(logger.warn).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'cross-device-cart.ownership_rejected',
+      })
+    )
     expectNoPiiInLogs(logger)
+  })
+
+  it('a postal-code-only (shipping simulator) current cart is a usable current cart', async () => {
+    const { ctx, checkoutIO, requestHub, logger } = setup({
+      items: { [OF_A]: [item(1, 2)], [OF_CEP_ONLY]: [item(5)] },
+    })
+
+    const result: any = await run(ctx, { currentCart: OF_CEP_ONLY })
+
+    expect(result.id).toBe(OF_A)
+    expect(quantities(result)).toEqual([
+      [5, 1],
+      [1, 2],
+    ])
+    expect(checkoutIO.getItems).toHaveBeenCalledWith(OF_CEP_ONLY)
+    expect(requestHub.clearCart).toHaveBeenCalledWith(OF_A)
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'cross-device-cart.current_cart_ignored',
+      })
+    )
   })
 
   it.each([
@@ -221,6 +249,24 @@ describe('replaceCart: adopting an OWNED saved cart', () => {
       expect(store.get(key(SHOPPER_A))).toBe(OF_A)
     }
   )
+
+  it('a rejected current cart with nothing to adopt is logged as ownership_rejected', async () => {
+    const { ctx, logger } = setup({
+      items: { [OF_A]: [], [OF_B]: [item(7)] },
+    })
+
+    await expect(run(ctx, { currentCart: OF_B })).resolves.toBeNull()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.ownership_rejected',
+      operation: 'replaceCart',
+      verdict: 'FOREIGN',
+    })
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'cross-device-cart.current_cart_ignored',
+      })
+    )
+  })
 
   it('device already on the adopted cart (savedCart === currentCart): no-op, no cookie', async () => {
     const { ctx, response, checkoutIO, requestHub, checkoutRest } = setup({
@@ -344,11 +390,102 @@ describe('replaceCart: refusals', () => {
   })
 
   it('does nothing when unauthenticated', async () => {
-    const { ctx, vbase, response } = setup({ token: undefined })
+    const { ctx, vbase, response, logger } = setup({ token: undefined })
 
     await expect(run(ctx)).resolves.toBeNull()
     expect(vbase.getJSON).not.toHaveBeenCalled()
     expect(response.set).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'replaceCart',
+      auth_result: 'no_token',
+    })
+  })
+
+  it('does nothing (no write, no cookie) when VTEX ID is unavailable', async () => {
+    const { ctx, vbase, response, vtexId, checkoutIO, logger } = setup()
+
+    vtexId.validateToken.mockRejectedValueOnce({ response: { status: 504 } })
+
+    await expect(run(ctx)).resolves.toBeNull()
+    expect(vbase.getJSON).not.toHaveBeenCalled()
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(checkoutIO.getItems).not.toHaveBeenCalled()
+    expect(response.set).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation: 'replaceCart',
+      auth_result: 'unavailable',
+      status: 504,
+    })
+    expectNoPiiInLogs(logger)
+  })
+})
+
+describe('replaceCart: VBase failures are logged as vbase_error', () => {
+  const vbaseDown = () =>
+    Object.assign(new Error(`vbase down ${OF_A}`), {
+      response: { status: 500 },
+    })
+
+  const expectVbaseError = (logger: any) => {
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vbase_error',
+      operation: 'replaceCart',
+      status: 500,
+    })
+    expect(logger.warn).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'cross-device-cart.checkout_error' })
+    )
+    expectNoPiiInLogs(logger)
+  }
+
+  it('reading the reference fails: null, no cookie', async () => {
+    const { ctx, vbase, response, logger, checkoutIO } = setup()
+
+    vbase.getJSON.mockRejectedValueOnce(vbaseDown())
+
+    await expect(run(ctx)).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expect(checkoutIO.getItems).not.toHaveBeenCalled()
+    expectVbaseError(logger)
+  })
+
+  it('clearing a refused saved cart fails: null, no cookie', async () => {
+    const { ctx, vbase, response, logger } = setup({
+      vbase: { [key(SHOPPER_A)]: OF_B },
+    })
+
+    vbase.saveJSON.mockRejectedValueOnce(vbaseDown())
+
+    await expect(run(ctx, { savedCart: OF_B })).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expectVbaseError(logger)
+  })
+
+  it('moving the reference fails (empty saved cart): null, no cookie', async () => {
+    const { ctx, vbase, response, logger } = setup({
+      items: { [OF_A]: [], [OF_CURRENT_A]: [item(3)] },
+    })
+
+    vbase.saveJSON.mockRejectedValueOnce(vbaseDown())
+
+    await expect(run(ctx)).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expectVbaseError(logger)
+  })
+
+  it('moving the reference fails (anonymous saved cart): null, no cookie', async () => {
+    const { ctx, vbase, response, logger } = setup({
+      vbase: { [key(SHOPPER_A)]: OF_ANON },
+      items: { [OF_ANON]: [item(9)], [OF_CURRENT_A]: [item(3)] },
+    })
+
+    vbase.saveJSON.mockRejectedValueOnce(vbaseDown())
+
+    await expect(run(ctx, { savedCart: OF_ANON })).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expectVbaseError(logger)
   })
 })
 

@@ -50,6 +50,43 @@ describe('updateSavedCartReference', () => {
     expect(JSON.stringify(logger.info.mock.calls)).not.toContain(ORDER_ID)
   })
 
+  it('logs only message, orderId and status when the event fails (never the error object)', async () => {
+    const { ctx, logger } = setup(OF_A, OF_A)
+
+    ctx.clients.oms.order.mockRejectedValueOnce(
+      Object.assign(new Error(`failed for ${SHOPPER_A}`), {
+        response: { status: 502, data: { email: 'x@example.test' } },
+        config: { headers: { VtexIdclientAutCookie: 'secret-token' } },
+      })
+    )
+
+    await updateSavedCartReference(ctx)
+
+    expect(logger.error).toHaveBeenCalledWith({
+      message: 'There was a problem removing the reference for this order.',
+      orderId: ORDER_ID,
+      status: 502,
+    })
+    expect(JSON.stringify(logger.error.mock.calls)).not.toContain(
+      'secret-token'
+    )
+    expectNoPiiInLogs(logger)
+  })
+
+  it('logs a null status when the failure has no HTTP response', async () => {
+    const { ctx, logger } = setup(OF_A, OF_A)
+
+    ctx.clients.vbase.getJSON.mockRejectedValueOnce(new Error('vbase down'))
+
+    await updateSavedCartReference(ctx)
+
+    expect(logger.error).toHaveBeenCalledWith({
+      message: 'There was a problem removing the reference for this order.',
+      orderId: ORDER_ID,
+      status: null,
+    })
+  })
+
   it('keeps the reference when it differs from the order orderForm', async () => {
     const { ctx, store, logger } = setup(OF_B, OF_A)
 

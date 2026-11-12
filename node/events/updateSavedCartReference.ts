@@ -1,4 +1,5 @@
 import { APP_NAME } from '../constants'
+import { httpStatus } from '../utils/httpStatus'
 
 /**
  * Listens to the event "order-created" from the broadcaster.
@@ -41,9 +42,11 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       }
     } catch (error) {
       logger.error({
-        orderId,
         message: 'There was a problem removing the reference for this order.',
-        data: error,
+        // orderId is the documented exception; never log the error object
+        // (it can carry the order, the shopper profile and request headers).
+        orderId,
+        status: httpStatus(error) ?? null,
       })
     }
   } else {

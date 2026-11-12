@@ -4,6 +4,7 @@ import {
   OF_A,
   OF_ADDRESS_ONLY,
   OF_ANON,
+  OF_CEP_ONLY,
   OF_B,
   OF_CALL_CENTER,
   OF_CURRENT_A,
@@ -112,6 +113,72 @@ describe('saveCurrentCart', () => {
       save({ userId: SHOPPER_A, orderFormId: OF_ANON }, ctx)
     ).resolves.toBe('unauthenticated')
     expect(vbase.saveJSON).not.toHaveBeenCalled()
+  })
+
+  it('rejects without writing when VTEX ID is unavailable', async () => {
+    const { ctx, vbase, vtexId, logger } = createContext({ token: TOKEN_A })
+
+    vtexId.validateToken.mockRejectedValueOnce({ response: { status: 500 } })
+
+    await expect(save({ orderFormId: OF_ANON }, ctx)).resolves.toBe('rejected')
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation: 'saveCurrentCart',
+      auth_result: 'unavailable',
+      status: 500,
+    })
+    expectNoPiiInLogs(logger)
+  })
+
+  it.each([['an invalid token', { token: 'unknown-token' }]])(
+    'returns unauthenticated for %s',
+    async (_label, options) => {
+      const { ctx, vbase, logger } = createContext(options)
+
+      await expect(save({ orderFormId: OF_ANON }, ctx)).resolves.toBe(
+        'unauthenticated'
+      )
+      expect(vbase.saveJSON).not.toHaveBeenCalled()
+      expect(logger.info).toHaveBeenCalledWith({
+        message: 'cross-device-cart.unauthenticated',
+        operation: 'saveCurrentCart',
+        auth_result: 'invalid',
+      })
+    }
+  )
+
+  it.each([
+    ['saving a cart', OF_ANON],
+    ['clearing the reference', null],
+  ])(
+    'returns rejected and logs vbase_error when VBase fails %s',
+    async (_l, orderFormId) => {
+      const { ctx, vbase, logger } = createContext({ token: TOKEN_A })
+
+      vbase.saveJSON.mockRejectedValueOnce(
+        Object.assign(new Error(`vbase ${OF_ANON}`), {
+          response: { status: 500 },
+        })
+      )
+
+      await expect(save({ orderFormId }, ctx)).resolves.toBe('rejected')
+      expect(logger.warn).toHaveBeenCalledWith({
+        message: 'cross-device-cart.vbase_error',
+        operation: 'saveCurrentCart',
+        status: 500,
+      })
+      expectNoPiiInLogs(logger)
+    }
+  )
+
+  it('stores a postal-code-only (shipping simulator) cart as anonymous', async () => {
+    const { ctx, store } = createContext({ token: TOKEN_A })
+
+    await expect(save({ orderFormId: OF_CEP_ONLY }, ctx)).resolves.toBe(
+      'success'
+    )
+    expect(store.get(key(SHOPPER_A))).toBe(OF_CEP_ONLY)
   })
 
   it('uses the server sales channel', async () => {
