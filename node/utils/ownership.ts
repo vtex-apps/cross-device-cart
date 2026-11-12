@@ -14,8 +14,8 @@ const isMaskedEmail = (email: string) => email.includes('*')
 
 /**
  * Ownership by userProfileId (FR-B2). Rules are evaluated in order;
- * only OWNED and ANONYMOUS are acceptable. A cart with a client email or a
- * shipping address but no userProfileId is UNVERIFIED_PROFILE (refused).
+ * only OWNED and ANONYMOUS are acceptable. A cart with client PII (see
+ * `hasClientPii`) or `loggedIn` but no userProfileId is UNVERIFIED_PROFILE (refused).
  */
 export function classifyOwnership(
   owner: OrderFormOwner | null,
@@ -36,8 +36,9 @@ export function classifyOwnership(
       : 'FOREIGN'
   }
 
-  // hasClientProfile: client email or shipping address present (PII).
-  if (owner.hasClientProfile) {
+  // hasClientProfile: client PII present. A logged-in cart without userProfileId
+  // cannot be proven anonymous.
+  if (owner.hasClientProfile || owner.loggedIn) {
     return 'UNVERIFIED_PROFILE'
   }
 
@@ -130,12 +131,67 @@ export function logResidualRisk(
   })
 }
 
-export function logUnauthenticated(
+/**
+ * PII-free auth outcome log: no ids. `unavailable` (VTEX ID outage) is a
+ * warning of its own, not an "unauthenticated" shopper.
+ */
+export function logAuthResult(
   ctx: Context,
-  operation: CrossCartOperation
+  operation: CrossCartOperation,
+  result: ShopperResult
 ) {
+  if (result.authResult === 'ok') {
+    ctx.vtex.logger.info({
+      message: 'cross-device-cart.authenticated',
+      operation,
+      auth_result: 'ok',
+    })
+
+    return
+  }
+
+  if (result.authResult === 'unavailable') {
+    ctx.vtex.logger.warn({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation,
+      auth_result: 'unavailable',
+      status: result.status ?? null,
+    })
+
+    return
+  }
+
   ctx.vtex.logger.info({
     message: 'cross-device-cart.unauthenticated',
     operation,
+    auth_result: result.authResult,
+  })
+}
+
+/** PII-free: a VBase failure never carries ids or the stored value. */
+export function logVbaseError(
+  ctx: Context,
+  operation: CrossCartOperation,
+  error: unknown
+) {
+  ctx.vtex.logger.warn({
+    message: 'cross-device-cart.vbase_error',
+    operation,
+    status: (error as any)?.response?.status ?? null,
+  })
+}
+
+/** PII-free: current cart not usable, but the operation continues. */
+export function logCurrentCartIgnored(
+  ctx: Context,
+  operation: CrossCartOperation,
+  verdict: RejectionReason,
+  reason?: OwnershipReason
+) {
+  ctx.vtex.logger.info({
+    message: 'cross-device-cart.current_cart_ignored',
+    operation,
+    verdict,
+    ...(reason ? { reason } : {}),
   })
 }

@@ -9,8 +9,10 @@ import {
   fetchOwnership,
   isAcceptable,
   logOwnershipRejection,
+  logAuthResult,
+  logCurrentCartIgnored,
   logResidualRisk,
-  logUnauthenticated,
+  logVbaseError,
 } from '../utils/ownership'
 
 /** Same cookie lifetime the app has always set (180 days). */
@@ -65,13 +67,15 @@ export const replaceCart = async (
 ): Promise<PartialOrderForm | null> => {
   // Authentication control: this early return is the gate. The `@auth(scope: PUBLIC)`
   // directive in the schema allows anyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  const auth = await resolveShopper(ctx)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, 'replaceCart')
+  logAuthResult(ctx, 'replaceCart', auth)
 
+  if (auth.authResult !== 'ok') {
     return null
   }
+
+  const { shopper } = auth
 
   if (!isValidOrderFormId(savedCart) || !isValidOrderFormId(currentCart)) {
     logOwnershipRejection(ctx, 'replaceCart', 'NOT_FOUND')
@@ -95,11 +99,15 @@ export const replaceCart = async (
     clients: { vbase, checkoutIO, requestHub },
   } = ctx
 
-  const stored: string | null = await vbase.getJSON(
-    APP_NAME,
-    shopper.userId,
-    true
-  )
+  let stored: string | null
+
+  try {
+    stored = await vbase.getJSON<string | null>(APP_NAME, shopper.userId, true)
+  } catch (error) {
+    logVbaseError(ctx, 'replaceCart', error)
+
+    return null
+  }
 
   if (stored !== savedCart) {
     logOwnershipRejection(ctx, 'replaceCart', 'SAVED_CART_MISMATCH')
@@ -107,10 +115,12 @@ export const replaceCart = async (
     return null
   }
 
-  const [saved, current] = await Promise.all([
-    fetchOwnership(ctx, savedCart, shopper, 'replaceCart'),
-    fetchOwnership(ctx, currentCart, shopper, 'replaceCart'),
-  ])
+  // Same cart on both sides: one owner lookup is enough.
+  const saved = await fetchOwnership(ctx, savedCart, shopper, 'replaceCart')
+  const current =
+    savedCart === currentCart
+      ? saved
+      : await fetchOwnership(ctx, currentCart, shopper, 'replaceCart')
 
   if (
     saved.verdict === 'LOOKUP_FAILED' ||
@@ -124,7 +134,14 @@ export const replaceCart = async (
 
   if (!isAcceptable(savedVerdict)) {
     // Includes FR-D1: OWNED by userProfileId but unmasked email of someone else.
-    await vbase.saveJSON(APP_NAME, shopper.userId, null)
+    try {
+      await vbase.saveJSON(APP_NAME, shopper.userId, null)
+    } catch (error) {
+      logVbaseError(ctx, 'replaceCart', error)
+
+      return null
+    }
+
     logOwnershipRejection(ctx, 'replaceCart', savedVerdict, saved.reason)
 
     return null
@@ -140,9 +157,23 @@ export const replaceCart = async (
 
   const currentIsAcceptable = isAcceptable(currentVerdict)
 
-  if (!currentIsAcceptable) {
-    // Shared browser: never read the foreign current cart's items.
+  // Shared browser: a non-acceptable current cart's items are never read. It is
+  // a rejection when the operation then ends with null, and only "ignored" when
+  // the saved cart is still adopted.
+  const rejectCurrent = () =>
     logOwnershipRejection(ctx, 'replaceCart', currentVerdict, current.reason)
+
+  let vbaseFailed = false
+
+  const saveReference = async (value: string) => {
+    try {
+      await vbase.saveJSON(APP_NAME, shopper.userId, value)
+    } catch (error) {
+      vbaseFailed = true
+      logVbaseError(ctx, 'replaceCart', error)
+
+      throw error
+    }
   }
 
   // Checkout calls below must not throw: the platform's GraphQL error
@@ -163,15 +194,26 @@ export const replaceCart = async (
       // Nothing to recover: never adopt an empty saved cart. Never return a
       // non-acceptable current orderForm (its data belongs to someone else).
       if (!currentIsAcceptable) {
+        rejectCurrent()
+
         return null
       }
 
-      await vbase.saveJSON(APP_NAME, shopper.userId, currentCart)
+      await saveReference(currentCart)
 
       return await checkoutIO.getOrderForm(currentCart)
     }
 
     if (savedVerdict === 'OWNED') {
+      if (!currentIsAcceptable) {
+        logCurrentCartIgnored(
+          ctx,
+          'replaceCart',
+          currentVerdict,
+          current.reason
+        )
+      }
+
       if (saved.reason) {
         // FR-D1 residual risk: email masked or unverifiable, userProfileId decided.
         logResidualRisk(ctx, 'replaceCart', saved.reason)
@@ -200,6 +242,8 @@ export const replaceCart = async (
 
     // ANONYMOUS saved cart: not adopted (no proven owner); add its missing SKUs.
     if (!currentIsAcceptable) {
+      rejectCurrent()
+
       return null
     }
 
@@ -212,10 +256,15 @@ export const replaceCart = async (
         )
       : await checkoutIO.getOrderForm(currentCart)
 
-    await vbase.saveJSON(APP_NAME, shopper.userId, currentCart)
+    await saveReference(currentCart)
 
     return newOrderForm
   } catch (error) {
+    if (vbaseFailed) {
+      // Already logged as vbase_error; no cookie was set.
+      return null
+    }
+
     ctx.vtex.logger.warn({
       message: 'cross-device-cart.checkout_error',
       operation: 'replaceCart',

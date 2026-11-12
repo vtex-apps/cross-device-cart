@@ -9,16 +9,16 @@ export function isValidOrderFormId(id: unknown): id is string {
 /**
  * Derives the shopper identity from the request's store-user token
  * (cookie VtexIdclientAutCookie_{account}), validated by VTEX ID.
- * Returns null when there is no valid store-user token for this account.
+ * Returns `{ authResult: 'ok', shopper }`, or `{ authResult }` with the reason
+ * there is no valid store-user token for this account. `unavailable` means
+ * VTEX ID itself failed (5xx, network, timeout): not the same as "not logged in".
  * Never reads GraphQL arguments.
  */
-export async function resolveShopper(
-  ctx: Context
-): Promise<ShopperIdentity | null> {
+export async function resolveShopper(ctx: Context): Promise<ShopperResult> {
   const token = ctx.vtex.storeUserAuthToken
 
   if (!token) {
-    return null
+    return { authResult: 'no_token' }
   }
 
   let credential
@@ -26,27 +26,30 @@ export async function resolveShopper(
   try {
     credential = await ctx.clients.vtexId.validateToken(token)
   } catch (error) {
-    ctx.vtex.logger.warn({
-      message: 'cross-device-cart.vtexid_unavailable',
+    return {
+      authResult: 'unavailable',
       status: (error as any)?.response?.status ?? null,
-    })
-
-    return null
+    }
   }
 
-  if (
-    !credential ||
-    credential.authStatus !== 'Success' ||
-    !credential.id ||
-    credential.account !== ctx.vtex.account ||
-    credential.audience !== STORE_AUDIENCE
-  ) {
-    return null
+  if (!credential || credential.authStatus !== 'Success' || !credential.id) {
+    return { authResult: 'invalid' }
+  }
+
+  if (credential.account !== ctx.vtex.account) {
+    return { authResult: 'account_mismatch' }
+  }
+
+  if (credential.audience !== STORE_AUDIENCE) {
+    return { authResult: 'audience_mismatch' }
   }
 
   return {
-    userId: credential.id,
-    email: credential.user ? credential.user.trim().toLowerCase() : null,
+    authResult: 'ok',
+    shopper: {
+      userId: credential.id,
+      email: credential.user ? credential.user.trim().toLowerCase() : null,
+    },
   }
 }
 

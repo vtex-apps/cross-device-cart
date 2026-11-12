@@ -4,7 +4,8 @@ import {
   fetchOwnership,
   isAcceptable,
   logOwnershipRejection,
-  logUnauthenticated,
+  logAuthResult,
+  logVbaseError,
 } from '../utils/ownership'
 
 /**
@@ -26,13 +27,21 @@ export const getSavedCart = async (
 ): Promise<string | null> => {
   // Authentication control: this early return is the gate. The `@auth(scope: PUBLIC)`
   // directive in the schema allows anyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  const auth = await resolveShopper(ctx)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, 'getSavedCart')
+  logAuthResult(ctx, 'getSavedCart', auth)
+
+  if (auth.authResult !== 'ok') {
+    if (auth.authResult === 'unavailable') {
+      // VTEX ID outage is not "logged out": surface an error so the storefront
+      // does not overwrite the reference.
+      throw new Error('saved cart lookup unavailable')
+    }
 
     return null
   }
+
+  const { shopper } = auth
 
   warnOnIdentityArgMismatch(ctx, 'getSavedCart', userId, shopper)
 
@@ -40,11 +49,20 @@ export const getSavedCart = async (
     clients: { vbase, checkoutIO },
   } = ctx
 
-  const orderFormId: string | null = await vbase.getJSON(
-    APP_NAME,
-    shopper.userId,
-    true
-  )
+  let orderFormId: string | null
+
+  try {
+    orderFormId = await vbase.getJSON<string | null>(
+      APP_NAME,
+      shopper.userId,
+      true
+    )
+  } catch (error) {
+    logVbaseError(ctx, 'getSavedCart', error)
+
+    // Never null: the storefront would overwrite the reference.
+    throw new Error('saved cart lookup unavailable')
+  }
 
   if (!orderFormId) {
     return null
@@ -64,14 +82,33 @@ export const getSavedCart = async (
 
   if (!isAcceptable(verdict)) {
     // Includes FR-D1 email_mismatch (shared classifier).
-    await vbase.saveJSON(APP_NAME, shopper.userId, null)
+    try {
+      await vbase.saveJSON(APP_NAME, shopper.userId, null)
+    } catch (error) {
+      logVbaseError(ctx, 'getSavedCart', error)
+
+      throw new Error('saved cart lookup unavailable')
+    }
+
     logOwnershipRejection(ctx, 'getSavedCart', verdict, reason)
 
     return null
   }
 
   if (nullOnEmpty) {
-    const savedItems = await checkoutIO.getItems(orderFormId)
+    let savedItems: PartialItem[]
+
+    try {
+      savedItems = await checkoutIO.getItems(orderFormId)
+    } catch (error) {
+      ctx.vtex.logger.warn({
+        message: 'cross-device-cart.checkout_error',
+        operation: 'getSavedCart',
+        status: (error as any)?.response?.status ?? null,
+      })
+
+      throw new Error('saved cart lookup unavailable')
+    }
 
     if (!savedItems.length) {
       return null

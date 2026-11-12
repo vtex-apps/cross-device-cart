@@ -42,7 +42,113 @@ describe('getSavedCart', () => {
     expect(logger.info).toHaveBeenCalledWith({
       message: 'cross-device-cart.unauthenticated',
       operation: 'getSavedCart',
+      auth_result: 'no_token',
     })
+  })
+
+  it('logs auth_result ok on success, without ids', async () => {
+    const { ctx, logger } = mockContext({ store: { [SHOPPER_A]: OF_A } })
+
+    await getSavedCart({}, {}, ctx)
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.authenticated',
+      operation: 'getSavedCart',
+      auth_result: 'ok',
+    })
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it('logs the failure value as auth_result for an invalid credential', async () => {
+    const { ctx, vtexId, vbase, logger } = mockContext()
+
+    vtexId.validateToken.mockResolvedValueOnce(null)
+
+    await expect(getSavedCart({}, {}, ctx)).resolves.toBeNull()
+    expect(vbase.getJSON).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'getSavedCart',
+      auth_result: 'invalid',
+    })
+  })
+
+  it('VTEX ID outage: throws (not null), warns vtexid_unavailable, never touches VBase', async () => {
+    const { ctx, vtexId, vbase, vbaseData, logger } = mockContext({
+      store: { [SHOPPER_A]: OF_A },
+    })
+
+    vtexId.validateToken.mockRejectedValueOnce({ response: { status: 503 } })
+
+    await expect(getSavedCart({}, {}, ctx)).rejects.toThrow(
+      'saved cart lookup unavailable'
+    )
+    expect(vbase.getJSON).not.toHaveBeenCalled()
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(vbaseData[SHOPPER_A]).toBe(OF_A)
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation: 'getSavedCart',
+      auth_result: 'unavailable',
+      status: 503,
+    })
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'cross-device-cart.unauthenticated' })
+    )
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it('VBase read failure: throws (never null), logs vbase_error without ids', async () => {
+    const { ctx, vbase, logger } = mockContext()
+
+    vbase.getJSON.mockRejectedValueOnce({ response: { status: 500 } })
+
+    await expect(getSavedCart({}, {}, ctx)).rejects.toThrow(
+      'saved cart lookup unavailable'
+    )
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vbase_error',
+      operation: 'getSavedCart',
+      status: 500,
+    })
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it('VBase write failure while clearing a foreign key: throws and logs vbase_error', async () => {
+    const { ctx, vbase, logger } = mockContext({
+      store: { [SHOPPER_A]: OF_B },
+    })
+
+    vbase.saveJSON.mockRejectedValueOnce(new Error('vbase down'))
+
+    await expect(getSavedCart({}, {}, ctx)).rejects.toThrow(
+      'saved cart lookup unavailable'
+    )
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vbase_error',
+      operation: 'getSavedCart',
+      status: null,
+    })
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it('nullOnEmpty: a getItems failure throws the lookup error and logs checkout_error', async () => {
+    const { ctx, checkoutIO, vbase, logger } = mockContext({
+      store: { [SHOPPER_A]: OF_A },
+    })
+
+    checkoutIO.getItems.mockRejectedValueOnce({ response: { status: 502 } })
+
+    await expect(getSavedCart({}, { nullOnEmpty: true }, ctx)).rejects.toThrow(
+      'saved cart lookup unavailable'
+    )
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.checkout_error',
+      operation: 'getSavedCart',
+      status: 502,
+    })
+    expectNoIdentifiersLogged(logger)
   })
 
   it.each([

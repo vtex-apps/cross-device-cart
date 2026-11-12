@@ -1,11 +1,14 @@
 /* eslint-disable jest/no-expect-resolves */
+import { CacheType } from '@vtex/api'
+
 import VtexId from '../clients/vtexId'
 import CheckoutRestClient from '../clients/checkoutRest'
+import CheckoutIO from '../clients/checkout'
 
 const ioContext: any = { account: 'testaccount', authToken: 'app-token' }
 
 describe('VtexId.validateToken', () => {
-  it('POSTs the token to the account-scoped credential/validate endpoint', async () => {
+  it('POSTs the token to the account-scoped credential/validate endpoint, never cached', async () => {
     const client = new VtexId(ioContext)
     const post = jest.fn().mockResolvedValue({ authStatus: 'Success', id: 'x' })
 
@@ -18,7 +21,10 @@ describe('VtexId.validateToken', () => {
     expect(post).toHaveBeenCalledWith(
       '/api/vtexid/credential/validate',
       { token: 'tkn' },
-      expect.objectContaining({ params: { an: 'testaccount' } })
+      expect.objectContaining({
+        params: { an: 'testaccount' },
+        cacheable: CacheType.None,
+      })
     )
   })
 
@@ -51,6 +57,7 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
   it('projects owner fields only (no address)', async () => {
     const client = new CheckoutRestClient(ioContext)
     const get = jest.fn().mockResolvedValue({
+      orderFormId: ID,
       userProfileId: 'p1',
       userType: 'callCenterOperator',
       loggedIn: true,
@@ -74,26 +81,56 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
     )
   })
 
+  const ownerFor = async (body: Record<string, unknown>) => {
+    const client = new CheckoutRestClient(ioContext)
+
+    ;(client as any).http = {
+      get: jest.fn().mockResolvedValue({
+        orderFormId: ID,
+        userProfileId: null,
+        clientProfileData: null,
+        shippingData: null,
+        ...body,
+      }),
+    }
+
+    return client.getOrderFormOwner(ID)
+  }
+
   it.each([
-    ['shippingData.address', { address: { street: 'should not leak' } }],
+    ['email', { email: 'x@example.test' }],
+    ['document', { document: '123' }],
+    ['phone', { phone: '+1555' }],
+    ['firstName', { firstName: 'A' }],
+    ['lastName', { lastName: 'B' }],
+  ])(
+    'hasClientProfile is true for clientProfileData.%s',
+    async (_n, profile) => {
+      await expect(
+        ownerFor({ clientProfileData: profile })
+      ).resolves.toMatchObject({ hasClientProfile: true })
+    }
+  )
+
+  it.each([
+    ['address.receiverName', { address: { receiverName: 'R' } }],
+    ['address.street', { address: { street: 'S' } }],
+    ['address.number', { address: { number: '10' } }],
     [
-      'shippingData.selectedAddresses',
-      { selectedAddresses: [{ street: 'x' }] },
+      'selectedAddresses',
+      { selectedAddresses: [{ postalCode: '1', street: 'x' }] },
+    ],
+    [
+      'availableAddresses',
+      {
+        selectedAddresses: [{ postalCode: '1' }],
+        availableAddresses: [{ postalCode: '1' }, { receiverName: 'R' }],
+      },
     ],
   ])(
-    'hasClientProfile is true without email when %s is filled',
+    'hasClientProfile is true without email for an identifying address (%s)',
     async (_n, shippingData) => {
-      const client = new CheckoutRestClient(ioContext)
-
-      ;(client as any).http = {
-        get: jest.fn().mockResolvedValue({
-          userProfileId: null,
-          clientProfileData: null,
-          shippingData,
-        }),
-      }
-
-      await expect(client.getOrderFormOwner(ID)).resolves.toEqual({
+      await expect(ownerFor({ shippingData })).resolves.toEqual({
         orderFormId: ID,
         userProfileId: null,
         userType: null,
@@ -104,19 +141,31 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
     }
   )
 
-  it('hasClientProfile stays false for an empty anonymous orderForm', async () => {
-    const client = new CheckoutRestClient(ioContext)
-
-    ;(client as any).http = {
-      get: jest.fn().mockResolvedValue({
-        clientProfileData: null,
-        shippingData: { address: null, selectedAddresses: [] },
-      }),
-    }
-
-    await expect(client.getOrderFormOwner(ID)).resolves.toMatchObject({
-      hasClientProfile: false,
-    })
+  it.each([
+    ['CEP only', { address: { postalCode: '22000000', country: 'BRA' } }],
+    [
+      'simulator address with city/state/neighborhood/geo/addressType',
+      {
+        address: {
+          postalCode: '1',
+          country: 'BRA',
+          city: 'C',
+          state: 'S',
+          neighborhood: 'N',
+          geoCoordinates: [1, 2],
+          addressType: 'residential',
+          street: '',
+          receiverName: '  ',
+        },
+        selectedAddresses: [{ postalCode: '1', country: 'BRA' }],
+        availableAddresses: [{ postalCode: '1', country: 'BRA' }],
+      },
+    ],
+    ['empty arrays and null address', { address: null, selectedAddresses: [] }],
+  ])('hasClientProfile stays false for %s', async (_n, shippingData) => {
+    await expect(
+      ownerFor({ clientProfileData: null, shippingData })
+    ).resolves.toMatchObject({ hasClientProfile: false })
   })
 
   it('returns null for invalid ids without calling Checkout', async () => {
@@ -162,5 +211,58 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
     }
 
     await expect(client.getOrderFormOwner(ID)).resolves.toBeNull()
+  })
+
+  it.each([
+    ['empty string', ''],
+    ['undefined (204)', undefined],
+    ['null', null],
+    ['empty object', {}],
+    ['HTML string', '<html><body>Bad gateway</body></html>'],
+    ['array', [{ orderFormId: ID }]],
+    ['object without orderFormId', { userProfileId: null, loggedIn: true }],
+  ])(
+    'throws (LOOKUP_FAILED) on a response that does not echo the id: %s',
+    async (_n, body) => {
+      const client = new CheckoutRestClient(ioContext)
+
+      ;(client as any).http = { get: jest.fn().mockResolvedValue(body) }
+
+      await expect(client.getOrderFormOwner(ID)).rejects.toThrow()
+    }
+  )
+})
+
+describe('CheckoutIO reads', () => {
+  it.each(['getItems', 'getOrderForm'] as const)(
+    '%s is never memory-cached',
+    async (method) => {
+      const client = new CheckoutIO(ioContext)
+      const query = jest.fn().mockResolvedValue({
+        data: { orderForm: { items: [] } },
+      })
+
+      ;(client as any).graphql = { query }
+
+      await (client as any)[method]('a'.repeat(32))
+
+      expect(query).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ cacheable: CacheType.None })
+      )
+    }
+  )
+})
+
+describe('clients config', () => {
+  it('sets per-client timeouts and keeps the defaults', () => {
+    ;(global as any).metrics = { trackCache: jest.fn() }
+
+    // eslint-disable-next-line global-require, @typescript-eslint/no-var-requires
+    const config = require('../clients').default
+
+    expect(config.options.default).toMatchObject({ retries: 2, timeout: 5000 })
+    expect(config.options.vtexId).toEqual({ timeout: 2000, retries: 1 })
+    expect(config.options.checkoutRest).toEqual({ timeout: 3000, retries: 1 })
   })
 })

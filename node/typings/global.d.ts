@@ -76,7 +76,7 @@ interface OrderFormOwner {
   userProfileId: string | null
   userType: string | null
   loggedIn: boolean
-  /** presence of clientProfileData.email */
+  /** client PII present (profile fields or an identifying address), see hasClientPii */
   hasClientProfile: boolean
   /** clientProfileData.email as returned (may be masked with `*`). In memory only, never logged. */
   email: string | null
@@ -117,5 +117,20 @@ interface ShopperIdentity {
   /** VTEX ID `user` (login email). Used only for the FR-D1 comparison, never logged. */
   email: string | null
 }
+
+type AuthFailure =
+  | 'no_token'
+  | 'invalid'
+  | 'account_mismatch'
+  | 'audience_mismatch'
+  | 'unavailable'
+
+type ShopperResult =
+  | { authResult: 'ok'; shopper: ShopperIdentity }
+  | {
+      authResult: AuthFailure
+      /** HTTP status of the VTEX ID error, only for `unavailable` (null if none). */
+      status?: number | null
+    }
 
 type CrossCartOperation = 'getSavedCart' | 'saveCurrentCart' | 'replaceCart'

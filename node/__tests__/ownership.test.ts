@@ -1,4 +1,5 @@
 /* eslint-disable jest/no-expect-resolves */
+import CheckoutRestClient from '../clients/checkoutRest'
 import {
   classifyOwnership,
   classifyOwnershipWithReason,
@@ -18,6 +19,7 @@ import {
   OF_B,
   OF_CALL_CENTER,
   OF_ADDRESS_ONLY,
+  OF_CEP_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
 } from '../testUtils/mockContext'
@@ -29,6 +31,7 @@ describe('classifyOwnership', () => {
     [OF_A, 'OWNED'],
     [OF_B, 'FOREIGN'],
     [OF_ANON, 'ANONYMOUS'],
+    [OF_CEP_ONLY, 'ANONYMOUS'],
     [OF_IDENTIFIED, 'UNVERIFIED_PROFILE'],
     [OF_ADDRESS_ONLY, 'UNVERIFIED_PROFILE'],
     [OF_CALL_CENTER, 'CALL_CENTER'],
@@ -49,6 +52,12 @@ describe('classifyOwnership', () => {
         userId: SHOPPER_A.toUpperCase(),
       })
     ).toBe('OWNED')
+  })
+
+  it('loggedIn without userProfileId is UNVERIFIED_PROFILE, never ANONYMOUS', () => {
+    expect(
+      classifyOwnership({ ...owners[OF_ANON], loggedIn: true }, shopper)
+    ).toBe('UNVERIFIED_PROFILE')
   })
 
   it('NOT_FOUND when the owner lookup returned null', () => {
@@ -143,5 +152,51 @@ describe('fetchOwnership', () => {
       fetchOwnership(ctx, 'default-order-form', shopper, 'replaceCart')
     ).resolves.toEqual({ verdict: 'NOT_FOUND' })
     expect(checkoutRest.getOrderFormOwner).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['empty string', ''],
+    ['undefined (204)', undefined],
+    ['empty object', {}],
+    ['HTML', '<html></html>'],
+  ])(
+    'fetchOwnership: a 200 with no echoed id (%s) is LOOKUP_FAILED (through the real client)',
+    async (_n, body) => {
+      const { ctx, logger } = mockContext()
+      const client = new CheckoutRestClient({
+        account: 'testaccount',
+        authToken: 't',
+      } as any)
+
+      ctx.clients.checkoutRest = client
+      ;(client as any).http = { get: jest.fn().mockResolvedValue(body) }
+
+      await expect(
+        fetchOwnership(ctx, OF_A, shopper, 'getSavedCart')
+      ).resolves.toEqual({ verdict: 'LOOKUP_FAILED' })
+
+      expect(logger.warn).toHaveBeenCalledWith({
+        message: 'cross-device-cart.owner_lookup_failed',
+        operation: 'getSavedCart',
+        status: null,
+      })
+    }
+  )
+
+  it('fetchOwnership: echoed id with loggedIn true and no profile is UNVERIFIED_PROFILE', async () => {
+    const { ctx } = mockContext()
+    const client = new CheckoutRestClient({
+      account: 'testaccount',
+      authToken: 't',
+    } as any)
+
+    ctx.clients.checkoutRest = client
+    ;(client as any).http = {
+      get: jest.fn().mockResolvedValue({ orderFormId: OF_A, loggedIn: true }),
+    }
+
+    await expect(
+      fetchOwnership(ctx, OF_A, shopper, 'getSavedCart')
+    ).resolves.toEqual({ verdict: 'UNVERIFIED_PROFILE' })
   })
 })

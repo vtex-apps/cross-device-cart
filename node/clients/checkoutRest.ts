@@ -3,29 +3,75 @@ import { CacheType, JanusClient } from '@vtex/api'
 
 import { isValidOrderFormId } from '../utils/identity'
 
+interface RawAddress {
+  receiverName?: unknown
+  street?: unknown
+  number?: unknown
+  [key: string]: unknown
+}
+
 interface RawOrderFormOwnerFields {
   orderFormId?: string
   userProfileId?: string | null
   userType?: string | null
   loggedIn?: boolean
-  clientProfileData?: { email?: string | null } | null
+  clientProfileData?: {
+    email?: string | null
+    document?: string | null
+    phone?: string | null
+    firstName?: string | null
+    lastName?: string | null
+  } | null
   shippingData?: {
-    address?: Record<string, unknown> | null
+    address?: RawAddress | null
     selectedAddresses?: unknown[] | null
+    availableAddresses?: unknown[] | null
   } | null
 }
 
+const isFilled = (value: unknown) =>
+  typeof value === 'string' && value.trim().length > 0
+
 /**
- * True when the orderForm carries client PII: a client email, or a shipping
- * address (receiverName, street, postalCode), even without an email.
+ * An address that identifies a person: an object with a non-empty
+ * `receiverName`, `street` or `number`. Postal code, country, city, state,
+ * neighborhood, geoCoordinates and addressType alone (e.g. from the shipping
+ * simulator) are not identifying.
+ */
+function isIdentifyingAddress(address: unknown): boolean {
+  if (typeof address !== 'object' || address === null) {
+    return false
+  }
+
+  const { receiverName, street, number } = address as RawAddress
+
+  return isFilled(receiverName) || isFilled(street) || isFilled(number)
+}
+
+/**
+ * True when the orderForm carries client PII, i.e. any of:
+ * - `clientProfileData` with a non-empty email, document, phone, firstName or lastName;
+ * - `shippingData.address` that is an identifying address (see above);
+ * - `shippingData.selectedAddresses` or `availableAddresses` with at least one
+ *   identifying address.
+ * A cart with only a postal code (shipping simulator) is not PII.
  */
 function hasClientPii(orderForm: RawOrderFormOwnerFields): boolean {
-  const { address, selectedAddresses } = orderForm.shippingData ?? {}
+  const profile = orderForm.clientProfileData
+  const { address, selectedAddresses, availableAddresses } =
+    orderForm.shippingData ?? {}
 
   return (
-    Boolean(orderForm.clientProfileData?.email) ||
-    (typeof address === 'object' && address !== null) ||
-    (Array.isArray(selectedAddresses) && selectedAddresses.length > 0)
+    isFilled(profile?.email) ||
+    isFilled(profile?.document) ||
+    isFilled(profile?.phone) ||
+    isFilled(profile?.firstName) ||
+    isFilled(profile?.lastName) ||
+    isIdentifyingAddress(address) ||
+    (Array.isArray(selectedAddresses) &&
+      selectedAddresses.some(isIdentifyingAddress)) ||
+    (Array.isArray(availableAddresses) &&
+      availableAddresses.some(isIdentifyingAddress))
   )
 }
 
@@ -65,8 +111,19 @@ export default class CheckoutRestClient extends JanusClient {
         }
       )
 
+      // Fail closed: an empty body, 204, HTML or array is not an orderForm, and
+      // a response that does not echo the id cannot be trusted as this cart's owner.
+      if (
+        typeof orderForm !== 'object' ||
+        orderForm === null ||
+        Array.isArray(orderForm) ||
+        !orderForm.orderFormId
+      ) {
+        throw new Error('unexpected orderForm response')
+      }
+
       // A response for another orderForm cannot be trusted as the owner of this one.
-      if (orderForm?.orderFormId && orderForm.orderFormId !== orderFormId) {
+      if (orderForm.orderFormId !== orderFormId) {
         return null
       }
 

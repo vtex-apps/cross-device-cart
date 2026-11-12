@@ -9,7 +9,8 @@ import {
   fetchOwnership,
   isAcceptable,
   logOwnershipRejection,
-  logUnauthenticated,
+  logAuthResult,
+  logVbaseError,
 } from '../utils/ownership'
 
 export const SAVE_RESULT = {
@@ -34,13 +35,18 @@ export const saveCurrentCart = async (
 ): Promise<string> => {
   // Authentication control: this early return is the gate. The `@auth(scope: PUBLIC)`
   // directive in the schema allows anyone and enforces nothing.
-  const shopper = await resolveShopper(ctx)
+  const auth = await resolveShopper(ctx)
 
-  if (!shopper) {
-    logUnauthenticated(ctx, 'saveCurrentCart')
+  logAuthResult(ctx, 'saveCurrentCart', auth)
 
-    return SAVE_RESULT.unauthenticated
+  if (auth.authResult !== 'ok') {
+    // VTEX ID outage: not the shopper's fault, and nothing is written.
+    return auth.authResult === 'unavailable'
+      ? SAVE_RESULT.rejected
+      : SAVE_RESULT.unauthenticated
   }
+
+  const { shopper } = auth
 
   warnOnIdentityArgMismatch(ctx, 'saveCurrentCart', userId, shopper)
 
@@ -48,10 +54,20 @@ export const saveCurrentCart = async (
     clients: { vbase },
   } = ctx
 
-  if (!orderFormId) {
-    await vbase.saveJSON(APP_NAME, shopper.userId, null)
+  const save = async (value: string | null): Promise<string> => {
+    try {
+      await vbase.saveJSON(APP_NAME, shopper.userId, value)
+    } catch (error) {
+      logVbaseError(ctx, 'saveCurrentCart', error)
+
+      return SAVE_RESULT.rejected
+    }
 
     return SAVE_RESULT.success
+  }
+
+  if (!orderFormId) {
+    return save(null)
   }
 
   if (!isValidOrderFormId(orderFormId)) {
@@ -93,7 +109,5 @@ export const saveCurrentCart = async (
     return SAVE_RESULT.rejected
   }
 
-  await vbase.saveJSON(APP_NAME, shopper.userId, orderFormId)
-
-  return SAVE_RESULT.success
+  return save(orderFormId)
 }

@@ -38,7 +38,7 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       logger.error({
         orderId,
         message: 'There was a problem removing the reference for this order.',
-        data: error,
+        status: (error as any)?.response?.status ?? null,
       })
     }
   } else {

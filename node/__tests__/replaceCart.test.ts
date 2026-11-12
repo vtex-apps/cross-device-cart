@@ -12,6 +12,7 @@ import {
   OF_B,
   OF_CALL_CENTER,
   OF_ADDRESS_ONLY,
+  OF_CEP_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
 } from '../testUtils/mockContext'
@@ -96,14 +97,42 @@ describe('replaceCart with an OWNED saved cart (adopt own cart)', () => {
       expect(requestHub.clearCart).not.toHaveBeenCalled()
       expect(checkoutIO.addToCart).not.toHaveBeenCalled()
       expect(response.set).toHaveBeenCalledWith('set-cookie', COOKIE)
-      expect(logger.warn).toHaveBeenCalledWith({
-        message: 'cross-device-cart.ownership_rejected',
+      expect(logger.info).toHaveBeenCalledWith({
+        message: 'cross-device-cart.current_cart_ignored',
         operation: 'replaceCart',
         verdict: current === OF_B ? 'FOREIGN' : 'UNVERIFIED_PROFILE',
       })
+      expect(logger.warn).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'cross-device-cart.ownership_rejected',
+        })
+      )
       expectNoIdentifiersLogged(logger)
     }
   )
+
+  it('a postal-code-only current cart (shipping simulator) is a usable current cart', async () => {
+    const { ctx, checkoutIO, response, logger } = mockContext({
+      cookie: OF_CEP_ONLY,
+      store: { [SHOPPER_A]: SAVED },
+      items: { [SAVED]: [item(5, 1)], [OF_CEP_ONLY]: [item(7, 1)] },
+    })
+
+    await expect(run(ctx, 'ADD', OF_CEP_ONLY)).resolves.toMatchObject({
+      id: SAVED,
+    })
+    expect(checkoutIO.getItems).toHaveBeenCalledWith(OF_CEP_ONLY)
+    expect(checkoutIO.addToCart).toHaveBeenCalledWith(SAVED, [
+      { ...item(7, 1), index: 0 },
+      { ...item(5, 1), index: 1 },
+    ])
+    expect(response.set).toHaveBeenCalledWith('set-cookie', COOKIE)
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'cross-device-cart.current_cart_ignored',
+      })
+    )
+  })
 
   it('empty OWNED saved cart is not adopted: current returned, no cookie, key re-pointed', async () => {
     const { ctx, checkoutIO, response, vbaseData } = mockContext({
@@ -223,6 +252,37 @@ describe('replaceCart with an OWNED saved cart (adopt own cart)', () => {
     })
     expect(checkoutIO.addToCart).not.toHaveBeenCalled()
     expect(response.set).not.toHaveBeenCalled()
+  })
+
+  it('savedCart == currentCart: a single owner lookup serves both', async () => {
+    const { ctx, checkoutRest } = mockContext({
+      cookie: SAVED,
+      store: { [SHOPPER_A]: SAVED },
+    })
+
+    await run(ctx, 'COMBINE', SAVED)
+
+    expect(checkoutRest.getOrderFormOwner).toHaveBeenCalledTimes(1)
+  })
+
+  it('call-center current cart is a real rejection (ownership_rejected, not current_cart_ignored)', async () => {
+    const { ctx, logger } = mockContext({
+      cookie: OF_CALL_CENTER,
+      store: { [SHOPPER_A]: SAVED },
+      items: { [SAVED]: [item(5, 1)] },
+    })
+
+    await expect(run(ctx, 'REPLACE', OF_CALL_CENTER)).resolves.toBeNull()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.ownership_rejected',
+      operation: 'replaceCart',
+      verdict: 'CALL_CENTER',
+    })
+    expect(logger.info).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: 'cross-device-cart.current_cart_ignored',
+      })
+    )
   })
 })
 
@@ -587,6 +647,116 @@ describe('replaceCart when the CURRENT cart does not exist (owner lookup 404)', 
       expect(m.response.set).toHaveBeenCalledWith('set-cookie', COOKIE)
       expect(m.vbaseData[SHOPPER_A]).toBe(SAVED)
       expectNoIdentifiersLogged(m.logger)
+    }
+  )
+})
+
+describe('replaceCart: auth failures and VBase failures', () => {
+  it('VTEX ID outage: null, no write, no cookie, no Checkout call', async () => {
+    const { ctx, vtexId, vbase, checkoutIO, response, logger } = mockContext({
+      store: { [SHOPPER_A]: SAVED },
+      items: { [SAVED]: [item(5, 1)] },
+    })
+
+    vtexId.validateToken.mockRejectedValueOnce({ response: { status: 503 } })
+
+    await expect(run(ctx, 'REPLACE')).resolves.toBeNull()
+    expect(vbase.getJSON).not.toHaveBeenCalled()
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(checkoutIO.getItems).not.toHaveBeenCalled()
+    expect(response.set).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vtexid_unavailable',
+      operation: 'replaceCart',
+      auth_result: 'unavailable',
+      status: 503,
+    })
+  })
+
+  it('invalid credential: null and an unauthenticated log with auth_result', async () => {
+    const { ctx, vtexId, logger, vbase } = mockContext()
+
+    vtexId.validateToken.mockResolvedValueOnce(null)
+
+    await expect(run(ctx, 'REPLACE')).resolves.toBeNull()
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'replaceCart',
+      auth_result: 'invalid',
+    })
+  })
+
+  it('VBase read failure: null, no cookie, vbase_error', async () => {
+    const { ctx, vbase, response, checkoutIO, logger } = mockContext({
+      store: { [SHOPPER_A]: SAVED },
+    })
+
+    vbase.getJSON.mockRejectedValueOnce({ response: { status: 500 } })
+
+    await expect(run(ctx, 'REPLACE')).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expect(checkoutIO.getItems).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vbase_error',
+      operation: 'replaceCart',
+      status: 500,
+    })
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it('VBase write failure while clearing a foreign reference: null, vbase_error', async () => {
+    const { ctx, vbase, response, logger } = mockContext({
+      store: { [SHOPPER_A]: OF_B },
+    })
+
+    vbase.saveJSON.mockRejectedValueOnce(new Error('vbase down'))
+
+    await expect(run(ctx, 'REPLACE', OF_A, OF_B)).resolves.toBeNull()
+    expect(response.set).not.toHaveBeenCalled()
+    expect(logger.warn).toHaveBeenCalledWith({
+      message: 'cross-device-cart.vbase_error',
+      operation: 'replaceCart',
+      status: null,
+    })
+    expectNoIdentifiersLogged(logger)
+  })
+
+  it.each([
+    [
+      'empty saved cart',
+      OF_A2,
+      { [OF_A]: [item(1, 1)] } as Record<string, PartialItem[]>,
+    ],
+    [
+      'anonymous saved cart',
+      OF_ANON,
+      { [OF_ANON]: [item(5, 1)], [OF_A]: [item(1, 1)] } as Record<
+        string,
+        PartialItem[]
+      >,
+    ],
+  ])(
+    'VBase write failure inside the Checkout block (%s): null, no cookie, vbase_error and not checkout_error',
+    async (_label, saved, items) => {
+      const { ctx, vbase, response, logger } = mockContext({
+        store: { [SHOPPER_A]: saved },
+        items,
+      })
+
+      vbase.saveJSON.mockRejectedValueOnce({ response: { status: 500 } })
+
+      await expect(run(ctx, 'COMBINE', OF_A, saved)).resolves.toBeNull()
+      expect(response.set).not.toHaveBeenCalled()
+      expect(logger.warn).toHaveBeenCalledWith({
+        message: 'cross-device-cart.vbase_error',
+        operation: 'replaceCart',
+        status: 500,
+      })
+      expect(logger.warn).not.toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'cross-device-cart.checkout_error' })
+      )
+      expectNoIdentifiersLogged(logger)
     }
   )
 })

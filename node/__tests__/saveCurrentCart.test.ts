@@ -8,6 +8,7 @@ import {
   OF_B,
   OF_CALL_CENTER,
   OF_ADDRESS_ONLY,
+  OF_CEP_ONLY,
   OF_IDENTIFIED,
   SHOPPER_A,
   SHOPPER_B,
@@ -68,13 +69,22 @@ describe('saveCurrentCart', () => {
     expect(vbase.saveJSON).not.toHaveBeenCalled()
   })
 
-  it('refuses an anonymous orderForm that only has a shipping address', async () => {
+  it('refuses an anonymous orderForm that has an identifying shipping address', async () => {
     const { ctx, vbase } = mockContext({ cookie: OF_ADDRESS_ONLY })
 
     await expect(
       saveCurrentCart({}, { orderFormId: OF_ADDRESS_ONLY }, ctx)
     ).resolves.toBe('rejected')
     expect(vbase.saveJSON).not.toHaveBeenCalled()
+  })
+
+  it('saves a cart that only has a postal code (shipping simulator)', async () => {
+    const { ctx, vbaseData } = mockContext({ cookie: OF_CEP_ONLY })
+
+    await expect(
+      saveCurrentCart({}, { orderFormId: OF_CEP_ONLY }, ctx)
+    ).resolves.toBe('success')
+    expect(vbaseData[SHOPPER_A]).toBe(OF_CEP_ONLY)
   })
 
   it('call center: no-op even when the client claims STORE_USER', async () => {
@@ -123,13 +133,80 @@ describe('saveCurrentCart', () => {
   )
 
   it('no token: no write', async () => {
-    const { ctx, vbase } = mockContext({ shopper: null })
+    const { ctx, vbase, logger } = mockContext({ shopper: null })
 
     await expect(
       saveCurrentCart({}, { userId: SHOPPER_A, orderFormId: OF_A }, ctx)
     ).resolves.toBe('unauthenticated')
     expect(vbase.saveJSON).not.toHaveBeenCalled()
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.unauthenticated',
+      operation: 'saveCurrentCart',
+      auth_result: 'no_token',
+    })
   })
+
+  it('invalid credential: unauthenticated, no write', async () => {
+    const { ctx, vtexId, vbase } = mockContext()
+
+    vtexId.validateToken.mockResolvedValueOnce(null)
+
+    await expect(saveCurrentCart({}, { orderFormId: OF_A }, ctx)).resolves.toBe(
+      'unauthenticated'
+    )
+    expect(vbase.saveJSON).not.toHaveBeenCalled()
+  })
+
+  it.each([[OF_A], [null]])(
+    'VTEX ID outage (orderFormId %s): rejected, no write, vtexid_unavailable warning',
+    async (orderFormId) => {
+      const { ctx, vtexId, vbase, logger } = mockContext()
+
+      vtexId.validateToken.mockRejectedValueOnce({ response: { status: 504 } })
+
+      await expect(saveCurrentCart({}, { orderFormId }, ctx)).resolves.toBe(
+        'rejected'
+      )
+      expect(vbase.saveJSON).not.toHaveBeenCalled()
+      expect(logger.warn).toHaveBeenCalledWith({
+        message: 'cross-device-cart.vtexid_unavailable',
+        operation: 'saveCurrentCart',
+        auth_result: 'unavailable',
+        status: 504,
+      })
+      expectNoIdentifiersLogged(logger)
+    }
+  )
+
+  it('logs auth_result ok on success', async () => {
+    const { ctx, logger } = mockContext()
+
+    await saveCurrentCart({}, { orderFormId: OF_A }, ctx)
+    expect(logger.info).toHaveBeenCalledWith({
+      message: 'cross-device-cart.authenticated',
+      operation: 'saveCurrentCart',
+      auth_result: 'ok',
+    })
+  })
+
+  it.each([[OF_A], [null]])(
+    'VBase write failure (orderFormId %s): rejected, vbase_error without ids',
+    async (orderFormId) => {
+      const { ctx, vbase, logger } = mockContext()
+
+      vbase.saveJSON.mockRejectedValueOnce({ response: { status: 500 } })
+
+      await expect(saveCurrentCart({}, { orderFormId }, ctx)).resolves.toBe(
+        'rejected'
+      )
+      expect(logger.warn).toHaveBeenCalledWith({
+        message: 'cross-device-cart.vbase_error',
+        operation: 'saveCurrentCart',
+        status: 500,
+      })
+      expectNoIdentifiersLogged(logger)
+    }
+  )
 })
 
 describe('FR-D2 duplicate checkout cookies', () => {

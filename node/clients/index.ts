@@ -64,6 +64,8 @@ const clients: ClientsConfig<Clients> = {
       concurrency: 2,
       memoryCache,
     },
+    vtexId: { timeout: 2000, retries: 1 },
+    checkoutRest: { timeout: 3000, retries: 1 },
   },
 }
 

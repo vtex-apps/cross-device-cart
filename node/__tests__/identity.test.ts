@@ -27,24 +27,26 @@ describe('isValidOrderFormId', () => {
 })
 
 describe('resolveShopper', () => {
-  it('returns the VTEX ID id for a valid store token of this account', async () => {
+  it('returns ok with the VTEX ID id for a valid store token of this account', async () => {
     const { ctx } = mockContext({ shopper: SHOPPER_A })
 
     await expect(resolveShopper(ctx)).resolves.toEqual({
-      userId: SHOPPER_A,
-      email: EMAIL_A,
+      authResult: 'ok',
+      shopper: { userId: SHOPPER_A, email: EMAIL_A },
     })
   })
 
-  it('returns null without calling VTEX ID when there is no token', async () => {
+  it('returns no_token without calling VTEX ID when there is no token', async () => {
     const { ctx, vtexId } = mockContext({ shopper: null })
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
+    await expect(resolveShopper(ctx)).resolves.toEqual({
+      authResult: 'no_token',
+    })
     expect(vtexId.validateToken).not.toHaveBeenCalled()
   })
 
   it.each([
-    ['invalid token', null],
+    ['invalid token', null, 'invalid'],
     [
       'other account',
       {
@@ -53,6 +55,7 @@ describe('resolveShopper', () => {
         account: 'other',
         audience: 'webstore',
       },
+      'account_mismatch',
     ],
     [
       'admin audience',
@@ -62,6 +65,7 @@ describe('resolveShopper', () => {
         account: ACCOUNT,
         audience: 'admin',
       },
+      'audience_mismatch',
     ],
     [
       'not Success',
@@ -71,28 +75,40 @@ describe('resolveShopper', () => {
         account: ACCOUNT,
         audience: 'webstore',
       },
+      'invalid',
     ],
     [
       'missing id',
       { authStatus: 'Success', account: ACCOUNT, audience: 'webstore' },
+      'invalid',
     ],
-  ])('returns null for %s', async (_label, credential) => {
+  ])('returns %s as %s', async (_label, credential, authResult) => {
     const { ctx, vtexId } = mockContext({ shopper: SHOPPER_A })
 
     vtexId.validateToken.mockResolvedValueOnce(credential as any)
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
+    await expect(resolveShopper(ctx)).resolves.toEqual({ authResult })
   })
 
-  it('fails closed and logs when VTEX ID is unavailable', async () => {
-    const { ctx, vtexId, logger } = mockContext({ shopper: SHOPPER_A })
+  it('returns unavailable (with the status) when VTEX ID fails, not "not logged in"', async () => {
+    const { ctx, vtexId } = mockContext({ shopper: SHOPPER_A })
 
     vtexId.validateToken.mockRejectedValueOnce({ response: { status: 503 } })
 
-    await expect(resolveShopper(ctx)).resolves.toBeNull()
-    expect(logger.warn).toHaveBeenCalledWith({
-      message: 'cross-device-cart.vtexid_unavailable',
+    await expect(resolveShopper(ctx)).resolves.toEqual({
+      authResult: 'unavailable',
       status: 503,
+    })
+  })
+
+  it('returns unavailable with status null on a network error', async () => {
+    const { ctx, vtexId } = mockContext({ shopper: SHOPPER_A })
+
+    vtexId.validateToken.mockRejectedValueOnce(new Error('ETIMEDOUT'))
+
+    await expect(resolveShopper(ctx)).resolves.toEqual({
+      authResult: 'unavailable',
+      status: null,
     })
   })
 })
