@@ -6,6 +6,7 @@ metadata:
   annotations:
     github.com/project-slug: vtex-apps/cross-device-cart
     vtex.com/platform-flow-id: Shopper#2
+    vtex.com/application-id: M9T7T2ZE
 spec:
   type: service
   lifecycle: deprecated
