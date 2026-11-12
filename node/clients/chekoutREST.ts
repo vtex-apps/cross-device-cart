@@ -20,11 +20,16 @@ export interface RawOrderFormOwnerFields {
   salesChannel?: string | null
 }
 
-const hasShippingAddress = (raw: RawOrderFormOwnerFields): boolean =>
-  (typeof raw.shippingData?.address === 'object' &&
-    raw.shippingData.address !== null) ||
-  (Array.isArray(raw.shippingData?.selectedAddresses) &&
-    raw.shippingData.selectedAddresses.length > 0)
+const hasShippingAddress = (raw: RawOrderFormOwnerFields): boolean => {
+  const { shippingData } = raw
+  const address = shippingData?.address
+  const selectedAddresses = shippingData?.selectedAddresses
+
+  return (
+    (typeof address === 'object' && address !== null) ||
+    (Array.isArray(selectedAddresses) && selectedAddresses.length > 0)
+  )
+}
 
 /**
  * Keeps only the fields needed for ownership decisions. The email is kept only
