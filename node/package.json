@@ -28,5 +28,8 @@
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.js"
     ]
+  },
+  "resolutions": {
+    "@opentelemetry/api": "1.9.0"
   }
 }
