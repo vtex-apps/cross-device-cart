@@ -148,4 +148,19 @@ describe('CheckoutRestClient.getOrderFormOwner', () => {
       response: { status: 500 },
     })
   })
+
+  it('treats a response for a different orderForm id as not found', async () => {
+    const client = new CheckoutRestClient(ioContext)
+
+    ;(client as any).http = {
+      get: jest.fn().mockResolvedValue({
+        orderFormId: 'b'.repeat(32),
+        userProfileId: null,
+        clientProfileData: null,
+        shippingData: null,
+      }),
+    }
+
+    await expect(client.getOrderFormOwner(ID)).resolves.toBeNull()
+  })
 })

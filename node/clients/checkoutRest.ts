@@ -65,6 +65,11 @@ export default class CheckoutRestClient extends JanusClient {
         }
       )
 
+      // A response for another orderForm cannot be trusted as the owner of this one.
+      if (orderForm?.orderFormId && orderForm.orderFormId !== orderFormId) {
+        return null
+      }
+
       return {
         orderFormId,
         userProfileId: orderForm.userProfileId || null,
