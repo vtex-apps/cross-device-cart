@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-13
+
 ### Security
 - Shopper identity and sales channel are now derived server-side (VTEX ID token and segment); client `userId`, `salesChannel` and `userType` arguments are ignored.
 - Saved cart references are validated against the orderForm owner on save, on read and on merge; foreign references are deleted on read.
