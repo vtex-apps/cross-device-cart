@@ -1,34 +1,60 @@
 type Query {
   """
-  Retrieves a cross cart OrderForm ID. Will return NULL if no reference was stored.
+  Retrieves the caller's own cross cart OrderForm ID. The shopper is identified
+  server-side from the store-user token; `userId` and `userType` are deprecated
+  and ignored. Returns NULL if no valid reference is stored; on a transient
+  lookup failure the reference is kept and a GraphQL error is returned.
+  `@auth(scope: PUBLIC)` does not restrict callers: authentication is enforced
+  inside the resolver, which returns NULL when the request carries no valid
+  store-user token.
   """
-  getSavedCart(userId: String!, nullOnEmpty: Boolean, userType: String): String
-    @cacheControl(scope: PUBLIC, maxAge: ZERO)
+  getSavedCart(userId: String, nullOnEmpty: Boolean, userType: String): String
+    @cacheControl(scope: PRIVATE, maxAge: ZERO)
+    @auth(scope: PUBLIC)
 
   """
   Retrieve app settings
   """
   getAppSettings: CrossDeviceCartSettings
     @cacheControl(scope: PUBLIC, maxAge: SHORT)
+    @auth(scope: PUBLIC)
 }
 
 type Mutation {
   """
-  Stores an OrderForm ID for a specific user, as a cross cart reference.
+  Stores an OrderForm ID as the caller's cross cart reference, only if the
+  orderForm is anonymous or owned by the caller. `userId` and `userType` are
+  deprecated and ignored. `@auth(scope: PUBLIC)` does not restrict callers:
+  authentication is enforced inside the resolver, which returns
+  "unauthenticated" when the request carries no valid store-user token.
   """
-  saveCurrentCart(userId: String!, orderFormId: String, userType: String): String
+  saveCurrentCart(
+    userId: String
+    orderFormId: String
+    userType: String
+  ): String @cacheControl(scope: PRIVATE, maxAge: ZERO) @auth(scope: PUBLIC)
+
   """
-  Replaces current cart with a saved cart. Optionally, you can request that both list of items be merged.
+  Adopts the caller's own saved cart (OWNED by the token identity and with
+  items), merging the current cart into it according to the strategy. A saved
+  cart that is foreign, identified-but-not-owned or from a call-center session
+  is never adopted; an anonymous saved cart is never adopted either, only its
+  missing items are added to the current cart. `userType` is deprecated and
+  ignored. `@auth(scope: PUBLIC)` does not restrict callers: authentication is
+  enforced inside the resolver, which returns NULL when the request carries no
+  valid store-user token.
   """
   replaceCart(
     savedCart: String!
     currentCart: String!
     strategy: Strategy!
     userType: String
-  ): OrderForm
+  ): OrderForm @cacheControl(scope: PRIVATE, maxAge: ZERO) @auth(scope: PUBLIC)
 
   """
-  Save app settings
+  Save app settings (admin only)
   """
   saveAppSettings(settings: SaveSettings): Boolean
+    @cacheControl(scope: PRIVATE, maxAge: ZERO)
+    @auth(scope: PRIVATE, productCode: "38", resourceCode: "topbar_visualizar")
 }

@@ -5,7 +5,7 @@ interface ReplaceCartVariables {
   savedCart: Scalars['ID']
   currentCart: Scalars['ID']
   strategy: Strategy
-  userType: string
+  userType?: string
 }
 
 interface PartialOrderFormItems {
@@ -70,3 +70,67 @@ interface AppSettings {
     strategy: Strategy
   }
 }
+
+interface OrderFormOwner {
+  orderFormId: string
+  userProfileId: string | null
+  userType: string | null
+  loggedIn: boolean
+  /** client PII present (profile fields or an identifying address), see hasClientPii */
+  hasClientProfile: boolean
+  /** clientProfileData.email as returned (may be masked with `*`). In memory only, never logged. */
+  email: string | null
+}
+
+type OwnershipVerdict =
+  | 'OWNED'
+  | 'ANONYMOUS'
+  | 'FOREIGN'
+  | 'UNVERIFIED_PROFILE'
+  | 'CALL_CENTER'
+  | 'NOT_FOUND'
+
+/** Verdict, or a transient owner-lookup failure (the reference is kept). */
+type VerdictOrFailure = OwnershipVerdict | 'LOOKUP_FAILED'
+
+/** `verdict` field of `ownership_rejected` log lines */
+type RejectionReason =
+  | VerdictOrFailure
+  | 'SAVED_CART_MISMATCH'
+  | 'COOKIE_MISMATCH'
+
+/** optional `reason` field (FR-D1, FR-D2) */
+type OwnershipReason =
+  | 'email_mismatch'
+  | 'email_masked'
+  | 'email_unverified'
+  | 'cookie_mismatch'
+  | 'cookie_conflict'
+
+interface OwnershipResult {
+  verdict: VerdictOrFailure
+  reason?: OwnershipReason
+}
+
+interface ShopperIdentity {
+  userId: string
+  /** VTEX ID `user` (login email). Used only for the FR-D1 comparison, never logged. */
+  email: string | null
+}
+
+type AuthFailure =
+  | 'no_token'
+  | 'invalid'
+  | 'account_mismatch'
+  | 'audience_mismatch'
+  | 'unavailable'
+
+type ShopperResult =
+  | { authResult: 'ok'; shopper: ShopperIdentity }
+  | {
+      authResult: AuthFailure
+      /** HTTP status of the VTEX ID error, only for `unavailable` (null if none). */
+      status?: number | null
+    }
+
+type CrossCartOperation = 'getSavedCart' | 'saveCurrentCart' | 'replaceCart'

@@ -6,7 +6,7 @@
     "lint": "eslint --ext js,jsx,ts,tsx .",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json}\"",
     "lint:locales": "intl-equalizer",
-    "test": "cd ./react && yarn test"
+    "test": "yarn --cwd ./node test && yarn --cwd ./react test"
   },
   "husky": {
     "hooks": {

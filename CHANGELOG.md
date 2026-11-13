@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Authentication for `getSavedCart`, `saveCurrentCart` and `replaceCart` is enforced in the resolvers (fail-closed: `null`, or `unauthenticated` for `saveCurrentCart`, for callers without a valid store-user token). The `@auth(scope: PUBLIC)` directive on these operations is not an access control.
+- An orderForm without `userProfileId` that has client PII (a client email, document, phone or name, or an identifying shipping address: `receiverName`, `street` or `number`, in `address`, `selectedAddresses` or `availableAddresses`) is treated as `UNVERIFIED_PROFILE` and refused, even without a client email. A cart with only a postal code (shipping simulator) stays anonymous, and a `loggedIn` cart without `userProfileId` is never anonymous.
+- The owner lookup fails closed: a Checkout response that is not an orderForm echoing the requested id (empty body, 204, HTML, `{}`) is a lookup failure, not an anonymous cart.
+- A VTEX ID outage is no longer treated as "not logged in": `getSavedCart` throws (the saved reference is kept), `saveCurrentCart` returns `rejected`, `replaceCart` returns `null`, and nothing is written.
+- A VBase or Checkout failure can no longer escape the resolvers (which would make the platform log the query variables); it is logged as `cross-device-cart.vbase_error` / `checkout_error` without identifiers, and `getSavedCart` throws instead of returning `null`.
+- The `order-created` event no longer logs the raw error object, only `message`, `orderId` and `status`.
+- A failed Checkout read of the current or saved cart in `replaceCart` is now caught and logged without identifiers instead of escaping as a GraphQL error.
+- Shopper identity is now derived server-side from the store-user token (VTEX ID); `userId`/`userType` arguments are ignored.
+- Saved references are only stored, returned or merged when the orderForm is owned by the shopper or anonymous; foreign references are cleared on read.
+- `replaceCart` adopts the saved cart (`checkout.vtex.com` cookie) only when it belongs to the logged-in shopper, and only after the merge succeeded; foreign carts are never read, cleared, written or adopted.
+- Adoption also requires the cart's (unmasked) profile email to match the logged-in shopper.
+- Saved and current carts must match the browser's own `checkout.vtex.com` cookie.
+- `saveAppSettings` requires admin access.
+
+### Changed
+- Logs: `cross-device-cart.unauthenticated` now carries `auth_result` (`no_token`, `invalid`, `account_mismatch`, `audience_mismatch`), a VTEX ID outage logs `cross-device-cart.vtexid_unavailable`, and a valid token logs `cross-device-cart.authenticated`.
+- `replaceCart` logs `cross-device-cart.current_cart_ignored` (info) when it continues without using the current cart; `ownership_rejected` is kept for real rejections.
+- `replaceCart` does a single owner lookup when the saved and the current cart are the same.
+- Per-client timeouts: VTEX ID 2s with 1 retry, Checkout REST 3s with 1 retry. The VTEX ID token validation and the Checkout reads are never memory-cached.
+- A `userId` argument that does not match the authenticated shopper is still ignored, and now logs a warning without any identifiers.
+- Moved to the `graphql` builder 2.x (explicit `@auth` scopes). The runtime dependency `@vtex/api` is now 6.51.0 (the `scope` argument of `@auth` needs 6.50 or later) and the local TypeScript tooling 4.9.5.
+- The cart mutations and the settings mutation now use a private cache scope, and their client documents request the private route.
+- An in-flight cart merge no longer applies its result (or sends the Checkout request) after the session user changed or the component unmounted.
+- An anonymous saved cart is no longer adopted; its missing items are added to the current cart.
+- An empty saved cart is no longer adopted.
+- A refused merge is silent in automatic mode; the error toast is shown only in manual mode.
+
 ## [1.5.1] - 2026-02-04
 
 ### Fixed

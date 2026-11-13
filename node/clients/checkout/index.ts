@@ -4,7 +4,7 @@ import type {
   Serializable,
   GraphQLResponse,
 } from '@vtex/api'
-import { AppGraphQLClient } from '@vtex/api'
+import { AppGraphQLClient, CacheType } from '@vtex/api'
 import { ItemInput } from 'vtex.checkout-graphql'
 
 import {
@@ -61,6 +61,7 @@ export default class CheckoutIO extends AppGraphQLClient {
         },
         {
           metric: 'checkout-orderform',
+          cacheable: CacheType.None,
         }
       )
       .then(
@@ -96,6 +97,7 @@ export default class CheckoutIO extends AppGraphQLClient {
         },
         {
           metric: 'checkout-orderform',
+          cacheable: CacheType.None,
         }
       )
       .then(
