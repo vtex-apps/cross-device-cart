@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-13
+
 ### Security
 - Authentication for `getSavedCart`, `saveCurrentCart` and `replaceCart` is enforced in the resolvers (fail-closed: `null`, or `unauthenticated` for `saveCurrentCart`, for callers without a valid store-user token). The `@auth(scope: PUBLIC)` directive on these operations is not an access control.
 - An orderForm without `userProfileId` that has client PII (a client email, document, phone or name, or an identifying shipping address: `receiverName`, `street` or `number`, in `address`, `selectedAddresses` or `availableAddresses`) is treated as `UNVERIFIED_PROFILE` and refused, even without a client email. A cart with only a postal code (shipping simulator) stays anonymous, and a `loggedIn` cart without `userProfileId` is never anonymous.
