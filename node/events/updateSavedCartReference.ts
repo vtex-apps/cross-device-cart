@@ -1,4 +1,5 @@
 import { APP_NAME } from '../constants'
+import { httpStatus } from '../utils/httpStatus'
 
 /**
  * Listens to the event "order-created" from the broadcaster.
@@ -11,34 +12,41 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
     vtex: { logger },
     clients: { oms, vbase },
   } = ctx
-  if( userType != "CALL_CENTER_OPERATOR") {
+
+  if (userType !== 'CALL_CENTER_OPERATOR') {
     try {
       const customerOrder = await oms.order(orderId)
-  
+
       const {
         orderFormId,
         clientProfileData: { userProfileId },
-        salesChannel
+        salesChannel,
       } = customerOrder
-  
+
       const crossCartReference: string | null = await vbase.getJSON(
         APP_NAME,
         `${userProfileId}-sc:${salesChannel}`,
         true
       )
-  
+
       if (crossCartReference === orderFormId) {
-        await vbase.saveJSON(APP_NAME, `${userProfileId}-sc:${salesChannel}`, null)
-  
+        await vbase.saveJSON(
+          APP_NAME,
+          `${userProfileId}-sc:${salesChannel}`,
+          null
+        )
+
         logger.info({
-          message: `Cross Device Cart reference removed for user ${userProfileId}`,
+          message: 'cross-device-cart.reference_removed_on_order',
         })
       }
     } catch (error) {
       logger.error({
-        orderId,
         message: 'There was a problem removing the reference for this order.',
-        data: error,
+        // orderId is the documented exception; never log the error object
+        // (it can carry the order, the shopper profile and request headers).
+        orderId,
+        status: httpStatus(error) ?? null,
       })
     }
   } else {
@@ -46,5 +54,4 @@ export async function updateSavedCartReference(ctx: StatusChangeContext) {
       message: `Is Call center Operator`,
     })
   }
-
 }

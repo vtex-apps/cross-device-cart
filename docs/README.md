@@ -54,6 +54,13 @@ To do so, this app was created to enable `logged in` users to retrieve their car
 3. (Optional) You can tailor the default experience by accesing the admin app settings.  
    By default, the app handles the replacement automatically. But it you set it to manual, a challenge block will be rendered as an action bar, for the user to interact with.
 
+## Behavior and security
+
+- Only the logged-in shopper's own cart (or a cart that was anonymous) is saved and recovered. The shopper is identified on the server from the VTEX ID session; no identifier is accepted from the browser.
+- Recovery makes every device use the shopper's own saved cart, following the configured strategy (`Replace`, `Add`, `Combine`). A cart that belongs to another person is never adopted, and its items, profile and address are never copied. A cart that was anonymous only contributes its items.
+- Carts handled by call-center operators are ignored.
+- App settings can only be changed by admin users.
+
 ## Customization
 
 | CSS Handles     |
